@@ -1,0 +1,92 @@
+# Local stack from the images CI publishes to GHCR (or built from source).
+# See docs/local-dev.md. Usual entry points: `task local:backend`, `task local:up`.
+#
+#   backend (default): db + api            → API on http://localhost:8080
+#   full (profile):    + web + proxy       → site on http://localhost:8088
+#
+# The database is a plain Postgres 17 with the roles Supabase provides and the
+# migrations from supabase/migrations applied on first start. To use the
+# Supabase CLI stack (or any other database) instead, set BEDA_LOCAL_DATABASE_URL
+# and start api without db: `docker compose ... up -d --no-deps api`.
+
+name: beda-local
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "${BEDA_LOCAL_DB_PORT:-54330}:5432"
+    volumes:
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+      - ../../supabase/migrations:/migrations:ro
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    image: ghcr.io/giglabocom/beda-api:${BEDA_TAG:-main}
+    platform: ${BEDA_LOCAL_PLATFORM:-linux/amd64}
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    environment:
+      BEDA_ENV: dev
+      BEDA_LOG: ${BEDA_LOG:-info}
+      BEDA_HTTP_ADDR: 0.0.0.0:8080
+      BEDA_BASE_URL: ${BEDA_LOCAL_BASE_URL:-http://localhost:4321}
+      BEDA_DATABASE_URL: ${BEDA_LOCAL_DATABASE_URL:-postgresql://beda_api:beda_api_dev@db:5432/postgres}
+    ports:
+      - "${BEDA_LOCAL_API_PORT:-8080}:8080"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      db:
+        condition: service_healthy
+        required: false
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/beda-api", "healthcheck"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  web:
+    profiles: [full]
+    image: ghcr.io/giglabocom/beda-web:${BEDA_TAG:-main}
+    platform: ${BEDA_LOCAL_PLATFORM:-linux/amd64}
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+    environment:
+      HOST: 0.0.0.0
+      PORT: "4321"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:4321/').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  # Same routing as production Caddy (/api/* → api, the rest → web), plain HTTP.
+  proxy:
+    profiles: [full]
+    image: caddy:2.11.4-alpine
+    ports:
+      - "${BEDA_LOCAL_HTTP_PORT:-8088}:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      web:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+
+volumes:
+  db-data:

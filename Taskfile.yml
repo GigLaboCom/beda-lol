@@ -30,7 +30,7 @@ tasks:
       - BEDA_DATABASE_URL="$(task db:api-url)" pnpm exec nx run-many -t dev --outputStyle=stream
 
   web:dev:
-    desc: Astro dev server on :4321 (proxies /api to :8080)
+    desc: 'Astro dev server on :4321; /api goes to BEDA_API_URL (default http://localhost:8080)'
     cmds:
       - pnpm exec nx run web:dev --outputStyle=stream
 
@@ -161,8 +161,60 @@ tasks:
     desc: shellcheck the deploy scripts (local binary or the official image)
     cmds:
       - |
-        if command -v shellcheck >/dev/null; then shellcheck deploy/scripts/*.sh
-        else docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck:stable deploy/scripts/*.sh; fi
+        if command -v shellcheck >/dev/null; then shellcheck deploy/scripts/*.sh deploy/local/initdb/*.sh
+        else docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck:stable deploy/scripts/*.sh deploy/local/initdb/*.sh; fi
+
+  # ── Local stack from GHCR images (docs/local-dev.md) ──────────────────────
+  local:pull:
+    desc: 'Pull the published images (BEDA_TAG=main by default, or a commit SHA)'
+    cmds:
+      - docker compose -f deploy/local/compose.yaml --profile full pull api web
+
+  local:db:
+    desc: 'Only the local Postgres (:54330) — for the API run on the host with cargo'
+    cmds:
+      - docker compose -f deploy/local/compose.yaml up -d --wait db
+      - echo 'BEDA_DATABASE_URL=postgresql://beda_api:beda_api_dev@127.0.0.1:54330/postgres'
+
+  local:backend:
+    desc: 'Backend only: Postgres + API on :8080 — run the frontend on the host with task web:dev'
+    cmds:
+      - docker compose -f deploy/local/compose.yaml up -d --wait {{.CLI_ARGS}} db api
+
+  local:api:
+    desc: 'API container only, against BEDA_LOCAL_DATABASE_URL (e.g. the Supabase CLI stack via host.docker.internal)'
+    cmds:
+      - docker compose -f deploy/local/compose.yaml up -d --wait --no-deps api
+    preconditions:
+      - sh: '[ -n "$BEDA_LOCAL_DATABASE_URL" ]'
+        msg: 'set BEDA_LOCAL_DATABASE_URL, e.g. postgresql://beda_api:beda_api_dev@host.docker.internal:54322/postgres'
+
+  local:up:
+    desc: 'Whole site from images: db + api + web + proxy on http://localhost:8088'
+    cmds:
+      - docker compose -f deploy/local/compose.yaml --profile full up -d --wait {{.CLI_ARGS}}
+
+  local:build:
+    desc: Build the api and web images from this checkout, tagged `local` (then BEDA_TAG=local task local:up)
+    cmds:
+      - docker compose -f deploy/local/compose.yaml --profile full build api web
+    env:
+      BEDA_TAG: local
+
+  local:logs:
+    desc: Follow the local stack logs
+    cmds:
+      - docker compose -f deploy/local/compose.yaml --profile full logs -f {{.CLI_ARGS}}
+
+  local:down:
+    desc: Stop the local stack (keeps the database volume)
+    cmds:
+      - docker compose -f deploy/local/compose.yaml --profile full down
+
+  local:reset:
+    desc: Stop the local stack and drop its database (migrations re-apply on next start)
+    cmds:
+      - docker compose -f deploy/local/compose.yaml --profile full down -v
 
   deny:
     desc: cargo-deny (licenses, advisories, bans, sources)

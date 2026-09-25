@@ -8,6 +8,10 @@ import { defineConfig } from 'astro/config';
 // Public site URL: canonical links, OG and sitemaps are built from it.
 const site = process.env.BEDA_BASE_URL ?? 'https://beda.lol';
 
+// Where `astro dev` proxies /api: the API on the host or in the local compose
+// stack (default), or any running backend, e.g. BEDA_API_URL=https://beda.lol.
+const apiUrl = process.env.BEDA_API_URL ?? 'http://localhost:8080';
+
 // Pillar articles still marked `draft: true` carry noindex and stay out of the sitemap.
 const pillarsDir = new URL('./src/content/pillars/', import.meta.url);
 const pillarFiles = readdirSync(pillarsDir).filter((f) => f.endsWith('.md'));
@@ -50,7 +54,11 @@ export default defineConfig({
     server: {
       // Same origin in dev as in prod: /api goes to the Rust API.
       proxy: {
-        '/api': { target: 'http://localhost:8080', changeOrigin: false },
+        '/api': {
+          target: apiUrl,
+          changeOrigin: !apiUrl.startsWith('http://localhost'),
+          secure: true,
+        },
       },
     },
   },

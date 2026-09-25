@@ -62,3 +62,8 @@ push to main ─▶ ci ──green──▶ images ──▶ deploy
   SHA (for rollbacks and drills). Server side: `scripts/deploy.sh` pulls, restarts, polls
   `/api/readyz` and `/` for 60 s and rolls back to `/opt/beda/.last_good` on failure.
 - Server setup and the GitHub secrets/variables: `SERVER-SETUP.md`.
+
+## Local stack
+
+`deploy/local/` runs the published images on a developer machine (plain Postgres,
+no TLS). See `docs/local-dev.md`.

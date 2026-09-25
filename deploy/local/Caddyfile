@@ -1,0 +1,9 @@
+# Local proxy: one origin like production, no TLS.
+:80 {
+	handle /api/* {
+		reverse_proxy api:8080
+	}
+	handle {
+		reverse_proxy web:4321
+	}
+}

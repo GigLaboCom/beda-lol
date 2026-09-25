@@ -40,10 +40,15 @@ Requirements: Node 22.12+ (CI uses the LTS from `.node-version`), pnpm via
 
 ```sh
 pnpm install
-task dev        # Supabase + API on :8080 + web on :4321
-task check      # everything CI runs
-pnpm nx graph   # project graph
+task dev             # Supabase + API on :8080 + web on :4321
+task local:up        # or: the whole site from the published images on :8088
+task local:backend   #     API + DB from images, then `task web:dev` for the frontend
+task check           # everything CI runs
+task gate            # Rust quality gate before a push
+pnpm nx graph        # project graph
 ```
+
+All local setups: `docs/local-dev.md`. Acceptance rules: `docs/engineering/quality-gate.md`.
 
 ## Status
 

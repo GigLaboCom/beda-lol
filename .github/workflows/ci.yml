@@ -39,7 +39,7 @@ jobs:
       - name: Biome
         run: pnpm exec biome ci .
       - name: shellcheck (deploy scripts)
-        run: shellcheck deploy/scripts/*.sh
+        run: shellcheck deploy/scripts/*.sh deploy/local/initdb/*.sh
       - name: Typecheck (Nx)
         run: pnpm exec nx run-many -t typecheck --exclude=api --outputStyle=static
       - name: Unit tests (Nx)
