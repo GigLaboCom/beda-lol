@@ -12,7 +12,7 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [ ] S06 Server, deploy workflow, backups
 
 ## Stage 1 — Static site and quiz
-- [ ] S07 packages/core
+- [x] S07 packages/core
 - [ ] S08 packages/transom
 - [ ] S09 Home page
 - [ ] S10 Ship inspection quiz and result page
@@ -83,3 +83,10 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
 - New deps: none in code. Actions: docker/setup-buildx-action v4.4.1, docker/login-action v4.6.0, docker/metadata-action v6.2.0, docker/build-push-action v7.4.0 (all SHA-pinned).
 - Follow-ups: the break-on-purpose rollback test and the first real nightly restore report need the server.
 - [HUMAN] open: rent the VPS and follow `deploy/SERVER-SETUP.md`; DNS for `beda.lol`; environment `production` with secrets `DEPLOY_SSH_KEY`, `SSH_KNOWN_HOSTS`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD` and variables `DEPLOY_HOST`, `SUPABASE_PROJECT_REF`; Supabase project on a paid plan + `beda_api` password; bucket + `age` key pair; make the three GHCR packages public after the first `images` run on `main`.
+
+### S07 — packages/core — 2026-09-25
+- Done: `@beda/core` (ESM TS source, strict, no runtime deps): `letters`, `quiz` (questions, `liveNails`, `scores`, `finalNails`, `classify` with the П+О case first, `ACTS`, `pickActions`), `result-code` (codec, strict `decode`, `allCodes`), `share`, `namer` (`normalizeName`, `FUNNY`, `STOP`, `findRemoval`, `fallenLetters` with proper Russian plurals, `verdict`), `tracker` (`STEPS`, `nailState`). Shared fixture `fixtures/result-codes.json` for the Rust validator (S10). 57 Vitest tests; coverage 100 % lines on `quiz.ts`, `result-code.ts`, `namer.ts` (thresholds enforced at 90 %).
+- Deviations from step/spec: `normalizeName` trims again after cutting to 14 (no trailing space). `fallenLetters` uses full Russian plural rules (21 → «отвалившаяся буква»), identical to the prototype for 1–14. The prototype's stop-list fallback cannot actually avoid a stop word (the remainder is a suffix); behaviour kept, documented in the README.
+- New deps: `@vitest/coverage-v8` (coverage threshold required by the step), `@types/node` (tests read the fixture).
+- Follow-ups: improve the stop-list fallback (e.g. drop letters from the end) — needs a product decision.
+- [HUMAN] open: none.

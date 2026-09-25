@@ -1,0 +1,19 @@
+{
+  "$comment": "Shared by @beda/core (Vitest) and beda-api (cargo test): the result-code validator must agree on every entry.",
+  "valid": ["000000", "222222", "002212", "112020", "210012", "012012"],
+  "invalid": [
+    "",
+    "00221",
+    "0022120",
+    "003212",
+    "abcdef",
+    "00221a",
+    " 00221",
+    "002212 ",
+    "-02212",
+    "٠٠٢٢١٢",
+    "００２２１２",
+    "3",
+    "002 12"
+  ]
+}
