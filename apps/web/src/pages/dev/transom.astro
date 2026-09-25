@@ -1,0 +1,74 @@
+---
+/**
+ * Visual check page for the transom (S08). Not linked anywhere, noindex,
+ * disallowed in robots.txt and excluded from the sitemap.
+ */
+import { WORD } from '@beda/core';
+import Transom from '@beda/transom/Transom.astro';
+import Base from '../../layouts/Base.astro';
+
+const counts = [4, 1, 0] as const;
+const combos = counts.flatMap((p) => counts.map((o) => [p, o, 4, 4, 4, 4]));
+const latin = Array.from('BUG TRACKER PRO');
+---
+
+<Base title="Транец — стенд" robots="noindex, nofollow">
+  <div class="wrap bench">
+    <h1 class="display">Транец: стенд</h1>
+    <p class="kicker">П и О: 4, 1, 0 гвоздей. Висящая П ≈ 37°, О опрокидывается по часовой ≈ 124° вокруг нижней левой клёпки.</p>
+    <div class="grid">
+      {
+        combos.map((nails) => (
+          <figure>
+            <Transom letters={WORD} nails={nails} size="56px" />
+            <figcaption class="mono">{nails.join(' ')}</figcaption>
+          </figure>
+        ))
+      }
+    </div>
+    <h2 class="display">Длинное латинское название</h2>
+    <Transom letters={latin} nails={latin.map((_, i) => (i % 5 === 0 ? 0 : i % 3 === 0 ? 1 : 4))} size="min(48px, 5.5vw)" />
+    <h2 class="display">Анимация</h2>
+    <Transom letters={WORD} id="live" size="64px" />
+    <p><button class="btn" type="button" id="play">Проиграть П → 1, О → 0</button></p>
+  </div>
+</Base>
+
+<script>
+  import { attachTransom } from '@beda/transom/client';
+
+  const root = document.getElementById('live');
+  const button = document.getElementById('play');
+  if (root && button) {
+    const tr = attachTransom(root);
+    button.addEventListener('click', () => {
+      tr.set([4, 4, 4, 4, 4, 4], { animate: false });
+      setTimeout(() => tr.set([1, 4, 4, 4, 4, 4]), 300);
+      setTimeout(() => tr.set([1, 0, 4, 4, 4, 4]), 1800);
+    });
+  }
+</script>
+
+<style>
+  .bench {
+    padding-block: 48px 80px;
+  }
+  .bench h2 {
+    font-size: 28px;
+    margin: 48px 0 16px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+    gap: 32px 24px;
+    margin-top: 32px;
+  }
+  figure {
+    margin: 0;
+  }
+  figcaption {
+    text-align: center;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+</style>

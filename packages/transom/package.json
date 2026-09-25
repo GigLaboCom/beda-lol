@@ -1,0 +1,29 @@
+{
+  "name": "@beda/transom",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The transom (name board) with nailed, hanging and fallen letters: SSR markup, client controller, Astro wrapper",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./Transom.astro": "./src/Transom.astro",
+    "./transom.css": "./src/transom.css"
+  },
+  "files": [
+    "src"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.4",
+    "happy-dom": "20.14.5",
+    "typescript": "6.0.3",
+    "vitest": "5.0.2"
+  }
+}

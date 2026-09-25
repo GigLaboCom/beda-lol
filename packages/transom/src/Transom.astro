@@ -1,0 +1,20 @@
+---
+/**
+ * The transom, rendered on the server with its state. Add `attachTransom`
+ * from `@beda/transom/client` on the page to animate it.
+ */
+import './transom.css';
+import { renderTransom } from './render';
+
+interface Props {
+  letters: readonly string[];
+  nails?: readonly number[];
+  size?: string;
+  id?: string;
+  label?: string;
+}
+
+const html = renderTransom(Astro.props);
+---
+
+<Fragment set:html={html} />

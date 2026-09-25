@@ -1,0 +1,149 @@
+/*
+ * Transom (name board). Ported from archive/site/yacht-beda-site.html.
+ * Every size is in em of the wrapper's font size, set through --ts, so one
+ * variable scales letters, nails, seams, radius and fall distance together.
+ * Colours only through tokens (@beda/tokens).
+ */
+.transom-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: var(--ts, 112px);
+}
+.transom {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  gap: 0.1em;
+  padding: 0.46em 0.4em 0.5em;
+  background: repeating-linear-gradient(
+    180deg,
+    var(--plank) 0,
+    var(--plank) 0.4em,
+    var(--seam) 0.4em,
+    var(--seam) 0.42em
+  );
+  border-radius: 0.09em 0.09em 1.4em 1.4em / 0.09em 0.09em 0.75em 0.75em;
+  box-shadow:
+    inset 0 -0.15em 0.25em rgb(0 0 0 / 0.35),
+    inset 0 0.05em 0 var(--plank-hi);
+}
+.shelf {
+  width: 100%;
+  max-width: 7em;
+  height: 0.55em;
+  margin-top: 0.52em;
+  border-top: 0.09em solid var(--shelf);
+  background: var(--hull);
+}
+.light .shelf {
+  background: var(--shelf-light);
+}
+.slot {
+  position: relative;
+  width: 0.75em;
+  height: 1.07em;
+}
+.slot.space {
+  width: 0.35em;
+}
+.slot .g,
+.slot .ghost {
+  position: absolute;
+  inset: 0;
+  text-align: center;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 1em;
+  font-style: normal;
+  line-height: 1.07em;
+  user-select: none;
+}
+.slot .ghost {
+  color: var(--plank-hi);
+}
+.slot .g {
+  color: var(--brass);
+  text-shadow: 0 0.025em 0 var(--glyph-shadow);
+  transform-origin: var(--ox) var(--oy);
+  transition: transform 0.8s cubic-bezier(0.25, 0.8, 0.35, 1);
+  z-index: 2;
+}
+.slot.hang .g {
+  transform: rotate(var(--hang));
+}
+/* The swing plays only when a letter starts hanging (the client adds .swinging). */
+.slot.hang.swinging .g {
+  animation: transom-swing 2.8s ease-out;
+}
+.slot.fall .g {
+  transform: translate(var(--fx), var(--drop)) rotate(var(--fr));
+  transition: transform 0.75s cubic-bezier(0.55, 0, 1, 0.45);
+}
+@keyframes transom-swing {
+  0% {
+    transform: rotate(0);
+  }
+  16% {
+    transform: rotate(calc(var(--hang) * 1.42));
+  }
+  34% {
+    transform: rotate(calc(var(--hang) * 0.7));
+  }
+  52% {
+    transform: rotate(calc(var(--hang) * 1.2));
+  }
+  70% {
+    transform: rotate(calc(var(--hang) * 0.88));
+  }
+  86% {
+    transform: rotate(calc(var(--hang) * 1.05));
+  }
+  100% {
+    transform: rotate(var(--hang));
+  }
+}
+.slot .hole,
+.slot .nail {
+  position: absolute;
+  width: 0.072em;
+  height: 0.072em;
+  border-radius: 50%;
+  margin: -0.036em 0 0 -0.036em;
+}
+.slot .hole {
+  background: var(--hole);
+  transform: scale(0.72);
+}
+.slot .nail {
+  background: var(--brass-hi);
+  box-shadow: 0 0.01em 0 var(--hole);
+  z-index: 3;
+  transition:
+    transform 0.55s cubic-bezier(0.55, 0, 1, 0.45),
+    opacity 0.55s;
+}
+.slot .nail.iron {
+  background: var(--nail-iron);
+}
+.slot .nail.off {
+  transform: translateY(1.25em) translateX(-0.08em);
+  opacity: 0;
+}
+/* Instant state changes (server render, `set(…, { animate: false })`) and reduced motion. */
+.transom.still .slot .g,
+.transom.still .slot.hang.swinging .g,
+.transom.still .slot.fall .g,
+.transom.still .slot .nail {
+  transition: none;
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .transom .slot .g,
+  .transom .slot.hang.swinging .g,
+  .transom .slot.fall .g,
+  .transom .slot .nail {
+    transition: none;
+    animation: none;
+  }
+}

@@ -57,6 +57,16 @@
           }
         }
       }
+    },
+    {
+      "includes": ["packages/transom/src/transom.css"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDescendingSpecificity": "off"
+          }
+        }
+      }
     }
   ]
 }

@@ -13,7 +13,7 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 
 ## Stage 1 — Static site and quiz
 - [x] S07 packages/core
-- [ ] S08 packages/transom
+- [x] S08 packages/transom
 - [ ] S09 Home page
 - [ ] S10 Ship inspection quiz and result page
 - [ ] S11 Name game page
@@ -89,4 +89,12 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
 - Deviations from step/spec: `normalizeName` trims again after cutting to 14 (no trailing space). `fallenLetters` uses full Russian plural rules (21 → «отвалившаяся буква»), identical to the prototype for 1–14. The prototype's stop-list fallback cannot actually avoid a stop word (the remainder is a suffix); behaviour kept, documented in the README.
 - New deps: `@vitest/coverage-v8` (coverage threshold required by the step), `@types/node` (tests read the fixture).
 - Follow-ups: improve the stop-list fallback (e.g. drop letters from the end) — needs a product decision.
+- [HUMAN] open: none.
+
+### S08 — packages/transom — 2026-09-25
+- Done: `@beda/transom`: `transom.css` (prototype CSS, em-based, tokens only), `mounts.ts` (`MOUNTS`, `DEFAULT_MOUNT`, deterministic fall offsets), `render.ts` (`renderTransom` → prototype DOM with state applied, escaping, `role="img"`, Russian `aria-label`), `client.ts` (`attachTransom` → `set(nails, { animate })`, no rebuild), `Transom.astro`. 12 Vitest + happy-dom tests. Home uses the package (the temporary `StaticTransom` is gone). Visual check page `/dev/transom` (noindex, not linked): all П/О combinations for 4/1/0 nails, a long Latin name, an animation button.
+- Verified: screenshots at 1280 and 375 px — hanging П ≈ 37°, О toppled clockwise ≈ 124° around its lower-left rivet, fallen letters on the shelf, no horizontal scroll; with JavaScript disabled the nine hanging/fallen states render the same; animation П → 1, О → 0 ends in `Надпись на транце: П пусто БЕДА`.
+- Deviations from step/spec: the swing keyframes run under an extra `.swinging` class that the client adds only when a letter starts hanging (the prototype re-triggered the swing whenever `.still` was removed, and server-rendered hanging letters would swing on load). The aria-label reads runs of letters as words («П пусто БЕДА» instead of «Ппусто БЕДА»). Fixed a specificity gap so `.still` also stops a running swing.
+- New deps: `happy-dom` (named in the step).
+- Follow-ups: glyph-ink snapping (docs/05-site.md §10) stays for later.
 - [HUMAN] open: none.

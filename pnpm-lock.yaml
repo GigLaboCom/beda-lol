@@ -22,7 +22,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: 5.0.2
-        version: 5.0.2(@types/node@22.20.4)(@vitest/coverage-v8@5.0.2)(vite@8.3.1(@types/node@22.20.4)(esbuild@0.28.2)(yaml@2.9.0))
+        version: 5.0.2(@types/node@22.20.4)(@vitest/coverage-v8@5.0.2)(happy-dom@20.14.5)(vite@8.3.1(@types/node@22.20.4)(esbuild@0.28.2)(yaml@2.9.0))
 
   apps/web:
     dependencies:
@@ -32,9 +32,15 @@ importers:
       '@astrojs/preact':
         specifier: 6.0.5
         version: 6.0.5(@babel/core@7.29.7)(@types/node@22.20.4)(esbuild@0.28.2)(preact@10.29.8)(yaml@2.9.0)
+      '@beda/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@beda/tokens':
         specifier: workspace:*
         version: link:../../packages/tokens
+      '@beda/transom':
+        specifier: workspace:*
+        version: link:../../packages/transom
       astro:
         specifier: 7.3.5
         version: 7.3.5(@types/node@22.20.4)(yaml@2.9.0)
@@ -65,7 +71,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: 5.0.2
-        version: 5.0.2(@types/node@22.20.4)(@vitest/coverage-v8@5.0.2)(vite@8.3.1(@types/node@22.20.4)(esbuild@0.28.2)(yaml@2.9.0))
+        version: 5.0.2(@types/node@22.20.4)(@vitest/coverage-v8@5.0.2)(happy-dom@20.14.5)(vite@8.3.1(@types/node@22.20.4)(esbuild@0.28.2)(yaml@2.9.0))
 
   packages/tokens:
     dependencies:
@@ -81,7 +87,22 @@ importers:
     devDependencies:
       vitest:
         specifier: 5.0.2
-        version: 5.0.2(@types/node@22.20.4)(@vitest/coverage-v8@5.0.2)(vite@8.3.1(@types/node@22.20.4)(esbuild@0.28.2)(yaml@2.9.0))
+        version: 5.0.2(@types/node@22.20.4)(@vitest/coverage-v8@5.0.2)(happy-dom@20.14.5)(vite@8.3.1(@types/node@22.20.4)(esbuild@0.28.2)(yaml@2.9.0))
+
+  packages/transom:
+    devDependencies:
+      '@types/node':
+        specifier: 22.20.4
+        version: 22.20.4
+      happy-dom:
+        specifier: 20.14.5
+        version: 20.14.5
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: 5.0.2
+        version: 5.0.2(@types/node@22.20.4)(@vitest/coverage-v8@5.0.2)(happy-dom@20.14.5)(vite@8.3.1(@types/node@22.20.4)(esbuild@0.28.2)(yaml@2.9.0))
 
 packages:
 
@@ -1095,6 +1116,12 @@ packages:
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
 
+  '@types/whatwg-mimetype@3.0.2':
+    resolution: {integrity: sha512-c2AKvDT8ToxLIOUlN51gTiHXflsfIFisS4pO7pDPoKouJCESkhZnEy623gwP9laCy5lnLDAw1vAzu2vM2YLOrA==}
+
+  '@types/ws@8.18.1':
+    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
+
   '@ungap/structured-clone@1.4.0':
     resolution: {integrity: sha512-1mEZtMKPM09vDmQt5y7YvmN2+DFTP7Tg0EWXdic8/C6VRnpb33e4ghisCIE3WZjsE2N8mf+QV1Zqh7ZFYLWInQ==}
 
@@ -1274,6 +1301,10 @@ packages:
     resolution: {integrity: sha512-AUdjuRyCNGUYtqpqfTmWyM4fXay8yIQhmLnvYe/THMGfT9B/34X7xQd3ifKxwyNPPpowVBjLb+64BN9Rn1mizw==}
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
+
+  buffer-image-size@0.6.4:
+    resolution: {integrity: sha512-nEh+kZOPY1w+gcCMobZ6ETUp9WfibndnosbpwB1iJk/8Gt5ZF2bhS6+B6bPYz424KtwsR6Rflc3tCz1/ghX2dQ==}
+    engines: {node: '>=4.0'}
 
   buffer@5.7.1:
     resolution: {integrity: sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ==}
@@ -1519,6 +1550,10 @@ packages:
     resolution: {integrity: sha512-V0hjH4dGPh9Ao5p0MoRY6BVqtwCjhz6vI5LT8AJ55H+4g9/4vbHx1I54fS0XuclLhDHArPQCiMjDxjaL8fPxhw==}
     engines: {node: '>=0.12'}
 
+  entities@7.0.1:
+    resolution: {integrity: sha512-TWrgLOFUQTH994YUyl1yT4uyavY5nNB5muff+RtWaqNVCAK408b5ZnnbNAUEWLTCpum9w6arT70i1XdQ4UeOPA==}
+    engines: {node: '>=0.12'}
+
   es-define-property@1.0.1:
     resolution: {integrity: sha512-e3nRfgfUZ4rNGL232gUgX06QNyyez04KdjFrF+LTRoOXmrOgFKDg4BCdsjW8EnT69eqdYGmRpJwiPVYNrCaW3g==}
     engines: {node: '>= 0.4'}
@@ -1682,6 +1717,10 @@ packages:
 
   h3@1.15.11:
     resolution: {integrity: sha512-L3THSe2MPeBwgIZVSH5zLdBBU90TOxarvhK9d04IDY2AmVS8j2Jz2LIWtwsGOU3lu2I5jCN7FNvVfY2+XyF+mg==}
+
+  happy-dom@20.14.5:
+    resolution: {integrity: sha512-x/RzkpWO40bTjIoT30iQtt64FLLmH/iRcUCN2X//bLx7H3ifkdfPXyqsro/OYtqzIAhiLMMA7mmiOR9C3NOKjQ==}
+    engines: {node: '>=20.0.0'}
 
   has-flag@4.0.0:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
@@ -2705,6 +2744,10 @@ packages:
   wcwidth@1.0.1:
     resolution: {integrity: sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==}
 
+  whatwg-mimetype@3.0.0:
+    resolution: {integrity: sha512-nt+N2dzIutVRxARx1nghPKGv1xHikU7HKdfafKkLNLindmPU/ch3U31NOCGGA/dmPcmb1VlofO0vnKAcsm0o/Q==}
+    engines: {node: '>=12'}
+
   which@3.0.1:
     resolution: {integrity: sha512-XA1b62dzQzLfaEOSQFTCOd5KFf/1VSzZo7/7TUjnya6u0vGGKzU96UQBZTAThCb2j4/xjBAyii1OhRLJEivHvg==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
@@ -2725,6 +2768,18 @@ packages:
 
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
+
+  ws@8.21.3:
+    resolution: {integrity: sha512-201TZ/kPWxoPr/OKWjquZR1SWKXcvxdH+e1xrx89b3YbmzLMFCLfnaG1HFIgWzJOEWZ7MvpK++odZufgYR50Rw==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
 
   xxhash-wasm@1.1.0:
     resolution: {integrity: sha512-147y/6YNh+tlp6nd/2pWq38i9h6mz/EuQ6njIrmW8D1BS5nCqs0P6DG+m6zTGnNz5I+uhZ0SHxBs9BsPrwcKDA==}
@@ -3672,6 +3727,12 @@ snapshots:
 
   '@types/unist@3.0.3': {}
 
+  '@types/whatwg-mimetype@3.0.2': {}
+
+  '@types/ws@8.18.1':
+    dependencies:
+      '@types/node': 22.20.4
+
   '@ungap/structured-clone@1.4.0': {}
 
   '@vitest/coverage-v8@5.0.2(vitest@5.0.2)':
@@ -3684,7 +3745,7 @@ snapshots:
       obug: 2.2.1
       std-env: 4.2.0
       tinyrainbow: 3.1.1
-      vitest: 5.0.2(@types/node@22.20.4)(@vitest/coverage-v8@5.0.2)(vite@8.3.1(@types/node@22.20.4)(esbuild@0.28.2)(yaml@2.9.0))
+      vitest: 5.0.2(@types/node@22.20.4)(@vitest/coverage-v8@5.0.2)(happy-dom@20.14.5)(vite@8.3.1(@types/node@22.20.4)(esbuild@0.28.2)(yaml@2.9.0))
 
   '@vitest/istanbul-lib-coverage@1.0.1': {}
 
@@ -3946,6 +4007,10 @@ snapshots:
       node-releases: 2.0.57
       update-browserslist-db: 1.3.3(browserslist@4.29.1)
 
+  buffer-image-size@0.6.4:
+    dependencies:
+      '@types/node': 22.20.4
+
   buffer@5.7.1:
     dependencies:
       base64-js: 1.5.1
@@ -4161,6 +4226,8 @@ snapshots:
 
   entities@4.5.0: {}
 
+  entities@7.0.1: {}
+
   es-define-property@1.0.1: {}
 
   es-errors@1.3.0: {}
@@ -4327,6 +4394,19 @@ snapshots:
       radix3: 1.1.2
       ufo: 1.6.4
       uncrypto: 0.1.3
+
+  happy-dom@20.14.5:
+    dependencies:
+      '@types/node': 22.20.4
+      '@types/whatwg-mimetype': 3.0.2
+      '@types/ws': 8.18.1
+      buffer-image-size: 0.6.4
+      entities: 7.0.1
+      whatwg-mimetype: 3.0.0
+      ws: 8.21.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   has-flag@4.0.0: {}
 
@@ -5227,7 +5307,7 @@ snapshots:
     optionalDependencies:
       vite: 8.3.1(@types/node@22.20.4)(esbuild@0.28.2)(yaml@2.9.0)
 
-  vitest@5.0.2(@types/node@22.20.4)(@vitest/coverage-v8@5.0.2)(vite@8.3.1(@types/node@22.20.4)(esbuild@0.28.2)(yaml@2.9.0)):
+  vitest@5.0.2(@types/node@22.20.4)(@vitest/coverage-v8@5.0.2)(happy-dom@20.14.5)(vite@8.3.1(@types/node@22.20.4)(esbuild@0.28.2)(yaml@2.9.0)):
     dependencies:
       '@types/chai': 5.2.3
       '@vitest/mocker': 5.0.2(vite@8.3.1(@types/node@22.20.4)(esbuild@0.28.2)(yaml@2.9.0))
@@ -5246,6 +5326,7 @@ snapshots:
     optionalDependencies:
       '@types/node': 22.20.4
       '@vitest/coverage-v8': 5.0.2(vitest@5.0.2)
+      happy-dom: 20.14.5
     transitivePeerDependencies:
       - msw
 
@@ -5359,6 +5440,8 @@ snapshots:
     dependencies:
       defaults: 1.0.4
 
+  whatwg-mimetype@3.0.0: {}
+
   which@3.0.1:
     dependencies:
       isexe: 2.0.0
@@ -5378,6 +5461,8 @@ snapshots:
       strip-ansi: 7.2.0
 
   wrappy@1.0.2: {}
+
+  ws@8.21.3: {}
 
   xxhash-wasm@1.1.0: {}
 

@@ -13,7 +13,9 @@
   "dependencies": {
     "@astrojs/node": "11.1.6",
     "@astrojs/preact": "6.0.5",
+    "@beda/core": "workspace:*",
     "@beda/tokens": "workspace:*",
+    "@beda/transom": "workspace:*",
     "astro": "7.3.5",
     "preact": "10.29.8"
   },

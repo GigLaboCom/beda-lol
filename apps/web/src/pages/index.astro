@@ -1,5 +1,6 @@
 ---
-import StaticTransom from '../components/StaticTransom.astro';
+import { WORD } from '@beda/core';
+import Transom from '@beda/transom/Transom.astro';
 import { t } from '../i18n/ru';
 import Base from '../layouts/Base.astro';
 ---
@@ -17,7 +18,7 @@ import Base from '../layouts/Base.astro';
         </div>
       </div>
       <div>
-        <StaticTransom letters={['П', 'О', 'Б', 'Е', 'Д', 'А']} nails={[1, 0, 4, 4, 4, 4]} />
+        <Transom letters={WORD} nails={[1, 0, 4, 4, 4, 4]} />
         <p class="caption">{t('hero.caption')}</p>
       </div>
     </div>
