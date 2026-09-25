@@ -27,3 +27,8 @@ function send(path: string, body: unknown): void {
 export function recordQuizAttempt(code: string, source?: string): void {
   send('/api/quiz/attempts', source ? { code, source } : { code });
 }
+
+/** Name game played. Only whether a word was found — never the typed name. */
+export function recordNamerPlayed(found: boolean): void {
+  send('/api/events', { name: 'namer_played', props: { found } });
+}

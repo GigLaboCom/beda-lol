@@ -2,18 +2,22 @@
 
 pub mod client_ip;
 pub mod error;
+pub mod events;
 pub mod health;
 pub mod json;
 pub mod quiz;
 pub mod rate_limit;
 
 use std::any::Any;
+use std::net::IpAddr;
+use std::sync::Arc;
 use std::time::Duration;
 
-use axum::Router;
 use axum::body::Body;
 use axum::http::{HeaderName, Request, Response, StatusCode};
 use axum::routing::{get, post};
+use axum::{Router, middleware};
+use governor::DefaultKeyedRateLimiter;
 use tower::ServiceBuilder;
 use tower_http::catch_panic::CatchPanicLayer;
 use tower_http::limit::RequestBodyLimitLayer;
@@ -34,10 +38,22 @@ pub const REQUEST_TIMEOUT: Duration = Duration::from_secs(15);
 
 /// Routes under `/api`, without middleware.
 pub fn routes(_config: &Config, state: AppState) -> Router {
+    let limited = |limiter: Arc<DefaultKeyedRateLimiter<IpAddr>>| {
+        middleware::from_fn(move |client, request, next| {
+            rate_limit::enforce(limiter.clone(), client, request, next)
+        })
+    };
     Router::new()
         .route("/api/healthz", get(health::healthz))
         .route("/api/readyz", get(health::readyz))
-        .route("/api/quiz/attempts", post(quiz::create_attempt))
+        .route(
+            "/api/quiz/attempts",
+            post(quiz::create_attempt).layer(limited(state.limits.quiz_attempts.clone())),
+        )
+        .route(
+            "/api/events",
+            post(events::create_event).layer(limited(state.limits.events.clone())),
+        )
         .fallback(|| async { AppError::NotFound })
         .with_state(state)
 }

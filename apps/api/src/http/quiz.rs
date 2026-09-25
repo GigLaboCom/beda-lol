@@ -4,7 +4,6 @@ use axum::extract::State;
 use axum::http::StatusCode;
 use serde::Deserialize;
 
-use super::client_ip::ClientIp;
 use super::error::AppError;
 use super::json::JsonBody;
 use crate::domain::result_code;
@@ -29,12 +28,8 @@ fn valid_source(source: &str) -> bool {
 
 pub async fn create_attempt(
     State(state): State<AppState>,
-    ClientIp(ip): ClientIp,
     JsonBody(body): JsonBody<AttemptRequest>,
 ) -> Result<StatusCode, AppError> {
-    if state.limits.quiz_attempts.check_key(&ip).is_err() {
-        return Err(AppError::TooManyRequests);
-    }
     let states = result_code::parse(&body.code)
         .ok_or_else(|| AppError::BadRequest("code must be six digits 0–2".to_owned()))?;
     let source = match body.source.as_deref() {

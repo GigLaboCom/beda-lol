@@ -1,0 +1,19 @@
+---
+import NamerIsland from '../components/namer/NamerIsland';
+import { t } from '../i18n/ru';
+import Base from '../layouts/Base.astro';
+import '../styles/namer.css';
+import '@beda/transom/transom.css';
+---
+
+<Base title={t('namerPage.title')} description={t('namerPage.description')}>
+  <section class="namer-page light">
+    <div class="wrap">
+      <p class="kicker">{t('namerPage.kicker')}</p>
+      <h1 class="display">{t('namer.title')}</h1>
+      <p class="lead">{t('namerPage.lead')}</p>
+      <NamerIsland client:visible />
+      <p class="more"><a class="btn btn-ink" href="/osmotr">{t('namerPage.again')}</a></p>
+    </div>
+  </section>
+</Base>

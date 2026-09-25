@@ -1,0 +1,87 @@
+/* Name game. Ported from archive/site/yacht-beda-site.html (.namer). */
+.namer-page {
+  padding: clamp(48px, 7vw, 88px) 0;
+}
+.namer-page h1 {
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 1.02;
+  margin: 14px 0 18px;
+}
+.namer-page .lead {
+  color: var(--muted-ink);
+  font-size: 18px;
+  max-width: 36em;
+  margin: 0 0 32px;
+}
+.namer-game form {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  max-width: 720px;
+}
+.namer-game .field {
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.namer-game label {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--muted-ink);
+}
+.namer-game input {
+  min-height: 56px;
+  padding: 0 18px;
+  border: 1.5px solid var(--ink);
+  border-radius: 4px;
+  background: var(--canvas-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 18px;
+}
+.namer-game .submit {
+  min-height: 56px;
+}
+.namer-out {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 24px 40px;
+  align-items: center;
+  padding-top: 40px;
+}
+.namer-out[hidden] {
+  display: none;
+}
+.namer-board {
+  min-width: 0;
+}
+.namer-board .transom-wrap {
+  --ts: 48px;
+}
+.namer-verdict .was {
+  font-family: var(--mono);
+  font-size: 15px;
+  color: var(--muted-ink);
+}
+.namer-verdict .now {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: clamp(30px, 3.6vw, 44px);
+  line-height: 1.1;
+  margin: 6px 0 10px;
+}
+.namer-verdict p {
+  color: var(--muted-ink);
+  max-width: 32em;
+  margin: 0;
+}
+.namer-page .more {
+  margin-top: 48px;
+}
+@media (max-width: 900px) {
+  .namer-out {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

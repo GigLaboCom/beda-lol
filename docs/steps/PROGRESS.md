@@ -16,7 +16,7 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [x] S08 packages/transom
 - [x] S09 Home page
 - [x] S10 Ship inspection quiz and result page
-- [ ] S11 Name game page
+- [x] S11 Name game page
 - [ ] S12 Six pillar articles
 - [ ] S13 Share images
 - [ ] S14 SEO baseline and stage 1 launch
@@ -113,5 +113,13 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
 - Verified in a browser (Playwright): full pass with a back step mid-quiz; redirect to `/osmotr/r/002222`; reveal animation; `app.quiz_attempts` row `{0,0,2,2,2,2}`, `beda-po`, source `test`; going back resumes at «вопрос 12 из 12»; the shared link in a fresh context renders the final state with no animation; no console errors; 375 px quiz without horizontal scroll. `/osmotr/r/003212` and `/osmotr/r/00221` → 404.
 - Deviations from step/spec: the privacy line under the answers now says «ответы не отправляются — только итог, анонимно» (the prototype's «ответы никуда не отправляются» would be false once the attempt is recorded). Result pages pick actions from the code's states (fallen, then hanging) because shared links carry no scores, so a letter with 3 nails (score 1.5) is not suggested and the list can be shorter than three. Invalid codes render the 404 component in place (Astro forbids rewriting an on-demand route to the prerendered 404). `?from=<slug>` on `/osmotr` becomes the attempt's `source`.
 - New deps: `governor` (named in the step; default features minus `jitter`).
+- Follow-ups: none.
+- [HUMAN] open: none.
+
+### S11 — Name game page — 2026-09-25
+- Done: `/kak-nazovesh` (prerendered, indexable, title «Как назовёшь — что останется от названия проекта») with the Preact island `NamerIsland` (`client:visible`): labelled input (max 14), «Спустить на воду», result area with `aria-live="polite"`; transom sized like the prototype (`min(64, max(20, avail / (n·0.85 + 0.8)))` px, recomputed on resize), all nails → removed letters fall after 450 ms (instantly under reduced motion), verdict «Было / Стало» + line from `@beda/core`. `?name=` is read on load (the home teaser posts there) and written with `history.replaceState` on submit. API: `POST /api/events` — event is a serde enum (adjacently tagged `name`/`props`, `deny_unknown_fields` on both levels), only `namer_played { found: bool }` exists; stored in `app.events` via `query_scalar!` (`.sqlx` regenerated); 10/min per IP. Rate limiting moved into a per-route middleware in front of body parsing (so malformed requests count too) for both write endpoints.
+- Verified: `?name=Багтрекер` → «Стало: БАГ», six letters fall; ПОБЕДА → БЕДА, DEADLINE → DEAD, «таск менеджер» → АД, «трекер» → ЕКЕР; URL updates; 375 and 1280 px without horizontal scroll; `app.events` holds only `{"found": true|false}` (no name, no user or anon id); API tests for unknown events, extra props (e.g. a `name` field), wrong types, rate limit and an end-to-end insert.
+- Deviations from step/spec: none beyond the shared rate-limit middleware.
+- New deps: none.
 - Follow-ups: none.
 - [HUMAN] open: none.

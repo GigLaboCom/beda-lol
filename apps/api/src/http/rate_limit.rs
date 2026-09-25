@@ -35,3 +35,17 @@ impl Default for Limits {
         Self::new()
     }
 }
+
+/// Middleware: rejects with 429 before the body is read, so malformed
+/// requests count against the limit too.
+pub async fn enforce(
+    limiter: Arc<DefaultKeyedRateLimiter<IpAddr>>,
+    client: super::client_ip::ClientIp,
+    request: axum::extract::Request,
+    next: axum::middleware::Next,
+) -> Result<axum::response::Response, super::error::AppError> {
+    if limiter.check_key(&client.0).is_err() {
+        return Err(super::error::AppError::TooManyRequests);
+    }
+    Ok(next.run(request).await)
+}

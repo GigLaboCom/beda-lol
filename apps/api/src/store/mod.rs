@@ -3,6 +3,7 @@
 //! Queries use `sqlx::query!` and are checked at compile time against the
 //! schema from `supabase/migrations/`; offline data lives in `/.sqlx`.
 
+pub mod events;
 pub mod quiz;
 
 use std::time::Duration;
