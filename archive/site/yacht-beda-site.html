@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Яхта «Беда» — рубрика о пет-проектах</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Playfair+Display:wght@700;900&display=swap">
+<style>
+:root{
+  --tar:#1C140E; --hull:#2A1E15; --line:#3A2A1D;
+  --plank:#6E4B2D; --seam:#4B321E; --plank-hi:#8A6038; --shelf:#A9834F;
+  --canvas:#EDE4CF; --canvas-2:#F7F1E3; --ink:#1C140E; --muted-ink:#5E4A35;
+  --brass:#D6A93E; --brass-hi:#EBC565; --brass-deep:#7A5716; --brass-card:#C9971E; --iron:#8C8174;
+  --text:#EDE4CF; --text-2:#D9CDB4; --muted:#B8A385;
+  --rust:#C2542D; --rust-hi:#E88A62; --rust-ink:#A33A18; --ok-ink:#3F6B45;
+  --sea:#151E22; --sea-2:#1E2A2F; --sea-muted:#9FB3B8; --sea-line:#4A5D63;
+  --display:'Playfair Display', Georgia, 'Times New Roman', serif;
+  --sans:'IBM Plex Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --tar:#17100A; --hull:#261B13; } }
+:root[data-theme="dark"]{ --tar:#17100A; --hull:#261B13; }
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 80px); scroll-behavior:smooth; background:var(--tar)}
+body{margin:0; background:var(--tar); color:var(--text); font-family:var(--sans); font-size:17px; line-height:1.55; -webkit-font-smoothing:antialiased}
+a{color:var(--brass)} a:hover{color:var(--brass-hi)}
+img,svg{max-width:100%; height:auto}
+main{overflow-x:clip}
+button{font:inherit}
+:focus-visible{outline:2px solid var(--brass-hi); outline-offset:3px; border-radius:3px}
+.light :focus-visible{outline-color:var(--ink)}
+[hidden]{display:none !important}
+.wrap{max-width:1280px; margin:0 auto; padding:0 clamp(20px,5vw,80px)}
+.display{font-family:var(--display); font-weight:900; letter-spacing:-.01em; margin:0}
+.mono{font-family:var(--mono)}
+.kicker{font-family:var(--mono); font-size:14px; color:var(--muted); margin:0}
+.light{background:var(--canvas); color:var(--ink)}
+.light .kicker{color:var(--brass-deep)}
+.sea{background:var(--sea)}
+
+/* buttons */
+.btn{display:inline-flex; align-items:center; justify-content:center; min-height:52px; padding:0 24px; border-radius:4px; border:1.5px solid var(--text); background:transparent; color:var(--text); font-weight:500; font-size:16px; text-decoration:none; cursor:pointer; transition:background .15s,color .15s}
+.btn:hover{background:rgba(237,228,207,.08); color:var(--text)}
+.btn-brass{background:var(--brass); border-color:var(--brass); color:var(--ink); font-weight:600}
+.btn-brass:hover{background:var(--brass-hi); color:var(--ink)}
+.btn-ink{background:var(--ink); border-color:var(--ink); color:var(--canvas); font-weight:600}
+.btn-ink:hover{background:#33251a; color:var(--canvas)}
+.btn-ink:disabled{opacity:.35; cursor:default}
+.btn-line-brass{border-color:var(--brass); color:var(--brass)}
+.btn-big{min-height:60px; padding:0 32px; font-size:18px}
+
+/* header */
+.site-head{position:sticky; top:env(safe-area-inset-top,0px); z-index:20; background:var(--tar); border-bottom:1px solid var(--line)}
+.site-head .wrap{display:flex; align-items:center; justify-content:space-between; gap:24px; min-height:76px}
+.logo{display:flex; align-items:center; gap:12px; color:var(--text); text-decoration:none; font-family:var(--display); font-weight:700; font-size:23px}
+.logo:hover{color:var(--text)}
+.nav{display:flex; gap:28px; font-size:15px}
+.nav a{color:var(--text); text-decoration:none}
+.nav a:hover,.nav a[aria-current="page"]{color:var(--brass)}
+.head-cta{min-height:44px; padding:0 18px; font-size:15px}
+@media (max-width:980px){ .nav{display:none} }
+@media (max-width:560px){ .head-cta{display:none} }
+
+/* ---------- transom ---------- */
+.transom-wrap{display:flex; flex-direction:column; align-items:center; font-size:var(--ts,112px)}
+.transom{position:relative; display:flex; justify-content:center; gap:.1em; padding:.46em .4em .5em;
+  background:repeating-linear-gradient(180deg,var(--plank) 0,var(--plank) .4em,var(--seam) .4em,var(--seam) .42em);
+  border-radius:.09em .09em 1.4em 1.4em / .09em .09em .75em .75em;
+  box-shadow:inset 0 -.15em .25em rgba(0,0,0,.35), inset 0 .05em 0 var(--plank-hi)}
+.shelf{width:100%; max-width:7em; height:.55em; margin-top:.52em; border-top:.09em solid var(--shelf); background:var(--hull)}
+.light .shelf{background:#d9cdb4}
+.slot{position:relative; width:.75em; height:1.07em}
+.slot.space{width:.35em}
+.g,.ghost{position:absolute; inset:0; text-align:center; font-family:var(--display); font-weight:900; font-size:1em; line-height:1.07em; user-select:none}
+.ghost{color:var(--plank-hi)}
+.g{color:var(--brass); text-shadow:0 .025em 0 #3A2412; transform-origin:var(--ox) var(--oy);
+   transition:transform .8s cubic-bezier(.25,.8,.35,1); z-index:2}
+.slot.hang .g{transform:rotate(var(--hang)); animation:swing 2.8s ease-out}
+.slot.fall .g{transform:translate(var(--fx),var(--drop)) rotate(var(--fr)); transition:transform .75s cubic-bezier(.55,0,1,.45)}
+.transom.still .g{transition:none; animation:none}
+@keyframes swing{
+  0%{transform:rotate(0)}
+  16%{transform:rotate(calc(var(--hang)*1.42))}
+  34%{transform:rotate(calc(var(--hang)*.7))}
+  52%{transform:rotate(calc(var(--hang)*1.2))}
+  70%{transform:rotate(calc(var(--hang)*.88))}
+  86%{transform:rotate(calc(var(--hang)*1.05))}
+  100%{transform:rotate(var(--hang))}
+}
+.hole,.nail{position:absolute; width:.072em; height:.072em; border-radius:50%; margin:-.036em 0 0 -.036em}
+.hole{background:#2A1D13; transform:scale(.72)}
+.nail{background:var(--brass-hi); box-shadow:0 .01em 0 #2A1D13; z-index:3; transition:transform .55s cubic-bezier(.55,0,1,.45), opacity .55s}
+.nail.iron{background:#B3A898}
+.nail.off{transform:translateY(1.25em) translateX(-.08em); opacity:0}
+.transom.still .nail{transition:none}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .g,.nail{transition:none !important; animation:none !important}
+}
+
+/* ---------- home ---------- */
+.hero{padding:clamp(48px,8vw,96px) 0 clamp(56px,7vw,88px)}
+.hero .wrap{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); gap:clamp(32px,5vw,64px); align-items:center}
+.hero h1{font-size:clamp(46px,6.4vw,86px); line-height:.98}
+.hero p.lead{font-size:clamp(17px,1.5vw,20px); color:var(--text-2); max-width:34em; margin:28px 0 32px}
+.hero-actions{display:flex; flex-wrap:wrap; align-items:center; gap:18px 24px}
+.hero-actions .mono{font-size:14px; color:var(--muted)}
+.hero .transom-wrap{--ts:clamp(44px,6.4vw,96px)}
+.caption{font-family:var(--mono); font-size:15px; color:var(--muted); text-align:center; margin:22px 0 0}
+@media (max-width:900px){ .hero .wrap{grid-template-columns:minmax(0,1fr)} .hero .transom-wrap{--ts:clamp(44px,13vw,100px)} }
+
+.namer{padding:44px 0}
+.namer .wrap{display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.6fr); gap:32px 48px; align-items:end}
+.namer h2{font-family:var(--display); font-weight:700; font-size:30px; margin:0 0 6px}
+.namer p{margin:0; color:var(--muted-ink)}
+.namer form{display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap}
+.field{flex:1 1 260px; display:flex; flex-direction:column; gap:8px}
+.field label{font-family:var(--mono); font-size:13px; color:var(--muted-ink)}
+.field input{min-height:56px; padding:0 18px; border:1.5px solid var(--ink); border-radius:4px; background:var(--canvas-2); color:var(--ink); font:inherit; font-size:18px}
+.namer-out{grid-column:1 / -1; display:grid; grid-template-columns:auto minmax(0,1fr); gap:24px 40px; align-items:center; padding-top:16px}
+.namer-out .transom-wrap{--ts:48px; min-width:0}
+.namer-verdict .was{font-family:var(--mono); font-size:15px; color:var(--muted-ink)}
+.namer-verdict .now{font-family:var(--display); font-weight:900; font-size:clamp(30px,3.6vw,44px); line-height:1.1; margin:6px 0 10px}
+.namer-verdict p{color:var(--muted-ink); max-width:32em}
+@media (max-width:900px){ .namer .wrap,.namer-out{grid-template-columns:minmax(0,1fr)} }
+
+.section{padding:clamp(72px,9vw,112px) 0}
+.section-head{display:flex; justify-content:space-between; align-items:flex-end; gap:24px 48px; flex-wrap:wrap; margin-bottom:48px}
+.section-head h2{font-size:clamp(34px,4.2vw,56px); line-height:1.05; max-width:14em}
+.section-head p{margin:0; max-width:28em; color:var(--text-2); font-size:18px}
+
+.pillars{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:16px}
+.pillar{padding:26px 22px; background:var(--hull); border:1px solid var(--line); border-radius:6px; display:flex; flex-direction:column; gap:12px; min-height:290px}
+.pillar.first{border-color:var(--rust)}
+.pillar .tag{font-family:var(--mono); font-size:13px; color:var(--rust-hi); min-height:1.4em}
+.pillar .L{font-family:var(--display); font-weight:900; font-size:72px; line-height:1; color:var(--brass)}
+.pillar b{font-weight:600; font-size:19px}
+.pillar span.d{font-size:15px; color:var(--muted)}
+@media (max-width:1100px){ .pillars{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (max-width:620px){ .pillars{grid-template-columns:repeat(2,minmax(0,1fr))} .pillar{min-height:0} .pillar .L{font-size:56px} }
+
+.moorings{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:20px}
+.mooring{min-height:250px; padding:28px; background:var(--canvas-2); border:1.5px solid var(--ink); border-radius:6px; color:var(--ink); text-decoration:none; display:flex; flex-direction:column; gap:12px; transition:transform .15s}
+.mooring:hover{color:var(--ink); transform:translateY(-3px)}
+.mooring .top{display:flex; justify-content:space-between; align-items:center}
+.mooring .kind{font-family:var(--mono); font-size:13px; color:var(--brass-deep)}
+.mooring h3{font-family:var(--display); font-weight:700; font-size:25px; margin:0; line-height:1.15}
+.mooring p{margin:0; font-size:15px; color:var(--muted-ink)}
+.mooring .meta{margin-top:auto; font-family:var(--mono); font-size:13px; color:var(--muted-ink)}
+.mooring.dark{background:var(--ink); color:var(--canvas)}
+.mooring.dark:hover{color:var(--canvas)}
+.mooring.dark .kind{color:var(--brass)}
+.mooring.dark p,.mooring.dark .meta{color:var(--muted)}
+.soon{font-family:var(--mono); font-size:12px; padding:2px 8px; border:1px solid currentColor; border-radius:3px}
+@media (max-width:1100px){ .moorings{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:560px){ .moorings{grid-template-columns:minmax(0,1fr)} .mooring{min-height:0} }
+
+.journal .wrap{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.1fr); gap:clamp(32px,6vw,72px); align-items:center}
+.journal h2{font-size:clamp(34px,4vw,52px); line-height:1.05; margin:14px 0 22px}
+.journal p{color:var(--text-2); font-size:18px; margin:0 0 20px}
+.log{padding:36px 40px; background:var(--hull); border-radius:6px; font-family:var(--mono); font-size:16px; line-height:1.7; color:var(--text-2); display:flex; flex-direction:column; gap:22px}
+.log .d{color:var(--brass)} .log .q{color:var(--text)}
+.log hr{border:0; height:1px; background:var(--line); margin:0}
+@media (max-width:900px){ .journal .wrap{grid-template-columns:minmax(0,1fr)} .log{padding:26px 22px; font-size:14px} }
+
+.wrecks{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px}
+.wreck{padding:32px; background:var(--sea-2); border-radius:6px; display:flex; flex-direction:column; gap:12px; min-height:250px}
+.wreck .m{display:flex; justify-content:space-between; gap:12px; font-family:var(--mono); font-size:13px; color:var(--sea-muted)}
+.wreck h3{font-family:var(--display); font-weight:700; font-size:25px; margin:0}
+.wreck q{font-style:italic; color:var(--text-2); font-size:17px}
+.wreck.empty{background:transparent; border:1.5px dashed var(--sea-line); justify-content:center}
+.wreck.empty p{margin:0; color:#B5C4C8}
+.btn-sea{border-color:var(--sea-muted)}
+@media (max-width:900px){ .wrecks{grid-template-columns:minmax(0,1fr)} .wreck{min-height:0} }
+
+.foot{border-top:1px solid var(--line); padding:56px 0 64px}
+.foot .wrap{display:flex; justify-content:space-between; gap:32px; flex-wrap:wrap}
+.foot p{margin:8px 0 0; color:var(--muted); max-width:34em}
+.foot nav{display:flex; gap:28px; flex-wrap:wrap}
+
+/* ---------- quiz ---------- */
+.quiz-bar{display:flex; align-items:center; gap:18px}
+.progress{width:min(320px,40vw); height:6px; background:var(--line); border-radius:3px; overflow:hidden}
+.progress i{display:block; height:100%; background:var(--brass); width:0; transition:width .3s}
+.quiz{padding:clamp(40px,6vw,72px) 0 80px}
+.quiz .wrap{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.1fr); gap:clamp(32px,6vw,72px); align-items:center}
+.quiz .transom-wrap{--ts:clamp(40px,5.2vw,84px)}
+.q-letter{display:flex; align-items:center; gap:14px; font-family:var(--mono); font-size:14px; color:var(--muted)}
+.q-letter span.box{display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border:1.5px solid var(--brass); border-radius:4px; font-family:var(--display); font-weight:900; font-size:26px; color:var(--brass)}
+.q-text{font-family:var(--display); font-weight:700; font-size:clamp(30px,3.4vw,48px); line-height:1.15; margin:26px 0 16px}
+.q-hint{color:var(--muted); margin:0 0 30px}
+.answers{display:flex; gap:14px; flex-wrap:wrap}
+.answers .btn{min-width:170px; min-height:64px; font-size:19px}
+.answers .no{border-color:var(--rust-hi); color:var(--rust-hi)}
+.q-foot{display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-top:34px; padding-top:22px; border-top:1px solid var(--line)}
+.linkbtn{background:none; border:0; padding:8px 0; color:var(--brass); cursor:pointer; font-size:16px}
+.linkbtn:disabled{opacity:.35; cursor:default}
+@media (max-width:900px){ .quiz .wrap{grid-template-columns:minmax(0,1fr)} .answers .btn{flex:1 1 30%; min-width:0} }
+
+.result .wrap{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(32px,6vw,72px); align-items:center}
+.result h1{font-size:clamp(40px,5vw,64px); line-height:1.02; margin:14px 0 18px}
+.result p.lead{font-size:19px; color:var(--text-2); margin:0 0 24px}
+.chips{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px}
+.chip{width:70px; padding:10px 0; border:1px solid var(--line); border-radius:4px; display:flex; flex-direction:column; align-items:center; gap:4px}
+.chip b{font-family:var(--display); font-weight:900; font-size:26px}
+.chip small{font-family:var(--mono); font-size:11px; color:var(--muted)}
+.chip.fall{border-color:var(--rust)} .chip.fall b,.chip.fall small{color:var(--rust-hi)}
+.chip.hang{border-color:var(--brass-deep)} .chip.hang b,.chip.hang small{color:var(--brass)}
+.share{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+.share-text{font-family:var(--mono); font-size:14px; color:var(--muted); margin:14px 0 0}
+.status{font-family:var(--mono); font-size:14px; color:var(--brass); min-height:1.4em}
+.actions{padding:64px 0 80px; margin-top:72px}
+.actions .row{display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap:wrap; margin-bottom:28px}
+.actions h2{font-size:clamp(30px,3.4vw,42px)}
+.act-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px}
+.act{padding:28px; background:var(--canvas-2); border:1.5px solid var(--ink); border-radius:6px; display:flex; flex-direction:column; gap:10px}
+.act .h{display:flex; justify-content:space-between; align-items:center}
+.act .L{font-family:var(--display); font-weight:900; font-size:40px; color:var(--brass-deep)}
+.act .t{font-family:var(--mono); font-size:13px; color:var(--muted-ink)}
+.act b{font-size:19px; font-weight:600}
+.act p{margin:0; color:var(--muted-ink); font-size:15px}
+@media (max-width:900px){ .result .wrap{grid-template-columns:minmax(0,1fr)} .act-grid{grid-template-columns:minmax(0,1fr)} }
+
+/* ---------- yacht tracker ---------- */
+.yacht-top{padding:clamp(40px,6vw,64px) 0 72px}
+.yacht-top .wrap{display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:clamp(32px,6vw,72px); align-items:center}
+.yacht-top .transom-wrap{--ts:clamp(40px,5.6vw,92px)}
+.yacht-top h1{font-size:clamp(36px,4.2vw,56px); line-height:1.05; margin:12px 0 22px}
+.meter{display:flex; justify-content:space-between; font-family:var(--mono); font-size:15px; margin-bottom:10px}
+.meter span+span{color:var(--muted)}
+.bar{height:10px; background:var(--line); border-radius:5px; overflow:hidden; margin-bottom:22px}
+.bar i{display:block; height:100%; width:0; background:var(--brass); transition:width .4s}
+.legend{display:flex; gap:10px 22px; flex-wrap:wrap; font-size:14px; color:var(--muted); margin-bottom:26px}
+.legend span{display:flex; align-items:center; gap:8px}
+.dot{width:12px; height:12px; border-radius:50%; display:inline-block}
+.cards{padding:56px 0 72px}
+.card-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px}
+.lcard{padding:26px; background:var(--canvas-2); border:1.5px solid var(--ink); border-radius:6px; display:flex; flex-direction:column; gap:14px}
+.lcard.warn{border-color:var(--rust-ink)}
+.lcard.down{border-style:dashed; border-color:var(--rust-ink)}
+.lcard .h{display:flex; justify-content:space-between; align-items:center; gap:12px}
+.lcard .h div{display:flex; align-items:baseline; gap:12px}
+.lcard .L{font-family:var(--display); font-weight:900; font-size:44px; color:var(--brass-deep)}
+.lcard.down .L{color:var(--iron)}
+.lcard .n{font-weight:600; font-size:17px}
+.lcard .st{font-family:var(--mono); font-size:12px; color:var(--muted-ink)}
+.lcard .st.ok{color:var(--ok-ink)} .lcard .st.bad{color:var(--rust-ink)}
+.slots{display:flex; gap:8px; align-items:center}
+.slots i{width:16px; height:16px; border-radius:50%; background:var(--brass-card)}
+.slots i.empty{width:14px; height:14px; background:transparent; border:1.5px dashed var(--muted-ink)}
+.lcard p{margin:0; font-size:15px; color:var(--muted-ink)}
+.lcard .next{display:flex; justify-content:space-between; align-items:center; gap:12px; padding-top:12px; border-top:1px solid #D9CDB4}
+.lcard .next span{font-size:15px; font-weight:500}
+.lcard .next .btn{min-height:44px; padding:0 16px; font-size:15px}
+.rust{margin-top:24px; padding:22px 26px; background:var(--ink); color:var(--canvas); border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:20px; flex-wrap:wrap}
+.rust b{display:block; font-size:17px}
+.rust p{margin:4px 0 0; color:var(--muted); font-size:15px; max-width:44em}
+@media (max-width:1000px){ .yacht-top .wrap{grid-template-columns:minmax(0,1fr)} .card-grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:620px){ .card-grid{grid-template-columns:minmax(0,1fr)} }
+</style>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Яхта «Беда», на главную">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#D6A93E" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5M4.9 4.9l3.5 3.5M15.6 15.6l3.5 3.5M4.9 19.1l3.5-3.5M15.6 8.4l3.5-3.5"/></svg>
+      Яхта «Беда»
+    </a>
+    <nav class="nav" aria-label="Разделы">
+      <a href="#osmotr" data-nav="quiz">Осмотр судна</a>
+      <a href="#yacht" data-nav="yacht">Моя яхта</a>
+      <a href="#harbor">Гавань</a>
+      <a href="#triangle">Треугольник</a>
+      <a href="#journal">Журнал</a>
+    </nav>
+    <a class="btn btn-line-brass head-cta" href="#subscribe">Подписаться на рубрику</a>
+  </div>
+</header>
+
+<!-- ================= HOME ================= -->
+<main id="view-home">
+  <section class="hero" id="top">
+    <div class="wrap">
+      <div>
+        <p class="kicker">Рубрика о пет-проектах</p>
+        <h1 class="display" style="margin-top:18px">ПО у тебя есть.<br>Победы нет.</h1>
+        <p class="lead">Рубрика о тех, кто строит пет-проекты, плывя на яхте «Беда»: код пишется, маркетинга нет. Здесь можно осмотреть своё судно и прибить буквы обратно.</p>
+        <div class="hero-actions">
+          <a class="btn btn-brass btn-big" href="#osmotr">Пройти осмотр судна</a>
+          <span class="mono">12 вопросов, полторы минуты</span>
+        </div>
+      </div>
+      <div>
+        <div class="transom-wrap" id="heroTransom"></div>
+        <p class="caption">ПО + БЕДА = ПОБЕДА. Отвалится ПО — останется БЕДА.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="namer light" aria-labelledby="namerTitle">
+    <div class="wrap">
+      <div>
+        <h2 id="namerTitle">Как назовёшь</h2>
+        <p>Впиши название проекта — посмотрим, что от него останется, если отвалится пара букв.</p>
+      </div>
+      <form id="namerForm" autocomplete="off">
+        <div class="field">
+          <label for="projName">Название проекта</label>
+          <input id="projName" name="projName" type="text" maxlength="14" placeholder="например, Победа" required>
+        </div>
+        <button class="btn btn-ink" type="submit" style="min-height:56px">Спустить на воду</button>
+      </form>
+      <div class="namer-out" id="namerOut" hidden aria-live="polite">
+        <div class="transom-wrap" id="namerTransom"></div>
+        <div class="namer-verdict">
+          <div class="was" id="namerWas"></div>
+          <div class="now" id="namerNow"></div>
+          <p id="namerText"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 class="display">Шесть букв — шесть вещей, на которых держится проект</h2>
+        <p>Первыми отваливаются П и О. Это ровно то, что разработчики пропускают чаще всего, — и ровно то, без чего от победы остаётся беда.</p>
+      </div>
+      <div class="pillars" id="pillars"></div>
+    </div>
+  </section>
+
+  <section class="section light" id="harbor">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="kicker">Гавань</p>
+          <h2 class="display" style="margin-top:12px">Выбери причал</h2>
+        </div>
+      </div>
+      <div class="moorings">
+        <a class="mooring" href="#osmotr">
+          <div class="top"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg><span class="kind">вход</span></div>
+          <h3>Осмотр судна</h3><p>Двенадцать честных вопросов — и видно, какие буквы у тебя уже отвалились.</p><span class="meta">полторы минуты</span>
+        </a>
+        <a class="mooring" href="#namerTitle">
+          <div class="top"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 7V5h16v2M12 5v14M9 19h6"/></svg><span class="kind">вход</span></div>
+          <h3>Как назовёшь</h3><p>Что останется от названия твоего проекта, если отвалится пара букв.</p><span class="meta">десять секунд</span>
+        </a>
+        <div class="mooring">
+          <div class="top"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg><span class="soon">скоро</span></div>
+          <h3>Калькулятор течи</h3><p>Пять ползунков про твою неделю — и уровень воды в трюме. Формула открыта.</p><span class="meta">минута</span>
+        </div>
+        <div class="mooring">
+          <div class="top"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3L6 13h5l-1 8 7-10h-5z"/></svg><span class="soon">скоро</span></div>
+          <h3>Шторм</h3><p>Восемь недель, сорок часов, один человек на борту. Доплывёшь до первых десяти?</p><span class="meta">3–5 минут</span>
+        </div>
+        <a class="mooring dark" href="#yacht">
+          <div class="top"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#D6A93E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8M12 3v13M12 16l-1.5 5h3z"/></svg><span class="kind">каждую неделю</span></div>
+          <h3>Прибей букву обратно</h3><p>Твоя яхта начинает с «Беды». Каждое маленькое действие — гвоздь на место.</p><span class="meta">24 гвоздя до победы</span>
+        </a>
+        <a class="mooring" href="#journal">
+          <div class="top"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg><span class="kind">каждую неделю</span></div>
+          <h3>Бортовой журнал</h3><p>Часы на код против часов на маркетинг. При перекосе яхта кренится.</p><span class="meta">публично</span>
+        </a>
+        <div class="mooring">
+          <div class="top"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2"/><path d="M12 7v14M5 13a7 7 0 0 0 14 0M8 11h8"/></svg><span class="soon">скоро</span></div>
+          <h3>Судовой реестр</h3><p>Поставь свой проект в гавань. Брось круг другому — получишь свой.</p><span class="meta">[N] яхт у причала</span>
+        </div>
+        <a class="mooring" href="#triangle">
+          <div class="top"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4l9 16H3z"/></svg><span class="kind">сообщество</span></div>
+          <h3>Бермудский треугольник</h3><p>Оставь эпитафию брошенному проекту. Любой может попробовать поднять его со дна.</p><span class="meta">[N] судов на дне</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section journal" id="journal">
+    <div class="wrap">
+      <div>
+        <p class="kicker">Бортовой журнал автора</p>
+        <h2 class="display">Я тоже на этой яхте</h2>
+        <p>Каждую неделю — часы на код, часы на продвижение и одна честная строчка. Крен считается по последним двум неделям.</p>
+        <svg viewBox="0 0 520 260" width="520" role="img" aria-label="Схема: при перекосе в код яхта кренится на правый борт">
+          <path d="M0 200 Q 65 188 130 200 T 260 200 T 390 200 T 520 200" fill="none" stroke="#6E8A8F" stroke-width="2"/>
+          <g transform="rotate(18 260 190)">
+            <path d="M150 170 L370 170 L340 210 L185 210 Z" fill="#6E4B2D" stroke="#D6A93E" stroke-width="1.5"/>
+            <path d="M258 170 L258 40" stroke="#B17D47" stroke-width="4"/>
+            <path d="M262 48 L262 160 L350 160 Z" fill="#EDE4CF"/>
+            <path d="M254 56 L254 160 L178 160 Z" fill="#D9CDB4"/>
+          </g>
+          <path d="M260 190 L260 70" stroke="#B8A385" stroke-width="1" stroke-dasharray="4 5"/>
+          <path d="M260 100 A 90 90 0 0 1 288 104" fill="none" stroke="#E88A62" stroke-width="2"/>
+          <text x="298" y="96" fill="#E88A62" font-family="IBM Plex Mono, monospace" font-size="16">крен [°]</text>
+        </svg>
+      </div>
+      <div class="log">
+        <div><div class="d">[дата], неделя [N]</div><div>код [ч], маркетинг [ч], коммитов [N], постов [N]</div><div class="q">«ещё одну фичу — и тогда напишу».</div></div>
+        <hr>
+        <div><div class="d">[дата], неделя [N]</div><div>код [ч], маркетинг [ч], коммитов [N], постов [N]</div><div class="q">[строчка недели]</div></div>
+        <hr>
+        <div><div class="d">[дата], неделя [N]</div><div>код [ч], маркетинг [ч], коммитов [N], постов [N]</div><div class="q">[строчка недели]</div></div>
+        <a href="#journal" style="font-family:var(--sans)">Весь журнал</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section sea" id="triangle">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="kicker" style="color:var(--sea-muted)">Бермудский треугольник</p>
+          <h2 class="display" style="margin-top:12px">Здесь покоятся наши проекты</h2>
+        </div>
+        <a class="btn btn-sea" href="#triangle">Оставить эпитафию</a>
+      </div>
+      <div class="wrecks">
+        <article class="wreck">
+          <div class="m"><span>[годы плавания]</span><span>первой отвалилась О</span></div>
+          <h3>[Название проекта]</h3>
+          <q>Здесь покоятся [N] строк кода. Пользователей — ноль. Тесты — зелёные.</q>
+          <div class="m" style="margin-top:auto"><span>пример эпитафии</span></div>
+        </article>
+        <article class="wreck">
+          <div class="m"><span>[годы плавания]</span><span>первой отвалилась [буква]</span></div>
+          <h3>[Название проекта]</h3>
+          <q>[Эпитафия до 140 символов]</q>
+          <div class="m" style="margin-top:auto; align-items:center"><span>[N] хотят поднять</span><button class="btn btn-sea" type="button" style="min-height:44px; padding:0 16px; font-size:15px">Поднять со дна</button></div>
+        </article>
+        <div class="wreck empty">
+          <h3>Место для твоего судна</h3>
+          <p>Что строил, почему бросил, какая буква отвалилась первой. Можно анонимно.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot" id="subscribe">
+    <div class="wrap">
+      <div>
+        <div class="display" style="font-weight:700; font-size:26px">Яхта «Беда»</div>
+        <p>Рубрику ведёт Денис — разработчик и соло-фаундер. Сам плывёт на «Беде» и ведёт журнал публично.</p>
+      </div>
+      <nav aria-label="Контакты"><a href="[ссылка на канал]">Канал рубрики</a><a href="#journal">Журнал</a><a href="[контакт]">Написать</a></nav>
+    </div>
+  </footer>
+</main>
+
+<!-- ================= QUIZ ================= -->
+<main id="view-quiz" hidden>
+  <div id="quizRun">
+    <div class="wrap" style="display:flex; justify-content:space-between; align-items:center; gap:18px; padding-top:22px; flex-wrap:wrap">
+      <div class="quiz-bar"><span class="mono" id="qCount" style="font-size:15px; color:var(--muted)">вопрос 1 из 12</span><div class="progress" aria-hidden="true"><i id="qProg"></i></div></div>
+      <a href="#top" style="font-size:15px; color:var(--muted); text-decoration:none">Выйти</a>
+    </div>
+    <section class="quiz">
+      <div class="wrap">
+        <div>
+          <div class="transom-wrap" id="quizTransom"></div>
+          <p class="caption" id="quizCaption">Каждое «нет» выбивает клёпки.</p>
+        </div>
+        <div>
+          <div class="q-letter"><span class="box" id="qBox">П</span><span id="qPillar">Позиционирование, вопрос 1 из 2</span></div>
+          <h1 class="q-text" id="qText"></h1>
+          <p class="q-hint" id="qHint"></p>
+          <div class="answers">
+            <button class="btn" type="button" data-a="1">Да</button>
+            <button class="btn" type="button" data-a="0.5">Частично</button>
+            <button class="btn no" type="button" data-a="0">Нет</button>
+          </div>
+          <div class="q-foot">
+            <button class="linkbtn" type="button" id="qBack">Назад</button>
+            <span class="mono" style="font-size:14px; color:var(--muted)">ответы никуда не отправляются</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="quizResult" hidden>
+    <section class="result" style="padding-top:clamp(40px,6vw,64px)">
+      <div class="wrap">
+        <div class="transom-wrap" id="resultTransom" style="--ts:clamp(40px,5.4vw,88px)"></div>
+        <div>
+          <p class="kicker">Класс судна</p>
+          <h1 class="display" id="rClass"></h1>
+          <p class="lead" id="rText"></p>
+          <div class="chips" id="rChips"></div>
+          <div class="share">
+            <button class="btn" type="button" id="copyShare">Скопировать текст</button>
+            <a class="btn" href="#osmotr" id="retry">Пройти заново</a>
+          </div>
+          <p class="share-text" id="rShare"></p>
+          <p class="status" id="copyStatus" role="status"></p>
+        </div>
+      </div>
+    </section>
+    <section class="actions light">
+      <div class="wrap">
+        <div class="row">
+          <h2 class="display">Три гвоздя на эту неделю</h2>
+          <button class="btn btn-ink" type="button" id="toTracker">Прибить буквы обратно</button>
+        </div>
+        <div class="act-grid" id="rActs"></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- ================= YACHT TRACKER ================= -->
+<main id="view-yacht" hidden>
+  <section class="yacht-top">
+    <div class="wrap">
+      <div class="transom-wrap" id="yachtTransom"></div>
+      <div>
+        <p class="kicker">Моя яхта</p>
+        <h1 class="display" id="yName">[Название проекта]</h1>
+        <div class="meter"><span id="yCount">0 из 24 гвоздей</span><span id="yLeft"></span></div>
+        <div class="bar" aria-hidden="true"><i id="yBar"></i></div>
+        <div class="legend">
+          <span><i class="dot" style="background:var(--brass-card)"></i>прибит</span>
+          <span><i class="dot" style="border:1.5px dashed var(--muted)"></i>пустое гнездо</span>
+        </div>
+        <div style="display:flex; gap:12px; flex-wrap:wrap">
+          <button class="btn" type="button" id="yReset">Начать с «Беды»</button>
+          <a class="btn" href="#osmotr">Пройти осмотр</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="cards light">
+    <div class="wrap">
+      <div class="card-grid" id="yCards"></div>
+      <div class="rust">
+        <div><b>Ржавчина</b><p>О и Д требуют регулярности: 30 дней без действий — один гвоздь ржавеет и выпадает. В этой версии ржавчины ещё нет, прогресс хранится только в этом браузере.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  /* ---------- data ---------- */
+  var WORD = ['П','О','Б','Е','Д','А'];
+  var PILLARS = {
+    'П':{n:'Позиционирование', d:'Одной фразой: для кого проект и чем он лучше того, чем пользуются сейчас.'},
+    'О':{n:'Общение с людьми', d:'За месяц — хотя бы пять разговоров с теми, для кого ты это делаешь.'},
+    'Б':{n:'Бесплатная ценность', d:'Статья, инструмент или шаблон, который приводит людей сам.'},
+    'Е':{n:'Единая точка входа', d:'Страница, где за десять секунд понятно, что это, и можно начать.'},
+    'Д':{n:'Дистрибуция', d:'Канал, куда ты регулярно выходишь с проектом.'},
+    'А':{n:'Аналитика', d:'Сколько людей пришло, откуда и что они сделали.'}
+  };
+  // крепёж: [x,y] в em от левого верхнего угла литеры; [0] — держится дольше всех
+  var MOUNTS = {
+    'П':{pts:[[.10,.28],[.60,.28],[.10,.86],[.60,.86]], hang:'37deg'},
+    'О':{pts:[[.09,.72],[.09,.46],[.64,.46],[.64,.72]], hang:'124deg'},
+    'Б':{pts:[[.10,.28],[.55,.28],[.10,.86],[.50,.86]], hang:'34deg'},
+    'Е':{pts:[[.10,.28],[.54,.28],[.10,.86],[.54,.86]], hang:'36deg'},
+    'Д':{pts:[[.14,.28],[.58,.28],[.05,.93],[.66,.93]], hang:'30deg'},
+    'А':{pts:[[.36,.31],[.08,.88],[.64,.88],[.36,.70]], hang:'6deg'}
+  };
+  var DEFAULT_MOUNT = {pts:[[.10,.28],[.60,.28],[.10,.86],[.60,.86]], hang:'34deg'};
+  var QUESTIONS = [
+    ['П','Можешь одной фразой сказать, для кого твой проект?','Не «для всех, кому удобно», а конкретные люди с конкретной задачей.'],
+    ['П','Знаешь, чем он лучше того, чем люди пользуются сейчас?','«Сейчас» — это часто таблица, чат или вообще ничего.'],
+    ['О','Говорил за последний месяц хотя бы с пятью потенциальными пользователями?','Друзья, коллеги и мама не считаются.'],
+    ['О','Кто-то, кроме друзей, пользовался проектом и дал обратную связь?','Хоть один незнакомый человек.'],
+    ['Б','Есть что-то бесплатное, что приводит людей само — статья, инструмент, шаблон?','Что-то, что находят без тебя.'],
+    ['Б','Писал о проекте или его теме хоть раз за последний месяц?','Коммит-сообщения не считаются.'],
+    ['Е','Есть страница, где за десять секунд понятно, что это?','README на GitHub — считается, если его поймёт не-разработчик.'],
+    ['Е','Можно ли на этой странице оставить почту или начать пользоваться?','Одна кнопка — уже да.'],
+    ['Д','Есть канал, куда ты регулярно выходишь с проектом?','Регулярно — это чаще раза в месяц.'],
+    ['Д','Знаешь, где конкретно собирается твоя аудитория?','Название чата, сообщества, рассылки.'],
+    ['А','Знаешь, сколько людей пришло за последнюю неделю?','Хотя бы порядок числа.'],
+    ['А','Знаешь, откуда они пришли?','Хотя бы один источник.']
+  ];
+  var ACTS = {
+    'П':['15 минут','Напиши одну фразу','«Для [кого], кто [проблема], мой проект — это [что], в отличие от [альтернативы]».'],
+    'О':['30 минут','Найди трёх человек','У кого есть эта проблема. Спроси, как они решают её сейчас. Ничего не продавай.'],
+    'Б':['1 час','Напиши один пост','О самой полезной вещи, которую узнал, пока делал проект.'],
+    'Е':['1 час','Сделай страницу из трёх блоков','Что это, для кого, кнопка.'],
+    'Д':['10 минут','Выбери один канал','И поставь в календарь выход туда раз в неделю. Один — не пять.'],
+    'А':['20 минут','Поставь счётчик','Любой простой аналитики хватит. Посмотри цифры через неделю.']
+  };
+  var STEPS = {
+    'П':['Написать фразу позиционирования','Переписать по ней заголовок страницы','Показать фразу пяти людям','Переписать фразу их словами'],
+    'О':['Написать одному пользователю','Провести один созвон','Поговорить ещё с тремя','Выписать повторяющиеся проблемы'],
+    'Б':['Пост о том, чему научился','Выложить полезный инструмент или шаблон','Второй материал по теме','Серия из пяти материалов'],
+    'Е':['Страница «что это и для кого»','Кнопка «начать» или форма для почты','Примеры и скриншоты на странице','Первые отзывы на странице'],
+    'Д':['Выбрать один канал','Первый выход в канал','Три выхода за две недели','Месяц регулярных выходов'],
+    'А':['Подключить счётчик','Посмотреть источники за неделю','Поставить одну цель','Проверить цель через месяц']
+  };
+
+  /* ---------- transom renderer ---------- */
+  // state: массив {ch, nails:0..4}; nails>=2 — на месте, 1 — висит, 0 — упала
+  function buildTransom(host, letters){
+    host.innerHTML = '';
+    var t = document.createElement('div'); t.className = 'transom still';
+    var slots = [];
+    letters.forEach(function(ch, i){
+      var s = document.createElement('div');
+      if (ch === ' ') { s.className = 'slot space'; t.appendChild(s); slots.push(null); return; }
+      var m = MOUNTS[ch] || DEFAULT_MOUNT;
+      s.className = 'slot';
+      var h = m.pts[0];
+      s.style.setProperty('--ox', h[0] + 'em');
+      s.style.setProperty('--oy', h[1] + 'em');
+      s.style.setProperty('--hang', m.hang);
+      s.style.setProperty('--drop', '1.12em');
+      s.style.setProperty('--fx', ((i % 2 ? 1 : -1) * (0.04 + ((i * 37) % 10) / 70)).toFixed(3) + 'em');
+      s.style.setProperty('--fr', ((i % 2 ? 1 : -1) * (6 + (i * 53) % 12)) + 'deg');
+      var gh = document.createElement('span'); gh.className = 'ghost'; gh.textContent = ch; gh.setAttribute('aria-hidden','true');
+      var g = document.createElement('span'); g.className = 'g'; g.textContent = ch; g.setAttribute('aria-hidden','true');
+      s.appendChild(gh); s.appendChild(g);
+      var nails = m.pts.map(function(p){
+        var hole = document.createElement('i'); hole.className = 'hole';
+        hole.style.left = p[0] + 'em'; hole.style.top = p[1] + 'em';
+        var n = document.createElement('i'); n.className = 'nail';
+        n.style.left = p[0] + 'em'; n.style.top = p[1] + 'em';
+        s.appendChild(hole); s.appendChild(n);
+        return n;
+      });
+      t.appendChild(s);
+      slots.push({el:s, nails:nails});
+    });
+    var shelf = document.createElement('div'); shelf.className = 'shelf';
+    host.appendChild(t); host.appendChild(shelf);
+    return {t:t, slots:slots, letters:letters};
+  }
+  function setTransom(tr, counts, animate){
+    if (!animate) tr.t.classList.add('still');
+    tr.slots.forEach(function(sl, i){
+      if (!sl) return;
+      var c = counts[i];
+      sl.nails.forEach(function(n, k){ n.classList.toggle('off', k >= c); });
+      var hang = c === 1, fall = c <= 0;
+      if (hang && !sl.el.classList.contains('hang')) {
+        sl.el.classList.remove('fall');
+        void sl.el.offsetWidth;          // перезапуск качания
+        sl.el.classList.add('hang');
+      } else if (!hang) sl.el.classList.remove('hang');
+      sl.el.classList.toggle('fall', fall);
+    });
+    var shown = tr.letters.map(function(ch, i){ return ch === ' ' ? ' ' : (counts[i] > 0 ? ch : '_'); }).join('');
+    tr.t.setAttribute('role','img');
+    tr.t.setAttribute('aria-label','Надпись на транце: ' + shown.replace(/_/g,'пусто '));
+    if (!animate) requestAnimationFrame(function(){ requestAnimationFrame(function(){ tr.t.classList.remove('still'); }); });
+  }
+
+  /* ---------- storage (per-viewer only) ---------- */
+  var KEY = 'yacht-beda-v1';
+  function load(){ try { var v = localStorage.getItem(KEY); return v ? JSON.parse(v) : null; } catch(e){ return null; } }
+  function save(v){ try { localStorage.setItem(KEY, JSON.stringify(v)); } catch(e){} }
+  var store = load() || {};
+
+  /* ---------- hero ---------- */
+  var hero = buildTransom(document.getElementById('heroTransom'), WORD);
+  setTransom(hero, [4,4,4,4,4,4], false);
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  setTimeout(function(){ setTransom(hero, [1,4,4,4,4,4], true); }, reduce ? 0 : 900);
+  setTimeout(function(){ setTransom(hero, [1,0,4,4,4,4], true); }, reduce ? 0 : 3900);
+
+  /* ---------- pillars ---------- */
+  document.getElementById('pillars').innerHTML = WORD.map(function(ch, i){
+    var p = PILLARS[ch];
+    return '<div class="pillar' + (i < 2 ? ' first' : '') + '"><span class="tag">' + (i < 2 ? 'отваливается первой' : '') +
+      '</span><span class="L" aria-hidden="true">' + ch + '</span><b>' + p.n + '</b><span class="d">' + p.d + '</span></div>';
+  }).join('');
+
+  /* ---------- «Как назовёшь» ---------- */
+  var FUNNY = ['беда','бед','дыра','течь','мель','рифы','риф','крах','баг','баги','лень','ноль','ад','яд','тлен','хлам','мрак','дно','вред','бред','брод','рок','сон','мука','тоска','пена','шум','бег','крен','трюм','шторм','лом','облом','отказ','фейл','пшик','bug','bugs','dead','sad','fail','oops','lag','mess','lost','nope','doom','bad','sink','leak','zero','null','void','rip'];
+  var STOP = ['хуй','хуе','хуё','пизд','бля','еба','ёба','ебл','сук','муд','залуп','fuck','shit','cunt','dick'];
+  function clean(s){ return s.toLowerCase(); }
+  function hasStop(s){ s = clean(s); return STOP.some(function(w){ return s.indexOf(w) >= 0; }); }
+  // ищем самое длинное «смешное» слово, которое можно получить, просто убрав лишние буквы
+  function findRemoval(name){
+    var chars = Array.from(name), low = chars.map(function(c){ return c.toLowerCase(); });
+    var idx = []; chars.forEach(function(c,i){ if (c !== ' ') idx.push(i); });
+    var best = null;
+    FUNNY.forEach(function(w){
+      var wc = Array.from(w), keep = [], j = 0;
+      for (var k = 0; k < idx.length && j < wc.length; k++) if (low[idx[k]] === wc[j]) { keep.push(idx[k]); j++; }
+      if (j < wc.length || keep.length === idx.length) return;
+      if (!best || wc.length > best.len) best = {len:wc.length, word:w, keep:keep};
+    });
+    if (best) return {removed:idx.filter(function(i){ return best.keep.indexOf(i) < 0; }), word:best.word, found:true};
+    var k = idx.length > 3 ? 2 : 1;
+    var rem = idx.slice(0, k);
+    var rest = chars.filter(function(ch,i){ return rem.indexOf(i) < 0; }).join('').trim();
+    if (hasStop(rest)) { rem = idx.slice(0,1); rest = chars.filter(function(ch,i){ return i !== idx[0]; }).join('').trim(); }
+    return {removed:rem, word:rest, found:false};
+  }
+  var namerTr = null;
+  document.getElementById('namerForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var raw = document.getElementById('projName').value.replace(/\s+/g,' ').trim();
+    if (!raw) return;
+    var name = raw.toUpperCase().slice(0, 14);
+    var res = findRemoval(name);
+    var chars = Array.from(name);
+    var out = document.getElementById('namerOut'); out.hidden = false;
+    var host = document.getElementById('namerTransom');
+    var avail = Math.min(out.clientWidth, 640) * 0.95;
+    host.style.setProperty('--ts', Math.round(Math.max(20, Math.min(64, avail / (chars.length * 0.85 + 0.8)))) + 'px');
+    namerTr = buildTransom(host, chars);
+    setTransom(namerTr, chars.map(function(){ return 4; }), false);
+    setTimeout(function(){
+      setTransom(namerTr, chars.map(function(c,i){ return res.removed.indexOf(i) >= 0 ? 0 : 4; }), true);
+    }, reduce ? 0 : 450);
+    var word = res.word.toUpperCase();
+    document.getElementById('namerWas').textContent = 'Было: ' + raw;
+    document.getElementById('namerNow').textContent = 'Стало: ' + (word || '…');
+    var k = res.removed.length;
+    var nails = k === 1 ? 'Одна отвалившаяся буква' : (k <= 4 ? k + ' отвалившиеся буквы' : k + ' отвалившихся букв');
+    document.getElementById('namerText').textContent = res.found
+      ? nails + ' — и судно уже называется «' + word + '». Маркетинг держится на меньшем, чем кажется.'
+      : 'Слово не сложилось, но остаток всё равно звучит как диагноз. Классический путь пет-проекта: сначала отваливается начало.';
+  });
+
+  /* ---------- quiz ---------- */
+  var answers = [];
+  var quizTr = buildTransom(document.getElementById('quizTransom'), WORD);
+  function liveCounts(){
+    var pops = [0,0,0,0,0,0];
+    answers.forEach(function(a, qi){ var li = WORD.indexOf(QUESTIONS[qi][0]); pops[li] += a === 0 ? 2 : (a === 0.5 ? 1 : 0); });
+    return pops.map(function(p){ return Math.max(0, 4 - p); });
+  }
+  function scores(){
+    var s = [0,0,0,0,0,0];
+    answers.forEach(function(a, qi){ s[WORD.indexOf(QUESTIONS[qi][0])] += a; });
+    return s;
+  }
+  function finalCounts(s){ return s.map(function(v){ return v >= 2 ? 4 : v >= 1.5 ? 3 : v >= 0.5 ? 1 : 0; }); }
+  function renderQuestion(){
+    var i = answers.length;
+    var q = QUESTIONS[i];
+    document.getElementById('qCount').textContent = 'вопрос ' + (i+1) + ' из 12';
+    document.getElementById('qProg').style.width = (i/12*100) + '%';
+    document.getElementById('qBox').textContent = q[0];
+    document.getElementById('qPillar').textContent = PILLARS[q[0]].n + ', вопрос ' + (i % 2 + 1) + ' из 2';
+    document.getElementById('qText').textContent = q[1];
+    document.getElementById('qHint').textContent = q[2];
+    document.getElementById('qBack').disabled = i === 0;
+  }
+  function startQuiz(){
+    answers = [];
+    document.getElementById('quizRun').hidden = false;
+    document.getElementById('quizResult').hidden = true;
+    setTransom(quizTr, [4,4,4,4,4,4], false);
+    document.getElementById('quizCaption').textContent = 'Каждое «нет» выбивает клёпки.';
+    renderQuestion();
+  }
+  document.querySelectorAll('.answers .btn').forEach(function(b){
+    b.addEventListener('click', function(){
+      answers.push(parseFloat(b.getAttribute('data-a')));
+      setTransom(quizTr, liveCounts(), true);
+      if (answers.length === 12) showResult(); else renderQuestion();
+    });
+  });
+  document.getElementById('qBack').addEventListener('click', function(){
+    if (!answers.length) return;
+    answers.pop(); setTransom(quizTr, liveCounts(), true); renderQuestion();
+  });
+
+  var resultTr = buildTransom(document.getElementById('resultTransom'), WORD);
+  var lastFinal = null;
+  function showResult(){
+    var s = scores(), fin = finalCounts(s);
+    lastFinal = fin;
+    store.quiz = fin; save(store);
+    document.getElementById('quizRun').hidden = true;
+    document.getElementById('quizResult').hidden = false;
+    window.scrollTo(0,0);
+    setTransom(resultTr, liveCounts(), false);
+    // финальная раскладка: по букве слева направо
+    WORD.forEach(function(_, i){
+      setTimeout(function(){
+        var cur = resultTr.slots.map(function(_, k){ return k <= i ? fin[k] : liveCounts()[k]; });
+        setTransom(resultTr, cur, true);
+      }, reduce ? 0 : 500 + i * 520);
+    });
+    var mounted = fin.filter(function(c){ return c >= 2; }).length;
+    var shown = WORD.map(function(ch,i){ return fin[i] > 0 ? ch : '_'; }).join('');
+    var cls, txt;
+    var poOnly = fin[0] === 0 && fin[1] === 0 && fin.slice(2).every(function(c){ return c >= 1; });
+    if (poOnly) { cls = 'Классическая «Беда»'; txt = 'Отвалились ровно П и О — позиционирование и разговоры с людьми. ПО осталось у тебя в репозитории. Победы пока нет.'; }
+    else if (mounted === 6) { cls = 'Флагман'; txt = 'Редкость. Все шесть букв на месте — покажи остальным, как это делается.'; }
+    else if (mounted >= 4) { cls = 'Шхуна на ходу'; txt = 'Одна-две клёпки — и выходишь в море.'; }
+    else if (mounted >= 2) { cls = 'Классическая «Беда»'; txt = 'ПО есть. Победы нет. Узнаёшь?'; }
+    else { cls = 'Корпус на стапеле'; txt = 'Проект есть. Судна пока нет. Хорошая новость: каждая буква прибивается за вечер.'; }
+    document.getElementById('rClass').textContent = cls;
+    document.getElementById('rText').textContent = txt;
+    document.getElementById('rChips').innerHTML = WORD.map(function(ch,i){
+      var c = fin[i], k = c >= 2 ? '' : (c === 1 ? ' hang' : ' fall'), w = c >= 2 ? 'прибита' : (c === 1 ? 'висит' : 'упала');
+      return '<div class="chip' + k + '"><b>' + ch + '</b><small>' + w + '</small></div>';
+    }).join('');
+    var shareText = 'Прошёл осмотр судна: у меня ' + shown + '. А у тебя?';
+    document.getElementById('rShare').textContent = '«' + shareText + '»';
+    document.getElementById('copyShare').onclick = function(){
+      var st = document.getElementById('copyStatus');
+      try {
+        navigator.clipboard.writeText(shareText + ' [адрес сайта]').then(function(){ st.textContent = 'Текст скопирован'; }, function(){ st.textContent = 'Не получилось скопировать — выдели текст выше вручную'; });
+      } catch(e){ st.textContent = 'Не получилось скопировать — выдели текст выше вручную'; }
+    };
+    var order = WORD.map(function(ch,i){ return {ch:ch, s:s[i]}; }).filter(function(x){ return x.s < 2; })
+      .sort(function(a,b){ return a.s - b.s; }).slice(0,3);
+    if (!order.length) order = [{ch:'О'},{ch:'Д'},{ch:'Б'}];
+    document.getElementById('rActs').innerHTML = order.map(function(o){
+      var a = ACTS[o.ch];
+      return '<div class="act"><div class="h"><span class="L">' + o.ch + '</span><span class="t">' + a[0] + '</span></div><b>' + a[1] + '</b><p>' + a[2] + '</p></div>';
+    }).join('');
+  }
+  document.getElementById('toTracker').addEventListener('click', function(){
+    if (lastFinal) { store.nails = lastFinal.slice(); save(store); }
+    location.hash = '#yacht';
+  });
+
+  /* ---------- tracker ---------- */
+  var yachtTr = buildTransom(document.getElementById('yachtTransom'), WORD);
+  function nailsState(){ if (!store.nails) store.nails = [0,0,4,4,4,4]; return store.nails; }
+  function renderYacht(animate){
+    var n = nailsState();
+    setTransom(yachtTr, n, animate);
+    var total = n.reduce(function(a,b){ return a+b; }, 0);
+    document.getElementById('yCount').textContent = total + ' из 24 гвоздей';
+    document.getElementById('yLeft').textContent = total === 24 ? 'ПОБЕДА' : 'до победы — ' + (24 - total);
+    document.getElementById('yBar').style.width = (total/24*100) + '%';
+    document.getElementById('yCards').innerHTML = WORD.map(function(ch,i){
+      var c = n[i], st, cl = '', stc = '';
+      if (c >= 4) { st = 'прибита'; stc = ' ok'; }
+      else if (c >= 2) st = c + ' из 4';
+      else if (c === 1) { st = 'висит'; cl = ' warn'; stc = ' bad'; }
+      else { st = 'на полке'; cl = ' down'; stc = ' bad'; }
+      var dots = ''; for (var k = 0; k < 4; k++) dots += '<i' + (k < c ? '' : ' class="empty"') + '></i>';
+      var desc = c >= 4 ? 'Все четыре гвоздя на месте.' : (c === 0 ? 'Первый гвоздь поднимет букву с полки обратно на транец.' : (c === 1 ? 'Висит на одном гвозде. Ещё один — и буква встанет на место.' : 'Держится, но гнёзда ещё есть.'));
+      var next = c < 4 ? '<div class="next"><span>' + STEPS[ch][c] + '</span><button class="btn btn-ink" type="button" data-nail="' + i + '">Прибил</button></div>' : '';
+      return '<div class="lcard' + cl + '"><div class="h"><div><span class="L">' + ch + '</span><span class="n">' + PILLARS[ch].n + '</span></div><span class="st' + stc + '">' + st + '</span></div>' +
+        '<div class="slots" aria-label="' + c + ' из 4 гвоздей">' + dots + '</div><p>' + desc + '</p>' + next + '</div>';
+    }).join('');
+  }
+  document.getElementById('yCards').addEventListener('click', function(e){
+    var b = e.target.closest('[data-nail]'); if (!b) return;
+    var i = +b.getAttribute('data-nail'), n = nailsState();
+    if (n[i] < 4) { n[i]++; save(store); renderYacht(true);
+      var nb = document.querySelector('[data-nail="' + i + '"]'); if (nb) nb.focus(); }
+  });
+  document.getElementById('yReset').addEventListener('click', function(){
+    store.nails = [0,0,4,4,4,4]; save(store); renderYacht(true);
+  });
+
+  /* ---------- routing ---------- */
+  var views = {home:document.getElementById('view-home'), quiz:document.getElementById('view-quiz'), yacht:document.getElementById('view-yacht')};
+  function show(name){
+    Object.keys(views).forEach(function(k){ views[k].hidden = k !== name; });
+    document.querySelectorAll('[data-nav]').forEach(function(a){
+      if (a.getAttribute('data-nav') === name) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current');
+    });
+  }
+  function route(){
+    var h = location.hash;
+    if (h === '#osmotr') { show('quiz'); startQuiz(); window.scrollTo(0,0); }
+    else if (h === '#yacht') { show('yacht'); renderYacht(false); window.scrollTo(0,0); }
+    else {
+      var wasHidden = views.home.hidden;
+      show('home');
+      var el = h && h.length > 1 ? document.getElementById(h.slice(1)) : null;
+      if (el) el.scrollIntoView(); else if (wasHidden) window.scrollTo(0,0);
+    }
+  }
+  addEventListener('hashchange', route);
+  route();
+})();
+</script>
+</body>
+</html>

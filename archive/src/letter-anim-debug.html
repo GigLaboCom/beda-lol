@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Отладка: отваливание буквы</title>
+<style>
+  :root{ --bg:#241a12; --fg:#efe4cf; --muted:#b59b7a; --panel:rgba(16,11,7,.8); }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#17100a; } }
+  :root[data-theme="dark"]{ --bg:#17100a; }
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow:hidden}
+  #c{display:block;width:100%;height:100%}
+  .panel{position:fixed;top:14px;left:14px;width:min(300px,calc(100vw - 40px));max-height:calc(100vh - 28px);overflow:auto;
+         padding:12px 14px;background:var(--panel);border-radius:6px}
+  .panel h1{margin:0 0 8px;font-size:14px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+  .panel .row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  button{background:transparent;color:var(--fg);border:1px solid var(--muted);border-radius:4px;padding:5px 9px;font:inherit;cursor:pointer}
+  button:disabled{opacity:.4;cursor:default}
+  #pick button.on{border-color:#d8ab3c;color:#d8ab3c}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+  label{display:block;margin:7px 0;color:var(--muted)}
+  label span{color:var(--fg);float:right}
+  input[type=range]{width:100%;accent-color:#d8ab3c}
+  .state{margin-top:10px;padding-top:8px;border-top:1px solid rgba(181,155,122,.35);color:var(--muted)}
+  .state b{color:#d8ab3c;font-weight:600}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="panel">
+  <h1>Отваливание буквы</h1>
+  <div class="row">
+    <button id="play">Отколоть</button>
+    <button id="reset">Сброс</button>
+  </div>
+  <div class="row" id="pick">
+    <button data-i="0" class="on">«П» — гвозди по углам</button>
+    <button data-i="1">«О» — клёпки по овалу</button>
+  </div>
+  <label>Дрожь перед срывом <span id="vShudder"></span><input type="range" id="shudder" min="0.1" max="1.5" step="0.05"></label>
+  <label>Период качания <span id="vPeriod"></span><input type="range" id="period" min="0.4" max="1.6" step="0.05"></label>
+  <label>Число качаний <span id="vSwings"></span><input type="range" id="swings" min="1" max="8" step="1"></label>
+  <label>Затухание <span id="vDamp"></span><input type="range" id="damp" min="0.1" max="2" step="0.05"></label>
+  <label>Отход от доски <span id="vLean"></span><input type="range" id="lean" min="0" max="0.08" step="0.005"></label>
+  <label>Скорость времени <span id="vSpeed"></span><input type="range" id="speed" min="0.1" max="2" step="0.05"></label>
+  <label><input type="checkbox" id="showPivot"> показать ось и траекторию</label>
+  <div class="state">фаза: <b id="phase">fixed</b> · t=<b id="tval">0.00</b>с · угол=<b id="ang">0°</b></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  if(!window.THREE){ document.querySelector('.state').textContent='three.js не загрузился'; return; }
+
+  /* ---------- настройки анимации ---------- */
+  const CFG={ shudder:0.55, period:0.85, swings:4, damping:0.62, lean:0.02, speed:1, gravity:9.8 };
+
+  /* ---------- сцена ---------- */
+  const canvas=document.getElementById('c');
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.outputEncoding=THREE.sRGBEncoding;
+  const scene=new THREE.Scene();
+  const bg=()=>getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()||'#241a12';
+  scene.background=new THREE.Color(bg());
+  const camera=new THREE.PerspectiveCamera(38,1,0.05,60);
+  scene.add(new THREE.HemisphereLight(0xffe4b8,0x3a2410,.6));
+  const sun=new THREE.DirectionalLight(0xffe0b0,1.1); sun.position.set(-4,6,3);
+  sun.castShadow=true; sun.shadow.mapSize.set(1024,1024);
+  sun.shadow.camera.left=-3;sun.shadow.camera.right=3;sun.shadow.camera.top=3;sun.shadow.camera.bottom=-3;
+  sun.shadow.bias=-0.0008; scene.add(sun);
+  const root=new THREE.Group(); scene.add(root);
+
+  function wood(base,seam,pw){
+    const cv=document.createElement('canvas'); cv.width=cv.height=256; const x=cv.getContext('2d');
+    x.fillStyle=base; x.fillRect(0,0,256,256);
+    for(let i=0;i<256;i+=pw){ x.fillStyle=seam; x.fillRect(0,i,256,2);
+      for(let k=0;k<6;k++){ x.fillStyle='rgba(0,0,0,'+(.04+Math.random()*.05)+')'; x.fillRect(0,i+3+Math.random()*(pw-6),256,1);} }
+    const t=new THREE.CanvasTexture(cv); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.encoding=THREE.sRGBEncoding; return t;
+  }
+  const board=new THREE.Mesh(new THREE.BoxGeometry(.12,1.05,2.3),
+    new THREE.MeshStandardMaterial({map:wood('#7d5734','#3b2717',26),roughness:.85}));
+  board.position.set(.06,0,0); board.receiveShadow=true; root.add(board);
+  const FLOOR=-.88;
+  const floor=new THREE.Mesh(new THREE.BoxGeometry(4,.2,6),
+    new THREE.MeshStandardMaterial({map:wood('#a9834f','#5a3d25',40),roughness:.9}));
+  floor.position.set(-1.1,FLOOR-.1,0); floor.receiveShadow=true; root.add(floor);
+
+  /* ---------- буквы ---------- */
+  const NAME='ПОБЕДА', H=.31, GAP=.045, FACE=-.005, Y0=.14, PX=128;
+
+  // глиф рисуется на канвасе, дальше ищем границы краски и кроп по ним:
+  // плоскость подгоняется под сам знак, а не под пустой квадрат текстуры
+  function glyph(ch,fg,outline){
+    const cv=document.createElement('canvas'); cv.width=cv.height=PX; const x=cv.getContext('2d');
+    x.font='bold 100px Georgia,"Times New Roman",serif'; x.textAlign='center'; x.textBaseline='middle';
+    x.lineWidth=9; x.strokeStyle=outline; x.strokeText(ch,PX/2,PX/2+4);
+    x.fillStyle=fg; x.fillText(ch,PX/2,PX/2+4);
+    const img=x.getImageData(0,0,PX,PX).data;
+    let x0=PX,y0=PX,x1=-1,y1=-1;
+    for(let p=0;p<PX;p++) for(let q=0;q<PX;q++) if(img[(p*PX+q)*4+3]>128){
+      if(q<x0)x0=q; if(q>x1)x1=q; if(p<y0)y0=p; if(p>y1)y1=p; }
+    const t=new THREE.CanvasTexture(cv); t.encoding=THREE.sRGBEncoding;
+    t.offset.set(x0/PX,1-(y1+1)/PX); t.repeat.set((x1-x0+1)/PX,(y1-y0+1)/PX);
+    return {tex:t,img,x0,y0,x1,y1,w:x1-x0+1,h:y1-y0+1};
+  }
+  const ink=(g,q,p)=>g.img[(p*PX+q)*4+3]>128;
+  function snap(g,tq,tp){                      // ближайший к цели пиксель, где реально есть металл
+    let best=[Math.round(tq),Math.round(tp)],bd=Infinity;
+    for(let p=g.y0;p<=g.y1;p++) for(let q=g.x0;q<=g.x1;q++){
+      if(!ink(g,q,p)) continue;
+      const d=(q-tq)*(q-tq)+(p-tp)*(p-tp);
+      if(d<bd){ bd=d; best=[q,p]; } }
+    return best;
+  }
+  // точки крепления в пикселях глифа; [0] — та, что держится дольше всех
+  function mountPoints(g,mount){
+    const cx=(g.x0+g.x1)/2, cy=(g.y0+g.y1)/2, T=[];
+    if(mount==='rivets'){                      // «О»: по две клёпки слева и справа, симметрично
+      const dq=g.w*.40, dp=g.h*.26;
+      T.push([cx-dq,cy+dp],[cx-dq,cy-dp],[cx+dq,cy-dp],[cx+dq,cy+dp]);  // [0] — левая нижняя
+    } else {                                   // «П»: по углам знака, ось — верхний левый
+      const iq=g.w*.10, ip=g.h*.10;
+      T.push([g.x0+iq,g.y0+ip],[g.x1-iq,g.y0+ip],[g.x0+iq,g.y1-ip],[g.x1-iq,g.y1-ip]);
+    }
+    return T.map(t=>snap(g,t[0],t[1]));
+  }
+
+  const nailGeo=new THREE.CylinderGeometry(.009,.009,.03,10);
+  const rivetGeo=new THREE.SphereGeometry(.013,12,10);
+  const metal=new THREE.MeshStandardMaterial({color:0xcaa24a,metalness:.7,roughness:.35});
+  const rigs=[], loose=[];
+  const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
+
+  function makeLetter(b,z,mount){
+    const g=b.g, gw=b.gw;
+    // пиксель глифа -> координаты в плоскости доски (горизонталь по z, вертикаль по y)
+    const toLocal=q=>new THREE.Vector3(0,(.5-(q[1]-g.y0)/g.h)*H,((q[0]-g.x0)/g.w-.5)*gw);
+    const pts=mountPoints(g,mount).map(toLocal);
+    const hinge=pts[0];                        // ось вращения = первое крепление
+    const off=hinge.clone().negate();          // центр буквы относительно оси
+
+    const pivot=new THREE.Group(); pivot.position.set(FACE,Y0+hinge.y,z+hinge.z); root.add(pivot);
+    const geo=new THREE.PlaneGeometry(gw,H);
+    const mesh=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({
+      map:g.tex,transparent:true,alphaTest:.35,side:THREE.DoubleSide,roughness:.45,metalness:.45}));
+    mesh.rotation.y=-Math.PI/2; mesh.position.copy(off); mesh.castShadow=true; pivot.add(mesh);
+
+    const ghost=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({
+      map:b.gg.tex,transparent:true,opacity:.6,alphaTest:.35,side:THREE.DoubleSide,roughness:.95}));
+    ghost.rotation.y=-Math.PI/2; ghost.position.set(FACE+.004,Y0,z); ghost.visible=false; root.add(ghost);
+
+    const dome=mount==='rivets';
+    const nails=pts.map(p=>{
+      const n=new THREE.Mesh(dome?rivetGeo:nailGeo,metal);
+      if(dome) n.scale.set(.45,1,1); else n.rotation.z=Math.PI/2;
+      n.position.set(dome?-.009:-.022,p.y-hinge.y,p.z-hinge.z);
+      n.castShadow=true; pivot.add(n);
+      n.userData.home={pos:n.position.clone(),quat:n.quaternion.clone()};
+      return n;
+    });
+
+    // угол, при котором центр тяжести уходит точно под ось
+    const eq=wrap(Math.PI-Math.atan2(off.z,off.y));
+
+    const rig={ch:b.ch,mount,pivot,mesh,ghost,nails,off,eq,state:'fixed',t:0,
+      home:{pos:mesh.position.clone(),quat:mesh.quaternion.clone()},
+      pivotHomeX:pivot.position.x};
+    rigs.push(rig); return rig;
+  }
+
+  // ширина у каждой буквы своя, поэтому раскладываем по накопленной сумме
+  const built=NAME.split('').map(ch=>{
+    const g=glyph(ch,'#d8ab3c','#3a2412');
+    return {ch,g,gg:glyph(ch,'#8a6038','#5a3d25'),gw:H*g.w/g.h};
+  });
+  let zc=-(built.reduce((s,b)=>s+b.gw,0)+GAP*(built.length-1))/2;
+  built.forEach((b,i)=>{ makeLetter(b,zc+b.gw/2,i===1?'rivets':'corner'); zc+=b.gw+GAP; });
+  let sel=rigs[0];                              // выбранная в контролах буква
+
+  /* ---------- вспомогательная визуализация оси ---------- */
+  const helper=new THREE.Group(); helper.visible=false; root.add(helper);
+  const axis=new THREE.Mesh(new THREE.CylinderGeometry(.006,.006,.5,8),
+    new THREE.MeshBasicMaterial({color:0x66ccff}));
+  axis.rotation.z=Math.PI/2; helper.add(axis);
+  const arcMat=new THREE.LineBasicMaterial({color:0x66ccff});
+  let arc=null;
+  function syncHelper(){
+    helper.position.copy(sel.pivot.position);
+    if(arc){ helper.remove(arc); arc.geometry.dispose(); }
+    const pts=[], b=sel.off;
+    for(let k=0;k<=48;k++){ const a=sel.eq*2*k/48;
+      pts.push(new THREE.Vector3(0,b.y*Math.cos(a)-b.z*Math.sin(a),b.y*Math.sin(a)+b.z*Math.cos(a))); }
+    arc=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),arcMat); helper.add(arc);
+  }
+  syncHelper();
+  document.getElementById('showPivot').addEventListener('change',e=>helper.visible=e.target.checked);
+
+  /* ---------- машина состояний ---------- */
+  function start(rig){ if(rig.state!=='fixed') return; rig.state='shudder'; rig.t=0; }
+
+  function popNail(rig,i){
+    const n=rig.nails[i]; if(!n.parent||n.userData.loose) return;
+    const wp=new THREE.Vector3(); n.getWorldPosition(wp);
+    root.add(n); n.position.copy(wp); n.userData.loose=true;
+    loose.push({o:n,v:new THREE.Vector3(-.5-Math.random()*.4,.6+Math.random()*.4,(Math.random()-.5)*.5),
+                w:new THREE.Vector3(Math.random()*8-4,Math.random()*8-4,Math.random()*8-4),r:.012});
+  }
+
+  function toFall(rig,thetaDot){
+    const m=rig.mesh, wp=new THREE.Vector3(), wq=new THREE.Quaternion();
+    m.getWorldPosition(wp); m.getWorldQuaternion(wq);
+    root.add(m); m.position.copy(wp); m.quaternion.copy(wq);
+    const r=wp.clone().sub(rig.pivot.position);                 // радиус-вектор от оси
+    const v=new THREE.Vector3(thetaDot,0,0).cross(r);           // скорость = ω × r, движение продолжается
+    v.x-=.2;
+    loose.push({o:m,v,w:new THREE.Vector3(thetaDot,(Math.random()-.5)*2,(Math.random()-.5)*3),r:H/2,flat:true});
+    popNail(rig,0);
+    rig.state='fall';
+  }
+
+  function step(rig,dt){
+    if(rig.state==='shudder'){
+      rig.t+=dt;
+      const k=Math.max(0,1-rig.t/CFG.shudder), a=.005*k;
+      rig.pivot.position.x=rig.pivotHomeX+Math.sin(rig.t*90)*a;
+      rig.pivot.rotation.z=Math.sin(rig.t*67)*a*2.5;
+      [1,2,3].forEach((i,k2)=>{ if(rig.t>CFG.shudder*(.35+k2*.2)) popNail(rig,i); });
+      if(rig.t>=CFG.shudder){
+        rig.pivot.position.x=rig.pivotHomeX; rig.pivot.rotation.z=0;
+        rig.ghost.visible=true; rig.state='swing'; rig.t=0;
+      }
+    } else if(rig.state==='swing'){
+      rig.t+=dt;
+      const w=2*Math.PI/CFG.period, lam=CFG.damping, e=Math.exp(-lam*rig.t);
+      rig.pivot.rotation.x=rig.eq*(1-e*Math.cos(w*rig.t));
+      rig.pivot.position.x=rig.pivotHomeX-CFG.lean*(1-Math.exp(-3*rig.t));   // отходит от доски
+      if(rig.t>=CFG.period*CFG.swings){
+        const dTheta=rig.eq*e*(lam*Math.cos(w*rig.t)+w*Math.sin(w*rig.t));  // угловая скорость на срыве
+        toFall(rig,dTheta);
+      }
+    }
+  }
+
+  function stepLoose(dt){
+    for(let i=loose.length-1;i>=0;i--){
+      const b=loose[i], o=b.o;
+      b.v.y-=CFG.gravity*dt; o.position.addScaledVector(b.v,dt);
+      const dq=new THREE.Quaternion().setFromEuler(new THREE.Euler(b.w.x*dt,b.w.y*dt,b.w.z*dt));
+      o.quaternion.multiplyQuaternions(dq,o.quaternion);
+      if(o.position.y<=FLOOR+b.r*.3 && b.v.y<0){
+        if(Math.abs(b.v.y)>.5){ b.v.y*=-.3; b.v.x*=.6; b.v.z*=.6; b.w.multiplyScalar(.5); }
+        else{
+          o.position.y=FLOOR+.008; b.v.set(0,0,0);
+          if(b.flat) o.rotation.set(-Math.PI/2,0,Math.random()*Math.PI);
+          loose.splice(i,1);
+        }
+      }
+    }
+  }
+
+  function reset(){
+    loose.length=0;
+    rigs.forEach(rig=>{
+      rig.pivot.rotation.set(0,0,0); rig.pivot.position.x=rig.pivotHomeX;
+      rig.pivot.add(rig.mesh);
+      rig.mesh.position.copy(rig.home.pos); rig.mesh.quaternion.copy(rig.home.quat);
+      rig.nails.forEach(n=>{ rig.pivot.add(n);
+        n.position.copy(n.userData.home.pos); n.quaternion.copy(n.userData.home.quat); n.userData.loose=false; });
+      rig.ghost.visible=false; rig.state='fixed'; rig.t=0;
+    });
+  }
+
+  /* ---------- UI ---------- */
+  const el=id=>document.getElementById(id);
+  const binds=[['shudder','shudder','vShudder',v=>v.toFixed(2)+' с'],
+               ['period','period','vPeriod',v=>v.toFixed(2)+' с'],
+               ['swings','swings','vSwings',v=>String(v)],
+               ['damp','damping','vDamp',v=>v.toFixed(2)],
+               ['lean','lean','vLean',v=>v.toFixed(3)+' м'],
+               ['speed','speed','vSpeed',v=>'×'+v.toFixed(2)]];
+  binds.forEach(([id,key,out,fmt])=>{
+    const s=el(id); s.value=CFG[key]; el(out).textContent=fmt(CFG[key]);
+    s.addEventListener('input',()=>{ CFG[key]=parseFloat(s.value); el(out).textContent=fmt(CFG[key]); });
+  });
+  el('play').addEventListener('click',()=>start(sel));
+  el('reset').addEventListener('click',reset);
+  el('pick').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    [...el('pick').children].forEach(x=>x.classList.toggle('on',x===b));
+    sel=rigs[+b.dataset.i]; syncHelper();
+  });
+
+  /* ---------- камера ---------- */
+  let theta=0,phi=1.45,r=3.4; const target=new THREE.Vector3(-.1,.05,0);
+  let drag=false,lx=0,ly=0,pinch=0;
+  canvas.addEventListener('pointerdown',e=>{ if(e.pointerType==='touch')return; drag=true; lx=e.clientX; ly=e.clientY; });
+  window.addEventListener('pointerup',()=>drag=false);
+  window.addEventListener('pointermove',e=>{ if(!drag)return;
+    theta-=(e.clientX-lx)*.006; phi=Math.max(.2,Math.min(1.7,phi-(e.clientY-ly)*.006)); lx=e.clientX; ly=e.clientY; });
+  canvas.addEventListener('wheel',e=>{ e.preventDefault(); r=Math.max(1.2,Math.min(9,r*(1+e.deltaY*.001))); },{passive:false});
+  canvas.addEventListener('touchstart',e=>{ if(e.touches.length===1){lx=e.touches[0].clientX;ly=e.touches[0].clientY;}
+    else if(e.touches.length===2){pinch=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);} },{passive:true});
+  canvas.addEventListener('touchmove',e=>{ e.preventDefault();
+    if(e.touches.length===1){ const t=e.touches[0];
+      theta-=(t.clientX-lx)*.007; phi=Math.max(.2,Math.min(1.7,phi-(t.clientY-ly)*.007)); lx=t.clientX; ly=t.clientY; }
+    else if(e.touches.length===2){ const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      r=Math.max(1.2,Math.min(9,r*pinch/d)); pinch=d; } },{passive:false});
+
+  function resize(){ renderer.setSize(innerWidth,innerHeight,false); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); }
+  addEventListener('resize',resize); resize();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>scene.background.set(bg()));
+
+  const phaseEl=el('phase'), tEl=el('tval'), angEl=el('ang');
+  let last=performance.now();
+  renderer.setAnimationLoop(now=>{
+    const dt=Math.min(.05,(now-last)/1000)*CFG.speed; last=now;
+    rigs.forEach(rig=>step(rig,dt));
+    stepLoose(dt);
+    phaseEl.textContent=sel.state; tEl.textContent=sel.t.toFixed(2);
+    angEl.textContent=(sel.pivot.rotation.x*180/Math.PI).toFixed(0)+'°';
+    camera.position.set(target.x-r*Math.sin(phi)*Math.cos(theta), target.y+r*Math.cos(phi)*.7+.25, target.z+r*Math.sin(phi)*Math.sin(theta));
+    camera.lookAt(target);
+    renderer.render(scene,camera);
+  });
+})();
+</script>
+</body>
+</html>

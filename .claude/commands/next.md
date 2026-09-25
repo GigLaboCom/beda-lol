@@ -1,0 +1,1 @@
+Find the first unticked step in `docs/steps/PROGRESS.md` and execute it exactly as `/step` would (read `.claude/commands/step.md` for the procedure). If the first unticked step has open [HUMAN] items from a previous session, ask me whether they are done before continuing.

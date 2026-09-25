@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Моя яхта — трекер</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=Playfair+Display:wght@700;900&amp;display=swap">
+<style>
+body{margin:0;background:#1C140E}
+a{color:#D6A93E}a:hover{color:#EBC565}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1320px; background: #1C140E; color: #EDE4CF; font-family: 'IBM Plex Sans', 'Helvetica Neue', sans-serif; display: flex; flex-direction: column;">
+
+<header style="height: 88px; box-sizing: border-box; padding: 0 80px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #3A2A1D;">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: #EDE4CF;">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#D6A93E" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2"></circle><path d="M12 2v5M12 17v5M2 12h5M17 12h5M4.9 4.9l3.5 3.5M15.6 15.6l3.5 3.5M4.9 19.1l3.5-3.5M15.6 8.4l3.5-3.5"></path></svg>
+<span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 22px;">Яхта «Беда»</span>
+</a>
+<nav aria-label="Разделы" style="display: flex; gap: 32px; font-size: 15px;">
+<a href="Tracker.dc.html" style="color: #D6A93E; text-decoration: none;">Моя яхта</a>
+<a href="#" style="color: #EDE4CF; text-decoration: none;">Гавань</a>
+<a href="#" style="color: #EDE4CF; text-decoration: none;">Журнал</a>
+</nav>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; color: #B8A385;">[ник]</span>
+</header>
+
+<section style="box-sizing: border-box; padding: 56px 80px 0; display: flex; gap: 72px; align-items: flex-start;">
+<div style="width: 640px; display: flex; flex-direction: column; align-items: center;">
+<div style="width: 640px; height: 250px; box-sizing: border-box; padding: 52px 36px 0; background: repeating-linear-gradient(180deg, #6E4B2D 0px, #6E4B2D 40px, #4B321E 40px, #4B321E 42px); border-radius: 10px 10px 160px 160px / 10px 10px 80px 80px; box-shadow: inset 0 -16px 26px rgba(0,0,0,0.35), inset 0 6px 0 #8A6038; display: flex; justify-content: center; gap: 12px;">
+<div style="position: relative; width: 84px; height: 120px;">
+<span style="position: absolute; inset: 0; text-align: center; font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 112px; line-height: 120px; color: #D6A93E; text-shadow: 0 3px 0 #3A2412;">П</span>
+<span style="position: absolute; left: 11px; top: 31px; width: 8px; height: 8px; border-radius: 50%; background: #EBC565;"></span>
+<span style="position: absolute; left: 65px; top: 31px; width: 8px; height: 8px; border-radius: 50%; background: #EBC565;"></span>
+<span style="position: absolute; left: 11px; top: 95px; width: 8px; height: 8px; border-radius: 50%; background: #EBC565;"></span>
+<span style="position: absolute; left: 65px; top: 95px; width: 8px; height: 8px; border-radius: 50%; background: #EBC565;"></span>
+</div>
+<div style="position: relative; width: 84px; height: 120px;">
+<span style="position: absolute; inset: 0; text-align: center; font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 112px; line-height: 120px; color: #8A6038;">О</span>
+<span style="position: absolute; inset: 0; text-align: center; font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 112px; line-height: 120px; color: #D6A93E; text-shadow: 0 3px 0 #3A2412; transform: rotate(-128deg); transform-origin: 13px 84px;">О</span>
+<span style="position: absolute; left: 9px; top: 80px; width: 8px; height: 8px; border-radius: 50%; background: #EBC565;"></span>
+</div>
+<div style="position: relative; width: 84px; height: 120px;">
+<span style="position: absolute; inset: 0; text-align: center; font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 112px; line-height: 120px; color: #D6A93E; text-shadow: 0 3px 0 #3A2412;">Б</span>
+<span style="position: absolute; left: 11px; top: 31px; width: 8px; height: 8px; border-radius: 50%; background: #EBC565;"></span>
+<span style="position: absolute; left: 60px; top: 31px; width: 8px; height: 8px; border-radius: 50%; background: #A89A88;"></span>
+<span style="position: absolute; left: 11px; top: 95px; width: 8px; height: 8px; border-radius: 50%; background: #EBC565;"></span>
+</div>
+<div style="position: relative; width: 84px; height: 120px;">
+<span style="position: absolute; inset: 0; text-align: center; font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 112px; line-height: 120px; color: #D6A93E; text-shadow: 0 3px 0 #3A2412;">Е</span>
+<span style="position: absolute; left: 11px; top: 31px; width: 8px; height: 8px; border-radius: 50%; background: #EBC565;"></span>
+<span style="position: absolute; left: 60px; top: 31px; width: 8px; height: 8px; border-radius: 50%; background: #EBC565;"></span>
+<span style="position: absolute; left: 11px; top: 95px; width: 8px; height: 8px; border-radius: 50%; background: #EBC565;"></span>
+<span style="position: absolute; left: 60px; top: 95px; width: 8px; height: 8px; border-radius: 50%; background: #A89A88;"></span>
+</div>
+<div style="position: relative; width: 84px; height: 120px;">
+<span style="position: absolute; inset: 0; text-align: center; font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 112px; line-height: 120px; color: #8A6038;">Д</span>
+<span style="position: absolute; left: 12px; top: 31px; width: 6px; height: 6px; border-radius: 50%; background: #2A1D13;"></span>
+<span style="position: absolute; left: 66px; top: 31px; width: 6px; height: 6px; border-radius: 50%; background: #2A1D13;"></span>
+<span style="position: absolute; left: 6px; top: 100px; width: 6px; height: 6px; border-radius: 50%; background: #2A1D13;"></span>
+<span style="position: absolute; left: 72px; top: 100px; width: 6px; height: 6px; border-radius: 50%; background: #2A1D13;"></span>
+</div>
+<div style="position: relative; width: 84px; height: 120px;">
+<span style="position: absolute; inset: 0; text-align: center; font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 112px; line-height: 120px; color: #D6A93E; text-shadow: 0 3px 0 #3A2412;">А</span>
+<span style="position: absolute; left: 38px; top: 31px; width: 8px; height: 8px; border-radius: 50%; background: #EBC565;"></span>
+<span style="position: absolute; left: 8px; top: 95px; width: 8px; height: 8px; border-radius: 50%; background: #A89A88;"></span>
+</div>
+</div>
+<div style="width: 680px; height: 60px; margin-top: 64px; position: relative; border-top: 10px solid #A9834F;">
+<span style="position: absolute; left: 430px; top: -96px; font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 100px; line-height: 100px; color: #D6A93E; text-shadow: 0 3px 0 #3A2412; transform: rotate(-16deg); transform-origin: 50% 100%;">Д</span>
+<span style="position: absolute; left: 400px; top: -14px; width: 7px; height: 7px; border-radius: 50%; background: #EBC565;"></span>
+<span style="position: absolute; left: 540px; top: -14px; width: 7px; height: 7px; border-radius: 50%; background: #EBC565;"></span>
+</div>
+</div>
+
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 4px;">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; letter-spacing: 0.12em; color: #B8A385;">МОЯ ЯХТА</div>
+<h1 style="margin: 0; font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 56px; line-height: 1.05;">[Название проекта]</h1>
+<a href="[ССЫЛКА НА ПРОЕКТ]" style="font-family: 'IBM Plex Mono', monospace; font-size: 15px;">[ссылка на проект]</a>
+<div style="display: flex; flex-direction: column; gap: 10px; padding-top: 12px;">
+<div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 15px;"><span>14 из 24 гвоздей</span><span style="color: #B8A385;">до ПОБЕДЫ — 10</span></div>
+<div style="height: 10px; background: #3A2A1D; border-radius: 5px; display: flex;"><div style="width: 58%; height: 10px; background: #D6A93E; border-radius: 5px;"></div></div>
+</div>
+<div style="display: flex; gap: 22px; font-size: 14px; color: #B8A385; padding-top: 4px;">
+<span style="display: flex; align-items: center; gap: 8px;"><span style="width: 12px; height: 12px; border-radius: 50%; background: #EBC565;"></span>латунный — со ссылкой</span>
+<span style="display: flex; align-items: center; gap: 8px;"><span style="width: 12px; height: 12px; border-radius: 50%; background: #A89A88;"></span>железный — без</span>
+<span style="display: flex; align-items: center; gap: 8px;"><span style="width: 10px; height: 10px; border-radius: 50%; border: 1.5px dashed #B8A385;"></span>пустое гнездо</span>
+</div>
+<div style="display: flex; gap: 12px; padding-top: 14px;">
+<button type="button" style="height: 52px; padding: 0 22px; border: none; border-radius: 4px; background: #D6A93E; color: #1C140E; font-family: 'IBM Plex Sans', sans-serif; font-size: 16px; font-weight: 600; cursor: pointer;">Поставить в гавань</button>
+<button type="button" style="height: 52px; padding: 0 22px; border: 1.5px solid #EDE4CF; border-radius: 4px; background: transparent; color: #EDE4CF; font-family: 'IBM Plex Sans', sans-serif; font-size: 16px; font-weight: 500; cursor: pointer;">Поделиться транцем</button>
+</div>
+</div>
+</section>
+
+<section style="flex-grow: 1; box-sizing: border-box; margin-top: 64px; padding: 56px 80px 64px; background: #EDE4CF; color: #1C140E; display: flex; flex-direction: column; gap: 24px;">
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;">
+
+<div style="box-sizing: border-box; padding: 26px; background: #F7F1E3; border: 1.5px solid #1C140E; border-radius: 6px; display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<div style="display: flex; align-items: baseline; gap: 12px;"><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 44px; color: #7A5716;">П</span><span style="font-weight: 600; font-size: 17px;">Позиционирование</span></div>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #3F6B45;">ПРИБИТА</span>
+</div>
+<div style="display: flex; gap: 8px;"><span style="width: 16px; height: 16px; border-radius: 50%; background: #C9971E;"></span><span style="width: 16px; height: 16px; border-radius: 50%; background: #C9971E;"></span><span style="width: 16px; height: 16px; border-radius: 50%; background: #C9971E;"></span><span style="width: 16px; height: 16px; border-radius: 50%; background: #C9971E;"></span></div>
+<div style="font-size: 15px; line-height: 1.5; color: #5E4A35;">Все четыре гвоздя на месте. Следующий шаг — проверить фразу на пяти людях.</div>
+</div>
+
+<div style="box-sizing: border-box; padding: 26px; background: #F7F1E3; border: 1.5px solid #B3441F; border-radius: 6px; display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<div style="display: flex; align-items: baseline; gap: 12px;"><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 44px; color: #7A5716;">О</span><span style="font-weight: 600; font-size: 17px;">Общение с людьми</span></div>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #A33A18;">ВИСИТ · РЖАВЕЕТ</span>
+</div>
+<div style="display: flex; gap: 8px;"><span style="width: 16px; height: 16px; border-radius: 50%; background: #C9971E;"></span><span style="width: 13px; height: 13px; border-radius: 50%; border: 1.5px dashed #5E4A35;"></span><span style="width: 13px; height: 13px; border-radius: 50%; border: 1.5px dashed #5E4A35;"></span><span style="width: 13px; height: 13px; border-radius: 50%; border: 1.5px dashed #5E4A35;"></span></div>
+<div style="font-size: 15px; line-height: 1.5; color: #5E4A35;">Висит на одной клёпке [N] дней. Ещё [N] дней без действий — сорвётся.</div>
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 12px; border-top: 1px solid #D9CDB4;">
+<span style="font-size: 15px; font-weight: 500;">Написать одному пользователю</span>
+<button type="button" style="height: 44px; padding: 0 16px; border: none; border-radius: 4px; background: #1C140E; color: #EDE4CF; font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer;">Прибил</button>
+</div>
+</div>
+
+<div style="box-sizing: border-box; padding: 26px; background: #F7F1E3; border: 1.5px solid #1C140E; border-radius: 6px; display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<div style="display: flex; align-items: baseline; gap: 12px;"><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 44px; color: #7A5716;">Б</span><span style="font-weight: 600; font-size: 17px;">Бесплатная ценность</span></div>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5E4A35;">3 ИЗ 4</span>
+</div>
+<div style="display: flex; gap: 8px;"><span style="width: 16px; height: 16px; border-radius: 50%; background: #C9971E;"></span><span style="width: 16px; height: 16px; border-radius: 50%; background: #8C8174;"></span><span style="width: 16px; height: 16px; border-radius: 50%; background: #C9971E;"></span><span style="width: 13px; height: 13px; border-radius: 50%; border: 1.5px dashed #5E4A35;"></span></div>
+<div style="font-size: 15px; line-height: 1.5; color: #5E4A35;">Серия из пяти материалов по теме проекта.</div>
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 12px; border-top: 1px solid #D9CDB4;">
+<a href="#" style="font-size: 14px; color: #7A5716;">добавить ссылку к железному</a>
+<button type="button" style="height: 44px; padding: 0 16px; border: none; border-radius: 4px; background: #1C140E; color: #EDE4CF; font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer;">Прибил</button>
+</div>
+</div>
+
+<div style="box-sizing: border-box; padding: 26px; background: #F7F1E3; border: 1.5px solid #1C140E; border-radius: 6px; display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<div style="display: flex; align-items: baseline; gap: 12px;"><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 44px; color: #7A5716;">Е</span><span style="font-weight: 600; font-size: 17px;">Единая точка входа</span></div>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #3F6B45;">ПРИБИТА</span>
+</div>
+<div style="display: flex; gap: 8px;"><span style="width: 16px; height: 16px; border-radius: 50%; background: #C9971E;"></span><span style="width: 16px; height: 16px; border-radius: 50%; background: #C9971E;"></span><span style="width: 16px; height: 16px; border-radius: 50%; background: #C9971E;"></span><span style="width: 16px; height: 16px; border-radius: 50%; background: #8C8174;"></span></div>
+<div style="font-size: 15px; line-height: 1.5; color: #5E4A35;">Лендинг с примерами есть. Для латуни не хватает ссылки на отзывы.</div>
+</div>
+
+<div style="box-sizing: border-box; padding: 26px; background: #F7F1E3; border: 1.5px dashed #B3441F; border-radius: 6px; display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<div style="display: flex; align-items: baseline; gap: 12px;"><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 44px; color: #8C8174;">Д</span><span style="font-weight: 600; font-size: 17px;">Дистрибуция</span></div>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #A33A18;">НА ПОЛКЕ</span>
+</div>
+<div style="display: flex; gap: 8px;"><span style="width: 13px; height: 13px; border-radius: 50%; border: 1.5px dashed #5E4A35;"></span><span style="width: 13px; height: 13px; border-radius: 50%; border: 1.5px dashed #5E4A35;"></span><span style="width: 13px; height: 13px; border-radius: 50%; border: 1.5px dashed #5E4A35;"></span><span style="width: 13px; height: 13px; border-radius: 50%; border: 1.5px dashed #5E4A35;"></span></div>
+<div style="font-size: 15px; line-height: 1.5; color: #5E4A35;">Первый гвоздь поднимет букву с полки обратно на транец.</div>
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 12px; border-top: 1px solid #D9CDB4;">
+<span style="font-size: 15px; font-weight: 500;">Выбрать один канал</span>
+<button type="button" style="height: 44px; padding: 0 16px; border: none; border-radius: 4px; background: #1C140E; color: #EDE4CF; font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer;">Прибил</button>
+</div>
+</div>
+
+<div style="box-sizing: border-box; padding: 26px; background: #F7F1E3; border: 1.5px solid #1C140E; border-radius: 6px; display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<div style="display: flex; align-items: baseline; gap: 12px;"><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 44px; color: #7A5716;">А</span><span style="font-weight: 600; font-size: 17px;">Аналитика</span></div>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5E4A35;">2 ИЗ 4</span>
+</div>
+<div style="display: flex; gap: 8px;"><span style="width: 16px; height: 16px; border-radius: 50%; background: #C9971E;"></span><span style="width: 16px; height: 16px; border-radius: 50%; background: #8C8174;"></span><span style="width: 13px; height: 13px; border-radius: 50%; border: 1.5px dashed #5E4A35;"></span><span style="width: 13px; height: 13px; border-radius: 50%; border: 1.5px dashed #5E4A35;"></span></div>
+<div style="font-size: 15px; line-height: 1.5; color: #5E4A35;">Счётчик стоит. Следующее — посмотреть источники за неделю.</div>
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 12px; border-top: 1px solid #D9CDB4;">
+<span style="font-size: 15px; font-weight: 500;">Посмотреть, откуда пришли</span>
+<button type="button" style="height: 44px; padding: 0 16px; border: none; border-radius: 4px; background: #1C140E; color: #EDE4CF; font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer;">Прибил</button>
+</div>
+</div>
+</div>
+
+<div style="box-sizing: border-box; padding: 22px 26px; background: #1C140E; color: #EDE4CF; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 32px;">
+<div style="display: flex; flex-direction: column; gap: 4px;">
+<div style="font-weight: 600; font-size: 17px;">Ржавчина</div>
+<div style="font-size: 15px; line-height: 1.5; color: #B8A385;">О и Д требуют регулярности: 30 дней без действий — один гвоздь ржавеет и выпадает. Можно поставить яхту на стоянку на месяц.</div>
+</div>
+<div style="display: flex; gap: 12px; flex-shrink: 0;">
+<button type="button" style="height: 48px; padding: 0 18px; border: 1.5px solid #D6A93E; border-radius: 4px; background: transparent; color: #D6A93E; font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer;">Напоминать в Telegram</button>
+<button type="button" style="height: 48px; padding: 0 18px; border: 1.5px solid #B8A385; border-radius: 4px; background: transparent; color: #EDE4CF; font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer;">На стоянку</button>
+</div>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1320}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
