@@ -59,17 +59,11 @@ const jsonLd = {
   title={`${title} — ${t('site.name')}`}
   description={description}
   robots={draft ? 'noindex, follow' : undefined}
+  ogType="article"
+  ogImage={`/og/bukvy/${slug}.png`}
+  ogImageAlt={title}
 >
   <Fragment slot="head">
-    <meta property="og:type" content="article" />
-    <meta property="og:locale" content="ru_RU" />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
-    <meta property="og:url" content={url} />
-    <meta property="og:image" content={new URL(`/og/bukvy/${slug}.png`, Astro.site).href} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta name="twitter:card" content="summary_large_image" />
     <JsonLd data={jsonLd} />
   </Fragment>
 

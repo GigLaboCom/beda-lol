@@ -8,8 +8,7 @@ FROM ${NODE_IMAGE} AS base
 ENV PNPM_HOME=/pnpm \
     PATH=/pnpm:$PATH \
     NX_DAEMON=false \
-    NX_NO_CLOUD=true \
-    NX_SKIP_NX_CACHE=true
+    NX_NO_CLOUD=true
 RUN corepack enable
 WORKDIR /repo
 
@@ -23,8 +22,10 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm install --offline --frozen-lockfile
 ARG BEDA_BASE_URL=https://beda.lol
 ENV BEDA_BASE_URL=${BEDA_BASE_URL}
-# Nx builds web and whatever it depends on (Nx replaces `turbo prune`).
-RUN pnpm exec nx run web:build --outputStyle=static
+# Nx builds web and whatever it depends on (share images via web:og, then astro build).
+# The Nx cache lives in a cache mount, so unchanged images are not re-rendered locally.
+RUN --mount=type=cache,id=nx-cache,target=/repo/.nx/cache \
+    pnpm exec nx run web:build --outputStyle=static
 # Production dependencies only, plus the built dist/.
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm --filter web deploy --prod --legacy /out

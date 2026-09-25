@@ -34,7 +34,6 @@ const shipClass = classify(nails);
 const actions = pickActions(scoresFromStates(states));
 const text = shareText(states);
 const pageUrl = new URL(`/osmotr/r/${code}`, Astro.site).href;
-const ogImage = new URL(`/og/osmotr/${code}.png`, Astro.site).href;
 const chips = WORD.map((letter, i) => {
   const s = states[i] ?? 0;
   return {
@@ -57,21 +56,14 @@ Astro.response.headers.set('Cache-Control', 'public, max-age=300, s-maxage=86400
 }
 {decoded && (
 
-<Base title={title} description={text} canonical="/osmotr" robots="noindex, follow">
-  <Fragment slot="head">
-    <meta property="og:type" content="website" />
-    <meta property="og:locale" content="ru_RU" />
-    <meta property="og:site_name" content={t('site.name')} />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={text} />
-    <meta property="og:url" content={pageUrl} />
-    <meta property="og:image" content={ogImage} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content={t('result.ogAlt')} />
-    <meta name="twitter:card" content="summary_large_image" />
-  </Fragment>
-
+<Base
+    title={title}
+    description={text}
+    canonical="/osmotr"
+    robots="noindex, follow"
+    ogImage={`/og/osmotr/${code}.png`}
+    ogImageAlt={t('result.ogAlt')}
+  >
   <section class="result">
     <div class="wrap">
       <Transom letters={WORD} nails={nails} id="resultTransom" />

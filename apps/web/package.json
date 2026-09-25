@@ -8,7 +8,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "start": "node ./dist/server/entry.mjs",
-    "typecheck": "astro check"
+    "typecheck": "astro check",
+    "og": "tsx scripts/og.ts"
   },
   "dependencies": {
     "@astrojs/node": "11.1.6",
@@ -21,7 +22,35 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
+    "@resvg/resvg-js": "2.6.2",
     "@types/node": "22.20.4",
+    "satori": "0.33.5",
+    "sharp": "^0.35.4",
+    "tsx": "^4.23.15",
     "typescript": "6.0.3"
+  },
+  "nx": {
+    "targets": {
+      "og": {
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/scripts/og.ts",
+          "{projectRoot}/src/content/pillars/**/*",
+          "{workspaceRoot}/packages/core/src/**/*",
+          "{workspaceRoot}/packages/transom/src/mounts.ts",
+          "{workspaceRoot}/packages/tokens/package.json",
+          "{workspaceRoot}/pnpm-lock.yaml"
+        ],
+        "outputs": [
+          "{projectRoot}/public/og"
+        ]
+      },
+      "build": {
+        "dependsOn": [
+          "^build",
+          "og"
+        ]
+      }
+    }
   }
 }

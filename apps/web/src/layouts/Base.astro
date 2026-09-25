@@ -13,6 +13,10 @@ interface Props {
   canonical?: string;
   /** e.g. "noindex, follow" for result and personal pages. */
   robots?: string;
+  /** Share image path (1200×630), defaults to the home card. */
+  ogImage?: string;
+  ogImageAlt?: string;
+  ogType?: 'website' | 'article';
 }
 
 const {
@@ -20,8 +24,13 @@ const {
   description = t('site.description'),
   canonical = Astro.url.pathname,
   robots,
+  ogImage = '/og/default.png',
+  ogImageAlt = t('og.defaultAlt'),
+  ogType = 'website',
 } = Astro.props;
 const canonicalUrl = new URL(canonical, Astro.site).href;
+const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+const ogImageUrl = new URL(ogImage, Astro.site).href;
 ---
 
 <!doctype html>
@@ -34,6 +43,17 @@ const canonicalUrl = new URL(canonical, Astro.site).href;
     <link rel="canonical" href={canonicalUrl} />
     {robots && <meta name="robots" content={robots} />}
     <meta name="color-scheme" content="dark light" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:site_name" content={t('site.name')} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={pageUrl} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
     <slot name="head" />
   </head>
   <body>

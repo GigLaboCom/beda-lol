@@ -18,7 +18,7 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [x] S10 Ship inspection quiz and result page
 - [x] S11 Name game page
 - [x] S12 Six pillar articles
-- [ ] S13 Share images
+- [x] S13 Share images
 - [ ] S14 SEO baseline and stage 1 launch
 
 ## Stages 2–6
@@ -131,3 +131,12 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
 - New deps: none.
 - Follow-ups: none.
 - [HUMAN] open: read and edit the six drafts in `apps/web/src/content/pillars/` in your voice; set `draft: false` when happy.
+
+### S13 — Share images (729 prebuilt) — 2026-09-25
+- Done: `apps/web/scripts/og.ts` (run with `tsx`): the ShareCard layout as a satori element tree — transom drawn with the site's geometry and `MOUNTS` (ghost letters, brass letters on the board / hanging on the hinge / fallen on the shelf, nails and holes), kicker «ОСМОТР СУДНА», «У меня — <класс>», «ПО есть. Победы нет. А у тебя?», `beda.lol`; SVG → PNG with resvg, then a palette PNG via sharp. Outputs `public/og/osmotr/<code>.png` (all 729 from `allCodes()`), `public/og/default.png` and `public/og/bukvy/<slug>.png`. Nx target `web:og` (inputs: the script, pillar Markdown, `@beda/core` sources, transom mounts, the tokens package, the lockfile; output `public/og`) and `web:build` depends on it — cached, re-rendered only when an input changes. OG tags moved into `Base.astro` (every page gets `og:*` + `twitter:card`, `og:image:width/height/alt`; default image `/og/default.png`); result and article pages pass their own image. CI caches `.nx/cache` with `actions/cache`; the web Dockerfile keeps the Nx cache in a BuildKit cache mount. `public/og/` is git-ignored (generated).
+- Spike: `222222`, `002222`, `112020` rendered correctly with satori transforms (`rotate` + `transformOrigin` at the hinge, `translate` + `rotate` for fallen letters) — **kept CSS transforms, no SVG `<text>` fallback needed**. One pitfall: satori does not merge same-named fonts, so Fontsource's Latin and Cyrillic subsets are registered under separate names and listed together in `fontFamily`.
+- Numbers: 729 + 7 images, **11.5 MB** total (palette PNG); generation **98–111 s** locally with four renders in flight (≈ 90 s inside the Docker build); a cached `nx run web:build` takes 0.9 s. CI adds about 1.5–2 minutes to the first web build and ~0 when the Nx cache hits. Web image 130 MB (was 119 MB).
+- Deviations from step/spec: images are palette PNGs from the start (size was never close to 50 MB, but the palette keeps each file ≈ 16 KB). `tsx` runs the script (Node cannot load the workspace's extension-less TS imports directly).
+- New deps: `satori`, `@resvg/resvg-js` (named in the step), `sharp` (palette PNG), `tsx` (runs the TS script) — dev dependencies of `web`.
+- Follow-ups: none.
+- [HUMAN] open: paste a result link (e.g. `https://beda.lol/osmotr/r/002222`) into Telegram and one more messenger after launch and check the preview.

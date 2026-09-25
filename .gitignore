@@ -32,3 +32,6 @@ Thumbs.db
 # Supabase CLI local state
 supabase/.temp/
 supabase/.branches/
+
+# Generated share images (nx run web:og)
+apps/web/public/og/

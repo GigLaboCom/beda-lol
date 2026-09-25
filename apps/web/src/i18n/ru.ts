@@ -152,6 +152,8 @@ export const ru = {
   'letters.crumbs': 'Хлебные крошки',
   'letters.pager': 'Соседние буквы',
   'letters.cta': 'Посмотри, какие буквы держатся у твоего проекта.',
+
+  'og.defaultAlt': 'Транец яхты «Беда»: буквы П и О отвалились, осталось БЕДА',
 } as const;
 
 export type Key = keyof typeof ru;
