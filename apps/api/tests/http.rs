@@ -12,7 +12,7 @@ use tower::ServiceExt as _;
 /// App wired to a database that is not there: fine for every route but readyz.
 fn test_app() -> Router {
     let store = Store::connect_lazy("postgres://nobody@127.0.0.1:1/none", 1).unwrap();
-    app(&Config::default(), AppState { store })
+    app(&Config::default(), AppState::new(store))
 }
 
 async fn json_body(res: axum::response::Response) -> Value {

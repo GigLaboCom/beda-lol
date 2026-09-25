@@ -15,7 +15,7 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [x] S07 packages/core
 - [x] S08 packages/transom
 - [x] S09 Home page
-- [ ] S10 Ship inspection quiz and result page
+- [x] S10 Ship inspection quiz and result page
 - [ ] S11 Name game page
 - [ ] S12 Six pillar articles
 - [ ] S13 Share images
@@ -105,4 +105,13 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
 - Deviations from step/spec: moorings for the tracker, the author's log and the Bermuda triangle are «скоро» cards, not links (their routes arrive in later stages) — no dead links; «Оставить эпитафию», «Поднять со дна» and «Весь журнал» are shown as inactive for the same reason. Tokens `--sea-wave` and `--mast` added for the journal SVG. Pillar names hyphenate so «Позиционирование» fits the 6-column grid.
 - New deps: none.
 - Follow-ups: replace `[ссылка на канал]` / `[контакт]` in `ru.ts` with real URLs.
+- [HUMAN] open: none.
+
+### S10 — Ship inspection quiz and result page — 2026-09-25
+- Done: `/osmotr` (prerendered) with the Preact island `QuizIsland` (`client:load`): question card, Да / Частично / Нет, back, progress bar (`role="progressbar"`), live transom via `attachTransom` over server-rendered markup; logic from `@beda/core` (new pure `quiz-session.ts` reducer + `parseSession`/`resumeSession`, `scoresFromStates`). Answers live in sessionStorage (guarded); coming back from the result resumes on question 12; `?restart=1` clears. On the 12th answer: result code → reveal flag → fire-and-forget `POST /api/quiz/attempts` (`sendBeacon`, fallback `fetch` keepalive) → `/osmotr/r/<code>`. `/osmotr/r/[code]` (`prerender = false`): strict `decode`, invalid → 404 page with status 404; `noindex, follow`; canonical `/osmotr`; OG + Twitter tags pointing at `/og/osmotr/<code>.png` (1200×630, alt); SSR transom in the final state, class, six chips, share text, `CopyLink` island (Clipboard API, visible status), «Пройти заново», actions; reveal 500 + 520·i ms only when coming from the quiz; «Прибить буквы обратно» behind `TRACKER_ENABLED = false`. 404 page (`NotFound` component). API: `POST /api/quiz/attempts` — body `{ code, source? }` with `deny_unknown_fields`, strict code parser (Rust port, `domain/result_code.rs`, plus `classify` so `class` is stored), `source` slug check, `governor` 10/min per IP (last `X-Forwarded-For` entry, else peer address; idle keys pruned every minute), JSON rejections in the error shape, 204.
+- Tests: core reducer/session tests (70 total in core); Rust `result_code` tests read the shared `packages/core/fixtures/result-codes.json` (same file as Vitest); handler tests for invalid codes, unknown fields, bad JSON/content type, 429 after ten requests per IP, and an end-to-end insert against the local Supabase.
+- Verified in a browser (Playwright): full pass with a back step mid-quiz; redirect to `/osmotr/r/002222`; reveal animation; `app.quiz_attempts` row `{0,0,2,2,2,2}`, `beda-po`, source `test`; going back resumes at «вопрос 12 из 12»; the shared link in a fresh context renders the final state with no animation; no console errors; 375 px quiz without horizontal scroll. `/osmotr/r/003212` and `/osmotr/r/00221` → 404.
+- Deviations from step/spec: the privacy line under the answers now says «ответы не отправляются — только итог, анонимно» (the prototype's «ответы никуда не отправляются» would be false once the attempt is recorded). Result pages pick actions from the code's states (fallen, then hanging) because shared links carry no scores, so a letter with 3 nails (score 1.5) is not suggested and the list can be shorter than three. Invalid codes render the 404 component in place (Astro forbids rewriting an on-demand route to the prerendered 404). `?from=<slug>` on `/osmotr` becomes the attempt's `source`.
+- New deps: `governor` (named in the step; default features minus `jitter`).
+- Follow-ups: none.
 - [HUMAN] open: none.

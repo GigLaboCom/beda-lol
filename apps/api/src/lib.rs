@@ -2,6 +2,7 @@
 #![forbid(unsafe_code)]
 
 pub mod config;
+pub mod domain;
 pub mod http;
 pub mod state;
 pub mod store;

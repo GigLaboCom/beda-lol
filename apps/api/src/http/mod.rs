@@ -1,7 +1,11 @@
 //! HTTP router and middleware stack.
 
+pub mod client_ip;
 pub mod error;
 pub mod health;
+pub mod json;
+pub mod quiz;
+pub mod rate_limit;
 
 use std::any::Any;
 use std::time::Duration;
@@ -9,7 +13,7 @@ use std::time::Duration;
 use axum::Router;
 use axum::body::Body;
 use axum::http::{HeaderName, Request, Response, StatusCode};
-use axum::routing::get;
+use axum::routing::{get, post};
 use tower::ServiceBuilder;
 use tower_http::catch_panic::CatchPanicLayer;
 use tower_http::limit::RequestBodyLimitLayer;
@@ -33,6 +37,7 @@ pub fn routes(_config: &Config, state: AppState) -> Router {
     Router::new()
         .route("/api/healthz", get(health::healthz))
         .route("/api/readyz", get(health::readyz))
+        .route("/api/quiz/attempts", post(quiz::create_attempt))
         .fallback(|| async { AppError::NotFound })
         .with_state(state)
 }

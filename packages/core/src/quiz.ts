@@ -201,3 +201,11 @@ export function pickActions(letterScores: readonly number[]): Action[] {
   const letters = weakest.length ? weakest : FALLBACK_ACTIONS;
   return letters.map((letter) => ({ letter, ...ACTS[letter] }));
 }
+
+/**
+ * Scores approximated from a result code (shared links carry states only):
+ * fallen 0, hanging 1, on the board 2. Used to pick actions on result pages.
+ */
+export function scoresFromStates(states: readonly number[]): number[] {
+  return states.map((s) => (s >= 2 ? 2 : s === 1 ? 1 : 0));
+}

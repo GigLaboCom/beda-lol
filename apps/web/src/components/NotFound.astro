@@ -1,0 +1,28 @@
+---
+import { t } from '../i18n/ru';
+---
+
+<section class="section not-found">
+  <div class="wrap">
+    <p class="kicker">404</p>
+    <h1 class="display">Здесь только вода</h1>
+    <p>Такой страницы нет. Можно вернуться в гавань или осмотреть своё судно.</p>
+    <p class="links">
+      <a class="btn btn-brass" href="/osmotr">{t('hero.cta')}</a>
+      <a class="btn" href="/">На главную</a>
+    </p>
+  </div>
+</section>
+
+<style>
+  h1 {
+    font-size: clamp(40px, 6vw, 72px);
+    margin: 14px 0 18px;
+  }
+  .links {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
+</style>

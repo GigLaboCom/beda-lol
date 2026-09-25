@@ -78,14 +78,27 @@ async fn serve() -> anyhow::Result<()> {
 
     let store = Store::connect_lazy(&config.database_url, config.db_max_connections)
         .context("invalid BEDA_DATABASE_URL")?;
-    let app = beda_api::app(&config, AppState { store });
+    let state = AppState::new(store);
+    let limits = state.limits.clone();
+    tokio::spawn(async move {
+        let mut tick = tokio::time::interval(Duration::from_secs(60));
+        loop {
+            tick.tick().await;
+            limits.housekeeping();
+        }
+    });
+    let app = beda_api::app(&config, state);
     let listener = TcpListener::bind(config.http_addr)
         .await
         .with_context(|| format!("binding {}", config.http_addr))?;
     tracing::info!(addr = %config.http_addr, version = env!("CARGO_PKG_VERSION"), "api started");
 
     let (stop_tx, stop_rx) = tokio::sync::oneshot::channel::<()>();
-    let server = axum::serve(listener, app).with_graceful_shutdown(async move {
+    let server = axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<std::net::SocketAddr>(),
+    )
+    .with_graceful_shutdown(async move {
         let _ = stop_rx.await;
     });
     let mut server = tokio::spawn(async move { server.await });

@@ -108,6 +108,34 @@ export const ru = {
   'triangle.raise': 'Поднять со дна',
   'triangle.emptyTitle': 'Место для твоего судна',
   'triangle.emptyText': 'Что строил, почему бросил, какая буква отвалилась первой. Можно анонимно.',
+
+  'quiz.title': 'Осмотр судна — 12 вопросов о пет-проекте',
+  'quiz.description':
+    'Двенадцать честных вопросов о пет-проекте — и видно, какие буквы ПОБЕДЫ у тебя уже отвалились. Полторы минуты, без регистрации.',
+  'quiz.count': 'вопрос {n} из 12',
+  'quiz.exit': 'Выйти',
+  'quiz.caption': 'Каждое «нет» выбивает клёпки.',
+  'quiz.pillarOf': '{pillar}, вопрос {n} из 2',
+  'quiz.yes': 'Да',
+  'quiz.partly': 'Частично',
+  'quiz.no': 'Нет',
+  'quiz.back': 'Назад',
+  'quiz.privacy': 'ответы не отправляются — только итог, анонимно',
+  'quiz.progressLabel': 'Прогресс осмотра',
+
+  'result.title': 'Результат осмотра судна',
+  'result.kicker': 'Класс судна',
+  'result.state.on': 'прибита',
+  'result.state.hang': 'висит',
+  'result.state.fall': 'упала',
+  'result.copy': 'Скопировать ссылку',
+  'result.copied': 'Ссылка скопирована',
+  'result.copyFailed': 'Не получилось скопировать — выдели адрес в строке браузера',
+  'result.retry': 'Пройти заново',
+  'result.checkYours': 'Проверить своё судно',
+  'result.actionsTitle': 'Три гвоздя на эту неделю',
+  'result.toTracker': 'Прибить буквы обратно',
+  'result.ogAlt': 'Транец с надписью ПОБЕДА: какие буквы отвалились',
 } as const;
 
 export type Key = keyof typeof ru;
@@ -118,6 +146,11 @@ export function t(key: Key): string {
 }
 
 /** Placeholder values like `[ссылка на канал]` are not real URLs yet. */
+/** Fills `{name}` slots: `fmt(t('quiz.count'), { n: 3 })`. */
+export function fmt(template: string, values: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (m, k: string) => (k in values ? String(values[k]) : m));
+}
+
 export function isPlaceholder(value: string): boolean {
   return value.startsWith('[') && value.endsWith(']');
 }

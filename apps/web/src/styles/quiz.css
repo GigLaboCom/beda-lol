@@ -1,0 +1,289 @@
+/* Quiz and result pages. Ported from archive/site/yacht-beda-site.html. */
+.quiz-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding-top: 22px;
+  flex-wrap: wrap;
+}
+.quiz-bar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.quiz-bar .count {
+  font-size: 15px;
+  color: var(--muted);
+}
+.progress {
+  width: min(320px, 40vw);
+  height: 6px;
+  background: var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress i {
+  display: block;
+  height: 100%;
+  background: var(--brass);
+  width: 0;
+  transition: width 0.3s;
+}
+.exit {
+  font-size: 15px;
+  color: var(--muted);
+  text-decoration: none;
+}
+.quiz {
+  padding: clamp(40px, 6vw, 72px) 0 80px;
+}
+.quiz .wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: clamp(32px, 6vw, 72px);
+  align-items: center;
+}
+.quiz .transom-wrap {
+  --ts: clamp(40px, 5.2vw, 84px);
+}
+.caption {
+  font-family: var(--mono);
+  font-size: 15px;
+  color: var(--muted);
+  text-align: center;
+  margin: 22px 0 0;
+}
+.q-letter {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--muted);
+}
+.q-letter .box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1.5px solid var(--brass);
+  border-radius: 4px;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 26px;
+  color: var(--brass);
+}
+.q-text {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(30px, 3.4vw, 48px);
+  line-height: 1.15;
+  margin: 26px 0 16px;
+}
+.q-hint {
+  color: var(--muted);
+  margin: 0 0 30px;
+}
+.answers {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.answers .btn {
+  min-width: 170px;
+  min-height: 64px;
+  font-size: 19px;
+}
+.answers .no {
+  border-color: var(--rust-hi);
+  color: var(--rust-hi);
+}
+.q-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 34px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+.q-foot .privacy {
+  font-size: 14px;
+  color: var(--muted);
+}
+.linkbtn {
+  background: none;
+  border: 0;
+  padding: 8px 0;
+  color: var(--brass);
+  cursor: pointer;
+  font-size: 16px;
+}
+.linkbtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+@media (max-width: 900px) {
+  .quiz .wrap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .answers .btn {
+    flex: 1 1 30%;
+    min-width: 0;
+  }
+}
+
+/* result */
+.result {
+  padding-top: clamp(40px, 6vw, 64px);
+}
+.result .wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(32px, 6vw, 72px);
+  align-items: center;
+}
+.result .transom-wrap {
+  --ts: clamp(40px, 5.4vw, 88px);
+}
+.result h1 {
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 1.02;
+  margin: 14px 0 18px;
+}
+.result .lead {
+  font-size: 19px;
+  color: var(--text-2);
+  margin: 0 0 24px;
+}
+.chips {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+}
+.chip {
+  width: 70px;
+  padding: 10px 0;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.chip b {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 26px;
+}
+.chip small {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+.chip.fall {
+  border-color: var(--rust);
+}
+.chip.fall b,
+.chip.fall small {
+  color: var(--rust-hi);
+}
+.chip.hang {
+  border-color: var(--brass-deep);
+}
+.chip.hang b,
+.chip.hang small {
+  color: var(--brass);
+}
+.share {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.share-text {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--muted);
+  margin: 14px 0 0;
+}
+.status {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--brass);
+  min-height: 1.4em;
+  margin: 8px 0 0;
+}
+.actions {
+  padding: 64px 0 80px;
+  margin-top: 72px;
+}
+.actions .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+.actions h2 {
+  font-size: clamp(30px, 3.4vw, 42px);
+}
+.act-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.act {
+  padding: 28px;
+  background: var(--canvas-2);
+  border: 1.5px solid var(--ink);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.act .h {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.act .L {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 40px;
+  color: var(--brass-deep);
+}
+.act .t {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--muted-ink);
+}
+.act b {
+  font-size: 19px;
+  font-weight: 600;
+}
+.act p {
+  margin: 0;
+  color: var(--muted-ink);
+  font-size: 15px;
+}
+@media (max-width: 900px) {
+  .result .wrap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .act-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .progress i {
+    transition: none;
+  }
+}
