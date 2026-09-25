@@ -1,0 +1,16 @@
+# Build context is the repo root (Cargo and pnpm workspaces live there).
+.git
+**/node_modules
+**/dist
+**/.astro
+.nx
+target
+archive
+docs
+coverage
+tmp
+*.env
+.env
+.env.*
+!*.env.example
+# .sqlx is needed: images build with SQLX_OFFLINE=true.

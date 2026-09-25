@@ -8,7 +8,7 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [x] S02 Supabase: local stack, migrations, sqlx
 - [x] S03 Astro web skeleton and tokens
 - [x] S04 CI and repository hygiene
-- [ ] S05 Container images and prod compose
+- [x] S05 Container images and prod compose
 - [ ] S06 Server, deploy workflow, backups
 
 ## Stage 1 — Static site and quiz
@@ -66,3 +66,12 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
 - New deps: none (actions: checkout v7.0.1, setup-node v7.0.0, setup-rust-toolchain v2.0.0, rust-cache v2.9.2, install-action v2.87.20, supabase/setup-cli v3.0.1, codeql-action v4.38.2).
 - Follow-ups: confirm CI is green on the first PR (not run yet: no PR opened in this session).
 - [HUMAN] open: apply `docs/repo-settings.md` (branch protection with required checks `ci / web`, `ci / api`, CodeQL; secret scanning + push protection; first-time contributor approval; read-only Actions token).
+
+### S05 — Container images and prod compose — 2026-09-25
+- Done: `apps/api/Dockerfile` (cargo-chef planner/builder on `rust:1.94.1-alpine3.23`, static musl binary, `SQLX_OFFLINE=true`, `BEDA_BUILD_SHA` build arg, release profile `lto = "thin"`, `codegen-units = 1`, `strip`; final `distroless/static-debian12:nonroot`, entrypoint `beda-api`, cmd `serve`), `apps/web/Dockerfile` (`pnpm fetch` on the lockfile → offline install → `nx run web:build` → `pnpm deploy --prod`; final `node:24.21.0-alpine3.24`, user `node`, `node ./dist/server/entry.mjs`), root `.dockerignore` (keeps `.sqlx/`), `deploy/compose.yaml` (caddy, web, api, backup behind `profiles: [backup]`; only caddy publishes ports; healthchecks: `beda-api healthcheck` and a Node `fetch` one-liner; `json-file` 50m×5; `BEDA_ENV_FILE`), `deploy/Caddyfile` (site from `BEDA_SITE_ADDRESS`, `tls internal` via snippet when `BEDA_TLS_INTERNAL=1`), `deploy/.env.example`, `deploy/README.md`, Taskfile `prod:build`, `prod:up`, `prod:down`.
+- Verified: `task prod:up` → all three containers healthy; `https://localhost/` 200 with HSTS, nosniff, referrer and permissions headers, zstd; `https://localhost/api/readyz` 200 against the local Supabase; `web` runs as `node` (uid 1000), `api` as `nonroot`; `caddy adapt` with `BEDA_TLS_INTERNAL=0` gives plain automatic HTTPS.
+- Image sizes: api **3.3 MB** (content; 14 MB on disk incl. distroless layers), web **119 MB** (content; `node_modules` 203 MB unpacked — astro, vite and babel are runtime deps of the SSR server). API build: cold **4 m 22 s**, code-only change with the cached dependency layer **1 m 06 s** (4 vCPU).
+- Deviations from step/spec: `pnpm deploy` + Nx instead of `turbo prune` (Nx repo). The web image bakes `BEDA_BASE_URL` at build time (Astro `site`). Compose adds `extra_hosts: host.docker.internal` to api for the local run. In this sandbox the images were built with base images that trust the egress proxy CA (passed via `--build-arg RUST_IMAGE/NODE_IMAGE`); the Dockerfiles themselves are unchanged.
+- New deps: none (images: rust alpine, node alpine, distroless static, caddy 2.11.4-alpine; cargo-chef 0.1.78 inside the build stage).
+- Follow-ups: consider trimming the web runtime (bundle the server with `vite ssr.noExternal`) if the image size matters.
+- [HUMAN] open: none.

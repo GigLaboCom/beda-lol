@@ -1,0 +1,33 @@
+# One address for everything: /api/* goes to the Rust API, the rest to Astro.
+# BEDA_SITE_ADDRESS = beda.lol in prod, localhost for `task prod:up`.
+# BEDA_TLS_INTERNAL = 1 switches to Caddy's local CA (localhost has no public cert).
+
+(tls-0) {
+	# Default: automatic HTTPS from Let's Encrypt.
+}
+
+(tls-1) {
+	tls internal
+}
+
+{$BEDA_SITE_ADDRESS} {
+	import tls-{$BEDA_TLS_INTERNAL:0}
+
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+
+	handle /api/* {
+		reverse_proxy api:8080
+	}
+
+	handle {
+		reverse_proxy web:4321
+	}
+}

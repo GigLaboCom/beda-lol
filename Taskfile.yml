@@ -99,6 +99,40 @@ tasks:
     cmds:
       - pnpm exec nx run-many -t build --exclude=api --outputStyle=static
 
+  prod:build:
+    desc: Build both production images tagged `local`
+    vars:
+      RUST_IMAGE: '{{.RUST_IMAGE | default "rust:1.94.1-alpine3.23"}}'
+      NODE_IMAGE: '{{.NODE_IMAGE | default "node:24.21.0-alpine3.24"}}'
+    cmds:
+      - docker build -f apps/api/Dockerfile --build-arg RUST_IMAGE={{.RUST_IMAGE}} --build-arg BEDA_BUILD_SHA=$(git rev-parse HEAD) -t ghcr.io/giglabocom/beda-api:local .
+      - docker build -f apps/web/Dockerfile --build-arg NODE_IMAGE={{.NODE_IMAGE}} --build-arg BEDA_BASE_URL=https://localhost -t ghcr.io/giglabocom/beda-web:local .
+
+  prod:up:
+    desc: Run the production stack locally on https://localhost against the local Supabase
+    cmds:
+      - mkdir -p tmp
+      - |
+        {
+          echo "BEDA_ENV=prod"
+          echo "BEDA_BASE_URL=https://localhost"
+          echo "BEDA_DATABASE_URL=$(task db:api-url | sed 's#@127.0.0.1:#@host.docker.internal:#')"
+        } > tmp/prod-local.env
+      - docker compose -f deploy/compose.yaml up -d --wait
+    env:
+      BEDA_TAG: local
+      BEDA_SITE_ADDRESS: localhost
+      BEDA_TLS_INTERNAL: '1'
+      BEDA_ENV_FILE: ../tmp/prod-local.env
+
+  prod:down:
+    desc: Stop the local production stack
+    cmds:
+      - docker compose -f deploy/compose.yaml down
+    env:
+      BEDA_TAG: local
+      BEDA_ENV_FILE: ../tmp/prod-local.env
+
   deny:
     desc: cargo-deny (licenses, advisories, bans, sources)
     cmds:
