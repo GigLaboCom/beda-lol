@@ -6,7 +6,8 @@
   "description": "Design tokens (CSS custom properties) and self-hosted fonts for beda.lol",
   "exports": {
     "./tokens.css": "./src/tokens.css",
-    "./fonts.css": "./src/fonts.css"
+    "./fonts.css": "./src/fonts.css",
+    "./preload": "./src/preload.ts"
   },
   "files": [
     "src"

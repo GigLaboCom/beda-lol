@@ -23,7 +23,7 @@ describe('renderTransom', () => {
     const slots = host.querySelectorAll('.slot');
     expect(slots[0]?.classList.contains('hang')).toBe(true);
     expect(slots[1]?.classList.contains('fall')).toBe(true);
-    expect(slots[2]?.className).toBe('slot');
+    expect(slots[2]?.className).toBe('slot i2');
     expect(slots[0]?.querySelectorAll('.nail.off')).toHaveLength(3);
     expect(slots[1]?.querySelectorAll('.nail.off')).toHaveLength(4);
     expect(slots[3]?.querySelectorAll('.nail.off')).toHaveLength(1);
@@ -43,12 +43,16 @@ describe('renderTransom', () => {
     expect(host.querySelectorAll('[aria-hidden="true"]')).toHaveLength(12);
   });
 
-  it('uses the О mount with its lower-left rivet as the hinge', () => {
-    const host = dom(renderTransom({ letters: ['О'] }));
-    const style = host.querySelector('.slot')?.getAttribute('style') ?? '';
-    expect(style).toContain('--ox:0.09em');
-    expect(style).toContain('--oy:0.72em');
-    expect(style).toContain('--hang:124deg');
+  it('marks each slot with its mount and index, without inline styles', () => {
+    const html = renderTransom({ letters: ['О', 'Z'] });
+    const host = dom(html);
+    const slots = host.querySelectorAll('.slot');
+    expect(slots[0]?.getAttribute('data-m')).toBe('o');
+    expect(slots[0]?.classList.contains('i0')).toBe(true);
+    expect(slots[1]?.getAttribute('data-m')).toBe('x');
+    expect(slots[1]?.classList.contains('i1')).toBe(true);
+    expect(slots[0]?.querySelectorAll('.nail.n3')).toHaveLength(1);
+    expect(html).not.toContain('style=');
   });
 
   it('escapes letters, label and id', () => {

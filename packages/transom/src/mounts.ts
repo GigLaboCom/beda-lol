@@ -84,6 +84,55 @@ export function mountFor(letter: string): Mount {
   return MOUNTS[letter] ?? DEFAULT_MOUNT;
 }
 
+/** ASCII key of a letter's mount, used in markup (`data-m`) and in mounts.css. */
+const MOUNT_KEYS: Readonly<Record<string, string>> = {
+  П: 'p',
+  О: 'o',
+  Б: 'b',
+  Е: 'e',
+  Д: 'd',
+  А: 'a',
+};
+export const DEFAULT_MOUNT_KEY = 'x';
+
+export function mountKey(letter: string): string {
+  return MOUNT_KEYS[letter] ?? DEFAULT_MOUNT_KEY;
+}
+
+/** Slots with their own fall offsets in mounts.css; longer names reuse the last one. */
+export const MAX_SLOTS = 20;
+
+const num = (n: number) => String(Number(n.toFixed(3)));
+
+/**
+ * The CSS that places nails and hinges for every mount and the fall offsets
+ * for every slot index. Kept in `mounts.css` (generated, checked by a test)
+ * so the markup needs no inline `style` attributes — a strict CSP allows none.
+ */
+export function mountsCss(): string {
+  const lines = [
+    '/* Generated from src/mounts.ts by `pnpm --filter @beda/transom gen` — do not edit. */',
+    '.slot {\n  --drop: 1.12em;\n}',
+  ];
+  const mounts: [string, Mount][] = [
+    ...Object.entries(MOUNTS).map(([letter, m]): [string, Mount] => [mountKey(letter), m]),
+    [DEFAULT_MOUNT_KEY, DEFAULT_MOUNT],
+  ];
+  for (const [key, m] of mounts) {
+    const [ox, oy] = m.pts[0];
+    lines.push(
+      `.slot[data-m="${key}"] {\n  --ox: ${num(ox)}em;\n  --oy: ${num(oy)}em;\n  --hang: ${m.hang}deg;\n}`,
+    );
+    m.pts.forEach(([x, y], k) => {
+      lines.push(`.slot[data-m="${key}"] .n${k} {\n  left: ${num(x)}em;\n  top: ${num(y)}em;\n}`);
+    });
+  }
+  for (let i = 0; i < MAX_SLOTS; i++) {
+    lines.push(`.slot.i${i} {\n  --fx: ${num(fallX(i))}em;\n  --fr: ${fallRotation(i)}deg;\n}`);
+  }
+  return `${lines.join('\n')}\n`;
+}
+
 /** Deterministic horizontal drift of a fallen letter, in em (as in the prototype). */
 export function fallX(i: number): number {
   return (i % 2 ? 1 : -1) * (0.04 + ((i * 37) % 10) / 70);

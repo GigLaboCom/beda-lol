@@ -1,11 +1,19 @@
 ---
+import JsonLd from '../../components/JsonLd.astro';
 import QuizIsland from '../../components/quiz/QuizIsland';
 import { t } from '../../i18n/ru';
 import Base from '../../layouts/Base.astro';
+import { breadcrumbList } from '../../lib/jsonld';
 import '../../styles/quiz.css';
 import '@beda/transom/transom.css';
+
+const crumbs = breadcrumbList(Astro.site, [
+  { name: t('site.name'), path: '/' },
+  { name: t('nav.osmotr'), path: '/osmotr' },
+]);
 ---
 
 <Base title={t('quiz.title')} description={t('quiz.description')}>
+  <JsonLd slot="head" data={crumbs} />
   <QuizIsland client:load />
 </Base>

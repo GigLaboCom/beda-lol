@@ -96,7 +96,8 @@ export default function QuizIsland() {
             aria-valuemax={12}
             aria-valuenow={n}
           >
-            <i style={{ width: `${(n / 12) * 100}%` }} />
+            {/* No style on the server render (CSP forbids style attributes); the client sets it via CSSOM. */}
+            <i style={n ? { width: `${(n / 12) * 100}%` } : undefined} />
           </div>
         </div>
         <a class="exit" href="/">

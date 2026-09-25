@@ -2,8 +2,10 @@
  * Transom (name board). Ported from archive/site/yacht-beda-site.html.
  * Every size is in em of the wrapper's font size, set through --ts, so one
  * variable scales letters, nails, seams, radius and fall distance together.
- * Colours only through tokens (@beda/tokens).
+ * Colours only through tokens (@beda/tokens). Per-letter positions live in
+ * the generated mounts.css.
  */
+@import "./mounts.css";
 .transom-wrap {
   display: flex;
   flex-direction: column;

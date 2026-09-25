@@ -40,3 +40,15 @@ One paragraph per future step. Before starting a stage, ask Claude Code: «ра�
 - **S36 `packages/yacht-3d`.** Port `archive/src/yacht-threejs.html` to an ES module with three as a package; mirroring and hull logic unchanged; tests for pure helpers.
 - **S37 Letter animation in 3D.** Port the bench (`archive/src/letter-anim-debug.html`) with glyph ink snapping; follow `docs/03-integration-plan.md`.
 - **S38 Lazy 3D on the home page.** `client:idle`, device capability check, CSS transom stays for weak devices and as LCP; Lighthouse budget unchanged.
+
+
+## Learned in stage 1 (2026-09-25)
+
+- **Nx, not Turborepo.** Targets come from each package's `package.json` scripts; extra config lives in the package's `nx` field (e.g. `web:og` → `web:build`). The Rust API is an Nx project too (`apps/api/project.json`), so `nx run-many -t test` covers both halves. CI caches `.nx/cache`.
+- **CSP forbids inline `style` attributes.** Astro's CSP hashes scripts and styles, which also blocks server-rendered `style="…"`. The transom therefore carries no inline styles (positions in the generated `mounts.css`, per-index fall offsets as classes). New components must follow the same rule: set dynamic values through classes or CSSOM (`el.style.setProperty`), never through SSR `style` attributes.
+- **On-demand routes cannot `Astro.rewrite` to a prerendered page.** Render the `NotFound` component with `Astro.response.status = 404` instead.
+- **Rate limits run before body parsing** (per-route middleware), so malformed requests count too. Client IP = last `X-Forwarded-For` entry (Caddy sets it), else the peer address.
+- **satori and Fontsource:** register each subset (latin, cyrillic) under its own font name and list both in `fontFamily`; satori does not merge same-named fonts. satori's `transform` + `transformOrigin` render the hanging and fallen letters correctly.
+- **Postgres 16+ role grants:** the migration owner must be granted the new role (`grant beda_api to postgres`) to `set role` in tests.
+- **Result pages only know states, not scores** (a shared link carries the code), so actions are picked from fallen, then hanging letters.
+- Open for stage 2: `/moya-yahta` (the result page's «Прибить буквы обратно» is behind `TRACKER_ENABLED`), real channel/contact URLs in `ru.ts`, and turning the harbour «скоро» cards into links as sections ship.

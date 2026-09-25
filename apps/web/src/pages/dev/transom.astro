@@ -20,16 +20,18 @@ const latin = Array.from('BUG TRACKER PRO');
       {
         combos.map((nails) => (
           <figure>
-            <Transom letters={WORD} nails={nails} size="56px" />
+            <Transom letters={WORD} nails={nails} />
             <figcaption class="mono">{nails.join(' ')}</figcaption>
           </figure>
         ))
       }
     </div>
     <h2 class="display">Длинное латинское название</h2>
-    <Transom letters={latin} nails={latin.map((_, i) => (i % 5 === 0 ? 0 : i % 3 === 0 ? 1 : 4))} size="min(48px, 5.5vw)" />
+    <div class="latin">
+      <Transom letters={latin} nails={latin.map((_, i) => (i % 5 === 0 ? 0 : i % 3 === 0 ? 1 : 4))} />
+    </div>
     <h2 class="display">Анимация</h2>
-    <Transom letters={WORD} id="live" size="64px" />
+    <div class="live"><Transom letters={WORD} id="live" /></div>
     <p><button class="btn" type="button" id="play">Проиграть П → 1, О → 0</button></p>
   </div>
 </Base>
@@ -65,6 +67,15 @@ const latin = Array.from('BUG TRACKER PRO');
   }
   figure {
     margin: 0;
+  }
+  figure :global(.transom-wrap) {
+    --ts: 56px;
+  }
+  .latin :global(.transom-wrap) {
+    --ts: min(48px, 5.5vw);
+  }
+  .live :global(.transom-wrap) {
+    --ts: 64px;
   }
   figcaption {
     text-align: center;

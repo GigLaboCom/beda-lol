@@ -1,6 +1,7 @@
 ---
 import '@beda/tokens/tokens.css';
 import '@beda/tokens/fonts.css';
+import { displayFontUrl } from '@beda/tokens/preload';
 import '../styles/global.css';
 import SiteFooter from '../components/SiteFooter.astro';
 import SiteHeader from '../components/SiteHeader.astro';
@@ -39,8 +40,10 @@ const ogImageUrl = new URL(ogImage, Astro.site).href;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{title}</title>
+    <link rel="preload" href={displayFontUrl} as="font" type="font/woff2" crossorigin />
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     {robots && <meta name="robots" content={robots} />}
     <meta name="color-scheme" content="dark light" />
     <meta property="og:type" content={ogType} />

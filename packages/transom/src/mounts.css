@@ -1,0 +1,231 @@
+/* Generated from src/mounts.ts by `pnpm --filter @beda/transom gen` — do not edit. */
+.slot {
+  --drop: 1.12em;
+}
+.slot[data-m="p"] {
+  --ox: 0.1em;
+  --oy: 0.28em;
+  --hang: 37deg;
+}
+.slot[data-m="p"] .n0 {
+  left: 0.1em;
+  top: 0.28em;
+}
+.slot[data-m="p"] .n1 {
+  left: 0.6em;
+  top: 0.28em;
+}
+.slot[data-m="p"] .n2 {
+  left: 0.1em;
+  top: 0.86em;
+}
+.slot[data-m="p"] .n3 {
+  left: 0.6em;
+  top: 0.86em;
+}
+.slot[data-m="o"] {
+  --ox: 0.09em;
+  --oy: 0.72em;
+  --hang: 124deg;
+}
+.slot[data-m="o"] .n0 {
+  left: 0.09em;
+  top: 0.72em;
+}
+.slot[data-m="o"] .n1 {
+  left: 0.09em;
+  top: 0.46em;
+}
+.slot[data-m="o"] .n2 {
+  left: 0.64em;
+  top: 0.46em;
+}
+.slot[data-m="o"] .n3 {
+  left: 0.64em;
+  top: 0.72em;
+}
+.slot[data-m="b"] {
+  --ox: 0.1em;
+  --oy: 0.28em;
+  --hang: 34deg;
+}
+.slot[data-m="b"] .n0 {
+  left: 0.1em;
+  top: 0.28em;
+}
+.slot[data-m="b"] .n1 {
+  left: 0.55em;
+  top: 0.28em;
+}
+.slot[data-m="b"] .n2 {
+  left: 0.1em;
+  top: 0.86em;
+}
+.slot[data-m="b"] .n3 {
+  left: 0.5em;
+  top: 0.86em;
+}
+.slot[data-m="e"] {
+  --ox: 0.1em;
+  --oy: 0.28em;
+  --hang: 36deg;
+}
+.slot[data-m="e"] .n0 {
+  left: 0.1em;
+  top: 0.28em;
+}
+.slot[data-m="e"] .n1 {
+  left: 0.54em;
+  top: 0.28em;
+}
+.slot[data-m="e"] .n2 {
+  left: 0.1em;
+  top: 0.86em;
+}
+.slot[data-m="e"] .n3 {
+  left: 0.54em;
+  top: 0.86em;
+}
+.slot[data-m="d"] {
+  --ox: 0.14em;
+  --oy: 0.28em;
+  --hang: 30deg;
+}
+.slot[data-m="d"] .n0 {
+  left: 0.14em;
+  top: 0.28em;
+}
+.slot[data-m="d"] .n1 {
+  left: 0.58em;
+  top: 0.28em;
+}
+.slot[data-m="d"] .n2 {
+  left: 0.05em;
+  top: 0.93em;
+}
+.slot[data-m="d"] .n3 {
+  left: 0.66em;
+  top: 0.93em;
+}
+.slot[data-m="a"] {
+  --ox: 0.36em;
+  --oy: 0.31em;
+  --hang: 6deg;
+}
+.slot[data-m="a"] .n0 {
+  left: 0.36em;
+  top: 0.31em;
+}
+.slot[data-m="a"] .n1 {
+  left: 0.08em;
+  top: 0.88em;
+}
+.slot[data-m="a"] .n2 {
+  left: 0.64em;
+  top: 0.88em;
+}
+.slot[data-m="a"] .n3 {
+  left: 0.36em;
+  top: 0.7em;
+}
+.slot[data-m="x"] {
+  --ox: 0.1em;
+  --oy: 0.28em;
+  --hang: 34deg;
+}
+.slot[data-m="x"] .n0 {
+  left: 0.1em;
+  top: 0.28em;
+}
+.slot[data-m="x"] .n1 {
+  left: 0.6em;
+  top: 0.28em;
+}
+.slot[data-m="x"] .n2 {
+  left: 0.1em;
+  top: 0.86em;
+}
+.slot[data-m="x"] .n3 {
+  left: 0.6em;
+  top: 0.86em;
+}
+.slot.i0 {
+  --fx: -0.04em;
+  --fr: -6deg;
+}
+.slot.i1 {
+  --fx: 0.14em;
+  --fr: 11deg;
+}
+.slot.i2 {
+  --fx: -0.097em;
+  --fr: -16deg;
+}
+.slot.i3 {
+  --fx: 0.054em;
+  --fr: 9deg;
+}
+.slot.i4 {
+  --fx: -0.154em;
+  --fr: -14deg;
+}
+.slot.i5 {
+  --fx: 0.111em;
+  --fr: 7deg;
+}
+.slot.i6 {
+  --fx: -0.069em;
+  --fr: -12deg;
+}
+.slot.i7 {
+  --fx: 0.169em;
+  --fr: 17deg;
+}
+.slot.i8 {
+  --fx: -0.126em;
+  --fr: -10deg;
+}
+.slot.i9 {
+  --fx: 0.083em;
+  --fr: 15deg;
+}
+.slot.i10 {
+  --fx: -0.04em;
+  --fr: -8deg;
+}
+.slot.i11 {
+  --fx: 0.14em;
+  --fr: 13deg;
+}
+.slot.i12 {
+  --fx: -0.097em;
+  --fr: -6deg;
+}
+.slot.i13 {
+  --fx: 0.054em;
+  --fr: 11deg;
+}
+.slot.i14 {
+  --fx: -0.154em;
+  --fr: -16deg;
+}
+.slot.i15 {
+  --fx: 0.111em;
+  --fr: 9deg;
+}
+.slot.i16 {
+  --fx: -0.069em;
+  --fr: -14deg;
+}
+.slot.i17 {
+  --fx: 0.169em;
+  --fr: 7deg;
+}
+.slot.i18 {
+  --fx: -0.126em;
+  --fr: -12deg;
+}
+.slot.i19 {
+  --fx: 0.083em;
+  --fr: 17deg;
+}

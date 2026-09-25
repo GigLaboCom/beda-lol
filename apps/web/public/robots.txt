@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /api/
+Disallow: /admin/
+Disallow: /kabinet
+Disallow: /moya-yahta
+Disallow: /dev/
+Disallow: /osmotr/r/
+
+Sitemap: https://beda.lol/sitemap-index.xml

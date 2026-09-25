@@ -45,6 +45,23 @@ task check      # everything CI runs
 pnpm nx graph   # project graph
 ```
 
+## Status
+
+Stage 1 (static site and quiz) is built; it goes live once the server is set up
+(`deploy/SERVER-SETUP.md`).
+
+| Route | What |
+| --- | --- |
+| `/` | home: hero transom, name-game teaser, six pillars, harbour, author's log, Bermuda triangle teasers |
+| `/osmotr` | ship inspection quiz (12 questions, Preact island) |
+| `/osmotr/r/<code>` | shareable result (SSR, noindex, prebuilt OG image for each of the 729 codes) |
+| `/kak-nazovesh` | name game |
+| `/bukvy`, `/bukvy/<slug>` | six pillar articles (drafts, noindex until reviewed) |
+| `/api/healthz`, `/api/readyz`, `POST /api/quiz/attempts`, `POST /api/events` | Rust API |
+
+Stages 2–6 (accounts, tracker, registry, epitaph wall, games, 3D) are planned in
+`docs/steps/ROADMAP.md`.
+
 ## Docs
 
 - Spec (Russian): `docs/07-spec-beda-giglabo.md`; amendments that override it: `docs/08-amendments.md`

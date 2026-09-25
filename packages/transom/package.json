@@ -8,7 +8,8 @@
     ".": "./src/index.ts",
     "./client": "./src/client.ts",
     "./Transom.astro": "./src/Transom.astro",
-    "./transom.css": "./src/transom.css"
+    "./transom.css": "./src/transom.css",
+    "./mounts.css": "./src/mounts.css"
   },
   "files": [
     "src"
@@ -18,11 +19,13 @@
   ],
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "gen": "tsx scripts/gen-css.ts"
   },
   "devDependencies": {
     "@types/node": "22.20.4",
     "happy-dom": "20.14.5",
+    "tsx": "^4.23.15",
     "typescript": "6.0.3",
     "vitest": "5.0.2"
   }

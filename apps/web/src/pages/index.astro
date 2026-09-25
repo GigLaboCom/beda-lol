@@ -5,11 +5,23 @@ import Moorings from '../components/home/Moorings.astro';
 import NamerTeaser from '../components/home/NamerTeaser.astro';
 import Pillars from '../components/home/Pillars.astro';
 import TriangleTeaser from '../components/home/TriangleTeaser.astro';
+import JsonLd from '../components/JsonLd.astro';
 import { t } from '../i18n/ru';
 import Base from '../layouts/Base.astro';
+
+const website = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: t('site.name'),
+  alternateName: 'beda.lol',
+  url: new URL('/', Astro.site).href,
+  description: t('site.description'),
+  inLanguage: 'ru',
+};
 ---
 
 <Base title={t('site.title')} description={t('site.description')} canonical="/">
+  <JsonLd slot="head" data={website} />
   <Hero />
   <NamerTeaser />
   <Pillars />
