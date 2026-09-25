@@ -24,14 +24,16 @@ tasks:
       - echo "web:dev is added in S03"
 
   api:dev:
-    desc: Rust API with reload on :8080
+    desc: Rust API with reload on :8080 (needs watchexec)
     cmds:
-      - echo "api:dev is added in S01"
+      - watchexec -r -e rs,toml -- cargo run -p beda-api -- serve
 
   lint:
-    desc: Lint and format check (Biome)
+    desc: Lint and format check (Biome for TS/JSON/CSS, rustfmt + clippy for Rust)
     cmds:
       - pnpm exec biome check .
+      - cargo fmt --all --check
+      - cargo clippy --all-targets -- -D warnings
 
   typecheck:
     desc: Typecheck every TS project through Nx
@@ -39,7 +41,7 @@ tasks:
       - pnpm exec nx run-many -t typecheck --outputStyle=static
 
   test:
-    desc: Unit tests
+    desc: Unit tests (every Nx project, including the Rust API)
     cmds:
       - pnpm exec nx run-many -t test --outputStyle=static
 
@@ -58,8 +60,15 @@ tasks:
     cmds:
       - echo "db:reset is added in S02"
 
+  deny:
+    desc: cargo-deny (licenses, advisories, bans, sources)
+    cmds:
+      - cargo deny check
+
   check:
     desc: Everything CI runs
     cmds:
       - task: lint
       - task: typecheck
+      - task: test
+      - task: deny

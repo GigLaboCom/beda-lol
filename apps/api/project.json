@@ -1,0 +1,41 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "api",
+  "projectType": "application",
+  "sourceRoot": "apps/api/src",
+  "tags": ["lang:rust"],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": { "command": "cargo build --release -p beda-api", "cwd": "{workspaceRoot}" },
+      "cache": false
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": { "command": "cargo test -p beda-api", "cwd": "{workspaceRoot}" },
+      "cache": false
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["cargo fmt --all --check", "cargo clippy --all-targets -- -D warnings"],
+        "parallel": false,
+        "cwd": "{workspaceRoot}"
+      },
+      "cache": false
+    },
+    "deny": {
+      "executor": "nx:run-commands",
+      "options": { "command": "cargo deny check", "cwd": "{workspaceRoot}" },
+      "cache": false
+    },
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "watchexec -r -e rs,toml -- cargo run -p beda-api -- serve",
+        "cwd": "{workspaceRoot}"
+      },
+      "continuous": true
+    }
+  }
+}
