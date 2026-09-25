@@ -12,6 +12,8 @@ export interface RenderOptions {
   label?: string;
   /** id on the wrapper, for the client controller. */
   id?: string;
+  /** Slot index to highlight; the other letters are dimmed. */
+  highlight?: number;
 }
 
 const ESCAPES: Record<string, string> = {
@@ -33,7 +35,14 @@ const num = (n: number) => String(Number(n.toFixed(3)));
  * right without JavaScript. Same DOM as the prototype's `buildTransom` +
  * `setTransom`, so `attachTransom` can take it over.
  */
-export function renderTransom({ letters, nails = [], size, label, id }: RenderOptions): string {
+export function renderTransom({
+  letters,
+  nails = [],
+  size,
+  label,
+  id,
+  highlight,
+}: RenderOptions): string {
   const counts = letters.map((_, i) => nails[i] ?? 4);
   const slots = letters.map((ch, i) => {
     if (ch === ' ') return '<div class="slot space"></div>';
@@ -49,7 +58,8 @@ export function renderTransom({ letters, nails = [], size, label, id }: RenderOp
       `--fx:${fallX(i).toFixed(3)}em`,
       `--fr:${fallRotation(i)}deg`,
     ].join(';');
-    const cls = state === 'on' ? 'slot' : `slot ${state}`;
+    const dim = highlight !== undefined && highlight !== i ? ' dim' : '';
+    const cls = (state === 'on' ? 'slot' : `slot ${state}`) + dim;
     const safe = escapeHtml(ch);
     const fixings = m.pts
       .map(([x, y], k) => {

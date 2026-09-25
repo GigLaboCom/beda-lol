@@ -69,6 +69,13 @@
   transition: transform 0.8s cubic-bezier(0.25, 0.8, 0.35, 1);
   z-index: 2;
 }
+.slot.dim .g {
+  color: var(--plank-hi);
+  text-shadow: none;
+}
+.slot.dim .nail {
+  opacity: 0.35;
+}
 .slot.hang .g {
   transform: rotate(var(--hang));
 }

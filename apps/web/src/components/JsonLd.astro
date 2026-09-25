@@ -1,0 +1,9 @@
+---
+/** Structured data. `<` is escaped so the JSON cannot close the script tag. */
+interface Props {
+  data: Record<string, unknown>;
+}
+const json = JSON.stringify(Astro.props.data).replace(/</g, '\\u003c');
+---
+
+<script type="application/ld+json" set:html={json} />

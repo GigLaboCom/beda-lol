@@ -17,7 +17,7 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [x] S09 Home page
 - [x] S10 Ship inspection quiz and result page
 - [x] S11 Name game page
-- [ ] S12 Six pillar articles
+- [x] S12 Six pillar articles
 - [ ] S13 Share images
 - [ ] S14 SEO baseline and stage 1 launch
 
@@ -123,3 +123,11 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
 - New deps: none.
 - Follow-ups: none.
 - [HUMAN] open: none.
+
+### S12 — Six pillar articles — 2026-09-25 (ticked for the code; the texts wait for the human)
+- Done: content collection `pillars` (`src/content.config.ts`, glob loader, Zod schema: `letter`, `slug`, `title`, `description`, `order`, `draft`); six Russian drafts (524–606 words each, all `draft: true`): what the pillar is, how it falls off in pet projects, excuses that keep it on the shelf, the two quiz questions, four first nails (wording from `STEPS`/`ACTS`), a closing link to `/osmotr`. No statistics, studies, quotes or cartoon references. `/bukvy/[slug]` (prerendered): breadcrumbs, transom with only this letter highlighted (new `highlight` option in `@beda/transom`, other letters dimmed), article, CTA to the quiz (`?from=bukvy`), prev/next letters (`rel=prev/next`), JSON-LD `Article` + `BreadcrumbList`, OG tags pointing at `/og/bukvy/<slug>.png` (S13). `/bukvy` index with the six descriptions + `BreadcrumbList`. Home pillar cards now link to the articles.
+- Verified: all seven pages build and pass `astro check`; titles and descriptions are unique; every draft page (and the index while all articles are drafts) carries `noindex, follow`; 375 and 1280 px without horizontal scroll.
+- Deviations from step/spec: the `/bukvy` index is also `noindex` while every article is a draft. Sitemap exclusion of drafts is implemented with the sitemap in S14.
+- New deps: none.
+- Follow-ups: none.
+- [HUMAN] open: read and edit the six drafts in `apps/web/src/content/pillars/` in your voice; set `draft: false` when happy.

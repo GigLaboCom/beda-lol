@@ -59,6 +59,12 @@ describe('renderTransom', () => {
     expect(html).toContain('id="x&quot;y"');
   });
 
+  it('dims every letter but the highlighted one', () => {
+    const host = dom(renderTransom({ letters: WORD, highlight: 2 }));
+    expect(host.querySelectorAll('.slot.dim')).toHaveLength(5);
+    expect(host.querySelectorAll('.slot')[2]?.classList.contains('dim')).toBe(false);
+  });
+
   it('sets the size through --ts', () => {
     expect(renderTransom({ letters: WORD, size: '48px' })).toContain('style="--ts:48px"');
   });

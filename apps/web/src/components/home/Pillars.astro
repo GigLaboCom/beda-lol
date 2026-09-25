@@ -1,6 +1,9 @@
 ---
 import { PILLARS, WORD } from '@beda/core';
 import { t } from '../../i18n/ru';
+import { pillarPath, pillarsInOrder } from '../../lib/pillars';
+
+const slugs = new Map((await pillarsInOrder()).map((e) => [e.data.letter, e.data.slug]));
 ---
 
 <section class="section">
@@ -12,14 +15,14 @@ import { t } from '../../i18n/ru';
     <div class="pillars">
       {
         WORD.map((letter, i) => (
-          <div class:list={['pillar', { first: i < 2 }]}>
+          <a class:list={['pillar', { first: i < 2 }]} href={pillarPath(slugs.get(letter) ?? '')}>
             <span class="tag">{i < 2 ? t('pillars.firstTag') : ''}</span>
             <span class="L" aria-hidden="true">
               {letter}
             </span>
             <b>{PILLARS[letter].name}</b>
             <span class="d">{PILLARS[letter].description}</span>
-          </div>
+          </a>
         ))
       }
     </div>
@@ -43,6 +46,10 @@ import { t } from '../../i18n/ru';
     min-height: 290px;
     color: var(--text);
     text-decoration: none;
+  }
+  a.pillar:hover {
+    border-color: var(--brass);
+    color: var(--text);
   }
   .pillar.first {
     border-color: var(--rust);
