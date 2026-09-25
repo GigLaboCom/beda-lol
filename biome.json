@@ -59,7 +59,7 @@
       }
     },
     {
-      "includes": ["packages/transom/src/transom.css"],
+      "includes": ["**/*.css"],
       "linter": {
         "rules": {
           "style": {

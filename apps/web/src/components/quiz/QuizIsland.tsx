@@ -106,7 +106,6 @@ export default function QuizIsland() {
       <section class="quiz">
         <div class="wrap">
           <div>
-            {/* biome-ignore lint/security/noDangerouslySetInnerHtml: renderTransom escapes every letter */}
             <div ref={transomRef} dangerouslySetInnerHTML={{ __html: transomHtml }} />
             <p class="caption">{t('quiz.caption')}</p>
           </div>
