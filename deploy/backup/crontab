@@ -1,0 +1,2 @@
+# Nightly backup at 02:15 UTC (supercronic runs in UTC inside the container).
+15 2 * * * /usr/local/bin/backup.sh

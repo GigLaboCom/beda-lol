@@ -70,9 +70,8 @@ services:
     logging: *logging
 
   backup:
-    # Image and schedule arrive in S06.
+    # Nightly encrypted pg_dump of the Supabase database (supercronic, 02:15 UTC).
     image: ghcr.io/giglabocom/beda-backup:${BEDA_TAG:?set BEDA_TAG}
-    profiles: ["backup"]
     restart: unless-stopped
     env_file: ${BEDA_ENV_FILE:-/opt/beda/.env}
     logging: *logging

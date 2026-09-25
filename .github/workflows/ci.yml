@@ -30,6 +30,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Biome
         run: pnpm exec biome ci .
+      - name: shellcheck (deploy scripts)
+        run: shellcheck deploy/scripts/*.sh
       - name: Typecheck (Nx)
         run: pnpm exec nx run-many -t typecheck --exclude=api --outputStyle=static
       - name: Unit tests (Nx)

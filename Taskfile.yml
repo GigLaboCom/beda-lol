@@ -104,9 +104,11 @@ tasks:
     vars:
       RUST_IMAGE: '{{.RUST_IMAGE | default "rust:1.94.1-alpine3.23"}}'
       NODE_IMAGE: '{{.NODE_IMAGE | default "node:24.21.0-alpine3.24"}}'
+      ALPINE_IMAGE: '{{.ALPINE_IMAGE | default "alpine:3.23"}}'
     cmds:
       - docker build -f apps/api/Dockerfile --build-arg RUST_IMAGE={{.RUST_IMAGE}} --build-arg BEDA_BUILD_SHA=$(git rev-parse HEAD) -t ghcr.io/giglabocom/beda-api:local .
       - docker build -f apps/web/Dockerfile --build-arg NODE_IMAGE={{.NODE_IMAGE}} --build-arg BEDA_BASE_URL=https://localhost -t ghcr.io/giglabocom/beda-web:local .
+      - docker build -f deploy/backup/Dockerfile --build-arg ALPINE_IMAGE={{.ALPINE_IMAGE}} -t ghcr.io/giglabocom/beda-backup:local .
 
   prod:up:
     desc: Run the production stack locally on https://localhost against the local Supabase
@@ -133,6 +135,13 @@ tasks:
       BEDA_TAG: local
       BEDA_ENV_FILE: ../tmp/prod-local.env
 
+  shellcheck:
+    desc: shellcheck the deploy scripts (local binary or the official image)
+    cmds:
+      - |
+        if command -v shellcheck >/dev/null; then shellcheck deploy/scripts/*.sh
+        else docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck:stable deploy/scripts/*.sh; fi
+
   deny:
     desc: cargo-deny (licenses, advisories, bans, sources)
     cmds:
@@ -142,6 +151,7 @@ tasks:
     desc: Everything CI runs (needs `supabase start` for the database checks)
     cmds:
       - task: lint
+      - task: shellcheck
       - task: typecheck
       - task: test
       - task: build

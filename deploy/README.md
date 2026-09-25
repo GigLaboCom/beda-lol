@@ -43,3 +43,22 @@ task prod:down
 
 `prod:up` writes `tmp/prod-local.env` with a `BEDA_DATABASE_URL` that reaches the host's
 Supabase through `host.docker.internal`.
+
+## CI/CD: build, publish, deploy
+
+```
+push to main ─▶ ci ──green──▶ images ──▶ deploy
+                               │           ├─ migrate: supabase db push   (environment production)
+                               │           └─ ssh deploy@host <sha>       → scripts/deploy.sh
+                               └─ ghcr.io/giglabocom/beda-{api,web,backup}:<sha> and :main
+```
+
+- `.github/workflows/images.yml` builds all three images with Buildx and the GitHub Actions cache
+  (one scope per image, `mode=max`, so the cargo-chef dependency layer is reused). Pull requests
+  only build; a green `ci` run on `main` pushes `:<sha>` and `:main`; tags `v*` add semver tags;
+  images carry SBOM and provenance attestations. It can also be started by hand
+  (`workflow_dispatch`) to publish `:<sha>` for any branch.
+- `.github/workflows/deploy.yml` runs after a successful `images` run for `main`, or by hand with a
+  SHA (for rollbacks and drills). Server side: `scripts/deploy.sh` pulls, restarts, polls
+  `/api/readyz` and `/` for 60 s and rolls back to `/opt/beda/.last_good` on failure.
+- Server setup and the GitHub secrets/variables: `SERVER-SETUP.md`.
