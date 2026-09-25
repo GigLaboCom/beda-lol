@@ -77,12 +77,33 @@ tasks:
     cmds:
       - DATABASE_URL='{{.LOCAL_DB_URL}}' cargo sqlx prepare --workspace --check
 
+  fmt:
+    desc: Format everything (Biome; nightly rustfmt — rustfmt.toml uses nightly-only options)
+    cmds:
+      - pnpm exec biome check --write .
+      - cargo +nightly fmt --all
+
   lint:
-    desc: Lint and format check (Biome for TS/JSON/CSS, rustfmt + clippy for Rust)
+    desc: Lint and format check (Biome for TS/JSON/CSS, nightly rustfmt + clippy for Rust)
     cmds:
       - pnpm exec biome check .
-      - cargo fmt --all --check
-      - cargo clippy --all-targets -- -D warnings
+      - cargo +nightly fmt --all -- --check
+      - cargo clippy --workspace --all-targets -- -D warnings
+
+  gate:
+    desc: 'Rust quality gate before every push (as in mnemoria-server): fmt, clippy on fresh roots, tests'
+    cmds:
+      - cargo +nightly fmt --all -- --check
+      # A warm cache hides lints: touch the crate roots so clippy re-evaluates them.
+      - touch apps/api/src/lib.rs apps/api/src/main.rs
+      - cargo clippy --workspace --all-targets -- -D warnings
+      - BEDA_TEST_DATABASE_URL='{{.LOCAL_DB_URL}}' cargo test --workspace
+
+  hooks:
+    desc: Install the git pre-push hook (nightly rustfmt + Biome check)
+    cmds:
+      - git config core.hooksPath .githooks
+      - echo "pre-push hook installed (.githooks/pre-push)"
 
   typecheck:
     desc: Typecheck every TS project through Nx

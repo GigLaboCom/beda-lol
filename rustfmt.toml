@@ -1,0 +1,5 @@
+# Same rustfmt settings as mnemoria-server. These options are nightly-only:
+# format with `cargo +nightly fmt --all` (task fmt); CI checks with nightly too.
+reorder_imports = true
+imports_granularity = "Module"
+group_imports = "StdExternalCrate"

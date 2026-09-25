@@ -8,9 +8,8 @@ pub mod quiz;
 
 use std::time::Duration;
 
-use sqlx::Executor as _;
-use sqlx::PgPool;
 use sqlx::postgres::PgPoolOptions;
+use sqlx::{Executor as _, PgPool};
 
 pub const PING_TIMEOUT: Duration = Duration::from_secs(2);
 

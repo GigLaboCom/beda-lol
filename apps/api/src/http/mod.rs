@@ -17,6 +17,7 @@ use axum::body::Body;
 use axum::http::{HeaderName, Request, Response, StatusCode};
 use axum::routing::{get, post};
 use axum::{Router, middleware};
+use error::{AppError, error_body};
 use governor::DefaultKeyedRateLimiter;
 use tower::ServiceBuilder;
 use tower_http::catch_panic::CatchPanicLayer;
@@ -30,7 +31,6 @@ use tracing::Level;
 
 use crate::config::Config;
 use crate::state::AppState;
-use error::{AppError, error_body};
 
 pub const REQUEST_ID_HEADER: HeaderName = HeaderName::from_static("x-request-id");
 pub const BODY_LIMIT: usize = 64 * 1024;

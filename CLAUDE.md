@@ -43,6 +43,8 @@ All common commands go through Task (`Taskfile.yml`). Prefer them over ad-hoc co
 | --- | --- |
 | `task dev` | dev stack: `supabase start` (Postgres, Auth, mail catcher), the Rust API with reload (`watchexec`), `astro dev` (proxies `/api` to the API) |
 | `task check` | everything CI runs: lint, typecheck, unit tests, builds, `gen` diff check |
+| `task gate` | Rust quality gate before every push (nightly fmt, clippy on fresh roots, tests) |
+| `task fmt` | format everything (Biome + `cargo +nightly fmt`) |
 | `pnpm nx run-many -t build` | Nx directly: build every TS project (also `test`, `lint`, `typecheck`); `pnpm nx graph` shows the project graph |
 | `task test` | unit tests only |
 | `task gen` | `cargo sqlx prepare --workspace` (+ OpenAPI codegen from stage 2) |
@@ -62,7 +64,7 @@ Run `task check` before declaring a step done. It must pass.
 - Generated artefacts (`.sqlx/`, OpenAPI clients) are committed; CI fails if `task gen` produces a diff or `cargo sqlx prepare --check` fails. Image builds use `SQLX_OFFLINE=true`.
 - New dependencies: only those named in the step, or the smallest well-maintained option — say which and why in PROGRESS.md.
 - Tests: pure logic gets unit tests (Vitest / `cargo test`). DB tests run against the local Supabase database inside a rolled-back transaction. Every bug fixed gets a test.
-- Rust quality gate: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo deny check`.
+- Rust quality gate (same as mnemoria-server): `task gate` = `cargo +nightly fmt --all -- --check` (nightly-only `rustfmt.toml`), `touch` crate roots, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`; plus `cargo deny check`. Details: `docs/engineering/quality-gate.md`. Install the pre-push hook once with `task hooks`.
 
 ## Hard rules
 

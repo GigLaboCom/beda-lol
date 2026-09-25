@@ -1,2 +1,4 @@
+# Same thresholds as mnemoria-server.
+large-error-threshold = 256
 allow-unwrap-in-tests = true
 allow-expect-in-tests = true

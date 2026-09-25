@@ -137,8 +137,9 @@ impl Config {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::collections::HashMap;
+
+    use super::*;
 
     fn load(pairs: &[(&str, &str)]) -> Result<Config, ConfigError> {
         let map: HashMap<String, String> = pairs

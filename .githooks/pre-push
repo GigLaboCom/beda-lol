@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+# Fast format gate before a push (the mnemoria-server rusty-hook equivalent).
+# The full gate is `task gate` (Rust) and `task check` (everything).
+set -e
+cargo +nightly fmt --all -- --check
+pnpm exec biome check .

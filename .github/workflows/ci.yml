@@ -77,10 +77,14 @@ jobs:
           -x gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
       - name: Migrations apply from zero
         run: supabase db reset
-      - run: cargo fmt --all --check
-      - run: cargo clippy --all-targets -- -D warnings
+      # rustfmt.toml uses nightly-only options (same settings as mnemoria-server).
+      - name: rustfmt (nightly)
+        run: |
+          rustup toolchain install nightly --profile minimal --component rustfmt
+          cargo +nightly fmt --all -- --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
       - name: cargo test (with the local database)
-        run: cargo test
+        run: cargo test --workspace
         env:
           BEDA_TEST_DATABASE_URL: ${{ env.LOCAL_DB_URL }}
       - name: sqlx offline data is up to date

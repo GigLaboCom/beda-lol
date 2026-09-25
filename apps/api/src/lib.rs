@@ -9,7 +9,6 @@ pub mod store;
 pub mod telemetry;
 
 use axum::Router;
-
 pub use config::Config;
 pub use state::AppState;
 pub use store::Store;
