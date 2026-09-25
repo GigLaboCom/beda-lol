@@ -1,5 +1,11 @@
 ---
-import { t } from '../i18n/ru';
+import { isPlaceholder, t } from '../i18n/ru';
+
+const links = [
+  { href: t('foot.channelHref'), label: t('foot.channel') },
+  { href: '/#journal', label: t('foot.journal') },
+  { href: t('foot.contactHref'), label: t('foot.write') },
+];
 ---
 
 <footer class="foot" id="subscribe">
@@ -9,9 +15,17 @@ import { t } from '../i18n/ru';
       <p>{t('foot.about')}</p>
     </div>
     <nav aria-label={t('foot.navLabel')}>
-      <a href={t('foot.channelHref')}>{t('foot.channel')}</a>
-      <a href="/zhurnal">{t('foot.journal')}</a>
-      <a href={t('foot.contactHref')}>{t('foot.write')}</a>
+      {
+        links.map((l) =>
+          isPlaceholder(l.href) ? (
+            <span class="pending" title={l.href}>
+              {l.label}
+            </span>
+          ) : (
+            <a href={l.href}>{l.label}</a>
+          ),
+        )
+      }
     </nav>
   </div>
 </footer>
@@ -40,5 +54,8 @@ import { t } from '../i18n/ru';
     display: flex;
     gap: 28px;
     flex-wrap: wrap;
+  }
+  .pending {
+    color: var(--muted);
   }
 </style>

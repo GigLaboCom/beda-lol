@@ -14,7 +14,7 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 ## Stage 1 — Static site and quiz
 - [x] S07 packages/core
 - [x] S08 packages/transom
-- [ ] S09 Home page
+- [x] S09 Home page
 - [ ] S10 Ship inspection quiz and result page
 - [ ] S11 Name game page
 - [ ] S12 Six pillar articles
@@ -97,4 +97,12 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
 - Deviations from step/spec: the swing keyframes run under an extra `.swinging` class that the client adds only when a letter starts hanging (the prototype re-triggered the swing whenever `.still` was removed, and server-rendered hanging letters would swing on load). The aria-label reads runs of letters as words («П пусто БЕДА» instead of «Ппусто БЕДА»). Fixed a specificity gap so `.still` also stops a running swing.
 - New deps: `happy-dom` (named in the step).
 - Follow-ups: glyph-ink snapping (docs/05-site.md §10) stays for later.
+- [HUMAN] open: none.
+
+### S09 — Home page — 2026-09-25
+- Done: `/` ported from the prototype as static HTML: `components/home/` `Hero` (package transom + a tiny module script: П → 1 nail at 0.9 s, О → 0 at 3.9 s, final state at once under reduced motion), `NamerTeaser` (GET form to `/kak-nazovesh?name=…`), `Pillars` (from `@beda/core` `PILLARS`), `Moorings`, `LogTeaser` (journal SVG with token colours), `TriangleTeaser`; all copy in `i18n/ru.ts` with the prototype's wording and bracketed placeholders. Header nav now lists only existing routes (`/osmotr`, `/kak-nazovesh`, `/bukvy`, `/#harbor`, `/#journal`); footer links whose URL is still a placeholder render as text.
+- Verified: screenshots at 375, 768 and 1280 px match the prototype layout; no horizontal scroll at any width; page JS **1.1 KB gzip** (hero script 272 B + transom controller 832 B; no Preact on the home page); `astro check` clean.
+- Deviations from step/spec: moorings for the tracker, the author's log and the Bermuda triangle are «скоро» cards, not links (their routes arrive in later stages) — no dead links; «Оставить эпитафию», «Поднять со дна» and «Весь журнал» are shown as inactive for the same reason. Tokens `--sea-wave` and `--mast` added for the journal SVG. Pillar names hyphenate so «Позиционирование» fits the 6-column grid.
+- New deps: none.
+- Follow-ups: replace `[ссылка на канал]` / `[контакт]` in `ru.ts` with real URLs.
 - [HUMAN] open: none.

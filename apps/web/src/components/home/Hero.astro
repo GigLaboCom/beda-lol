@@ -1,0 +1,91 @@
+---
+import { WORD } from '@beda/core';
+import Transom from '@beda/transom/Transom.astro';
+import { t } from '../../i18n/ru';
+---
+
+<section class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <p class="kicker">{t('hero.kicker')}</p>
+      <h1 class="display">{t('hero.title1')}<br />{t('hero.title2')}</h1>
+      <p class="lead">{t('site.description')}</p>
+      <div class="hero-actions">
+        <a class="btn btn-brass btn-big" href="/osmotr">{t('hero.cta')}</a>
+        <span class="mono">{t('hero.ctaNote')}</span>
+      </div>
+    </div>
+    <div>
+      <Transom letters={WORD} id="heroTransom" />
+      <p class="caption">{t('hero.caption')}</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Hero sequence, once per load: П starts hanging at 0.9 s, О falls at 3.9 s.
+  // Under reduced motion the final state is shown at once.
+  import { attachTransom } from '@beda/transom/client';
+
+  const root = document.getElementById('heroTransom');
+  if (root) {
+    const tr = attachTransom(root);
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      tr.set([1, 0, 4, 4, 4, 4], { animate: false });
+    } else {
+      setTimeout(() => tr.set([1, 4, 4, 4, 4, 4]), 900);
+      setTimeout(() => tr.set([1, 0, 4, 4, 4, 4]), 3900);
+    }
+  }
+</script>
+
+<style>
+  .hero {
+    padding: clamp(48px, 8vw, 96px) 0 clamp(56px, 7vw, 88px);
+  }
+  .hero .wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: clamp(32px, 5vw, 64px);
+    align-items: center;
+  }
+  .hero h1 {
+    font-size: clamp(46px, 6.4vw, 86px);
+    line-height: 0.98;
+    margin-top: 18px;
+  }
+  .lead {
+    font-size: clamp(17px, 1.5vw, 20px);
+    color: var(--text-2);
+    max-width: 34em;
+    margin: 28px 0 32px;
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 18px 24px;
+  }
+  .hero-actions .mono {
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .hero :global(.transom-wrap) {
+    --ts: clamp(44px, 6.4vw, 96px);
+  }
+  .caption {
+    font-family: var(--mono);
+    font-size: 15px;
+    color: var(--muted);
+    text-align: center;
+    margin: 22px 0 0;
+  }
+  @media (max-width: 900px) {
+    .hero .wrap {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .hero :global(.transom-wrap) {
+      --ts: clamp(44px, 13vw, 100px);
+    }
+  }
+</style>

@@ -1,0 +1,85 @@
+---
+import { MAX_NAME_LENGTH } from '@beda/core';
+import { t } from '../../i18n/ru';
+---
+
+<section class="namer light" aria-labelledby="namerTitle">
+  <div class="wrap">
+    <div>
+      <h2 id="namerTitle">{t('namer.title')}</h2>
+      <p>{t('namer.lead')}</p>
+    </div>
+    <!-- Plain GET form: the game itself lives on /kak-nazovesh and reads ?name=. -->
+    <form action="/kak-nazovesh" method="get" autocomplete="off">
+      <div class="field">
+        <label for="projName">{t('namer.label')}</label>
+        <input
+          id="projName"
+          name="name"
+          type="text"
+          maxlength={MAX_NAME_LENGTH}
+          placeholder={t('namer.placeholder')}
+          required
+        />
+      </div>
+      <button class="btn btn-ink submit" type="submit">{t('namer.submit')}</button>
+    </form>
+  </div>
+</section>
+
+<style>
+  .namer {
+    padding: 44px 0;
+  }
+  .namer .wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.6fr);
+    gap: 32px 48px;
+    align-items: end;
+  }
+  h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 30px;
+    margin: 0 0 6px;
+  }
+  p {
+    margin: 0;
+    color: var(--muted-ink);
+  }
+  form {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+  .field {
+    flex: 1 1 260px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  label {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted-ink);
+  }
+  input {
+    min-height: 56px;
+    padding: 0 18px;
+    border: 1.5px solid var(--ink);
+    border-radius: 4px;
+    background: var(--canvas-2);
+    color: var(--ink);
+    font: inherit;
+    font-size: 18px;
+  }
+  .submit {
+    min-height: 56px;
+  }
+  @media (max-width: 900px) {
+    .namer .wrap {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

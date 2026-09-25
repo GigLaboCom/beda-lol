@@ -2,12 +2,13 @@
 import { t } from '../i18n/ru';
 
 const path = Astro.url.pathname;
+// Only routes that exist; the harbour and the journal are sections of the home page for now.
 const nav = [
   { href: '/osmotr', label: t('nav.osmotr') },
-  { href: '/moya-yahta', label: t('nav.yacht') },
-  { href: '/gavan', label: t('nav.harbor') },
-  { href: '/treugolnik', label: t('nav.triangle') },
-  { href: '/zhurnal', label: t('nav.journal') },
+  { href: '/kak-nazovesh', label: t('nav.namer') },
+  { href: '/bukvy', label: t('nav.letters') },
+  { href: '/#harbor', label: t('nav.harbor') },
+  { href: '/#journal', label: t('nav.journal') },
 ];
 ---
 
@@ -33,7 +34,7 @@ const nav = [
     <nav class="nav" aria-label={t('head.navLabel')}>
       {
         nav.map((item) => (
-          <a href={item.href} aria-current={path.startsWith(item.href) ? 'page' : undefined}>
+          <a href={item.href} aria-current={!item.href.includes('#') && path.startsWith(item.href) ? 'page' : undefined}>
             {item.label}
           </a>
         ))

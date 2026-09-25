@@ -1,0 +1,114 @@
+---
+import { t } from '../../i18n/ru';
+---
+
+<section class="section sea" id="triangle">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="kicker">{t('triangle.kicker')}</p>
+        <h2 class="display">{t('triangle.title')}</h2>
+      </div>
+      <span class="btn btn-sea is-soon" aria-disabled="true">
+        {t('triangle.cta')} · {t('common.soon')}
+      </span>
+    </div>
+    <div class="wrecks">
+      <article class="wreck">
+        <div class="m"><span>{t('triangle.years')}</span><span>{t('triangle.firstO')}</span></div>
+        <h3>{t('triangle.name')}</h3>
+        <q>{t('triangle.epitaph1')}</q>
+        <div class="m bottom"><span>{t('triangle.example')}</span></div>
+      </article>
+      <article class="wreck">
+        <div class="m"><span>{t('triangle.years')}</span><span>{t('triangle.firstAny')}</span></div>
+        <h3>{t('triangle.name')}</h3>
+        <q>{t('triangle.epitaph2')}</q>
+        <div class="m bottom">
+          <span>{t('triangle.raisers')}</span>
+          <button class="btn btn-sea small" type="button" disabled>{t('triangle.raise')}</button>
+        </div>
+      </article>
+      <div class="wreck empty">
+        <h3>{t('triangle.emptyTitle')}</h3>
+        <p>{t('triangle.emptyText')}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .kicker {
+    color: var(--sea-muted);
+  }
+  h2 {
+    margin-top: 12px;
+  }
+  .btn-sea {
+    border-color: var(--sea-muted);
+  }
+  .is-soon,
+  .btn-sea:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+  .wrecks {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .wreck {
+    padding: 32px;
+    background: var(--sea-2);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 250px;
+  }
+  .m {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--sea-muted);
+  }
+  .m.bottom {
+    margin-top: auto;
+    align-items: center;
+  }
+  h3 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 25px;
+    margin: 0;
+  }
+  q {
+    font-style: italic;
+    color: var(--text-2);
+    font-size: 17px;
+  }
+  .small {
+    min-height: 44px;
+    padding: 0 16px;
+    font-size: 15px;
+  }
+  .wreck.empty {
+    background: transparent;
+    border: 1.5px dashed var(--sea-line);
+    justify-content: center;
+  }
+  .wreck.empty p {
+    margin: 0;
+    color: var(--wreck-empty-text);
+  }
+  @media (max-width: 900px) {
+    .wrecks {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .wreck {
+      min-height: 0;
+    }
+  }
+</style>
