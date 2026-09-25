@@ -3,7 +3,7 @@
 Stage 0 · Depends on: — · Small
 
 ## Goal
-The empty `beda-giglabo` repo becomes a working pnpm + Turborepo + Cargo monorepo skeleton with Task commands, and the imported archive is moved into `archive/` and `docs/`.
+The empty `beda-giglabo` repo becomes a working pnpm + Nx + Cargo monorepo skeleton with Task commands, and the imported archive is moved into `archive/` and `docs/`.
 
 ## Read first
 - `CLAUDE.md`
@@ -22,13 +22,13 @@ The empty `beda-giglabo` repo becomes a working pnpm + Turborepo + Cargo monorep
    - Delete `_import/` (the `claude-code/` kit is already in place from BOOTSTRAP).
 3. Root files:
    - `.editorconfig` (utf-8, lf, 2 spaces; 4 spaces for Rust; tabs for Makefiles).
-   - `.gitignore`: node_modules, dist, .astro, .turbo, coverage, `*.env`, `.env*` except `*.env.example`, Rust `target/`, `tmp/`, OS junk. (Do **not** ignore `.sqlx/` or `Cargo.lock` — both are committed.)
+   - `.gitignore`: node_modules, dist, .astro, .nx, coverage, `*.env`, `.env*` except `*.env.example`, Rust `target/`, `tmp/`, OS junk. (Do **not** ignore `.sqlx/` or `Cargo.lock` — both are committed.)
    - `.node-version` with the current Node LTS major.
    - `LICENSE`: MIT, copyright holder from the human (ask; default "Denis").
-   - `README.md` (English, short): what the site is, link to https://beda.giglabo.com, how to run `task dev`, where the spec and steps are, and a "Brand" note: code is MIT; texts, design and the «Яхта Беда» brand are not covered by the MIT license.
-   - `package.json`: private, `packageManager` set to the current pnpm, scripts delegating to turbo (`build`, `test`, `lint`, `typecheck`).
+   - `README.md` (English, short): what the site is, link to https://beda.lol, how to run `task dev`, where the spec and steps are, and a "Brand" note: code is MIT; texts, design and the «Яхта Беда» brand are not covered by the MIT license.
+   - `package.json`: private, `packageManager` set to the current pnpm, scripts delegating to Nx (`build`, `test`, `lint`, `typecheck`).
    - `pnpm-workspace.yaml`: `apps/*`, `packages/*`.
-   - `turbo.json`: tasks `build` (outputs `dist/**`), `test`, `lint`, `typecheck`, with sensible `dependsOn`.
+   - `nx.json`: target defaults `build` (outputs `dist/**`), `test`, `lint`, `typecheck`, with sensible `dependsOn` and caching. (Replaces `turbo.json` from the spec: the frontend is orchestrated by Nx.)
    - `biome.json`: formatter + linter for TS/JS/JSON/CSS; ignore `archive/`, generated code, `dist/`.
 4. `Taskfile.yml` with tasks (bodies may be stubs that print "added in SNN" until their step):
    `dev`, `check`, `test`, `lint`, `gen`, `migrate:new`, `db:reset`, `web:dev`, `api:dev`. `check` must already run `biome check` and `pnpm -r typecheck` (no-op for now).

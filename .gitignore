@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# build output and caches
+dist/
+.astro/
+.nx/
+coverage/
+*.tsbuildinfo
+
+# Rust
+target/
+
+# env files: only *.env.example is committed
+*.env
+.env
+.env.*
+!*.env.example
+!.env.example
+
+# scratch
+tmp/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp

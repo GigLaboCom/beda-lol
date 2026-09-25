@@ -1,0 +1,65 @@
+# Single entry point for common commands across the TypeScript (pnpm + Nx)
+# and Rust (Cargo) halves of the monorepo. See CLAUDE.md → Commands.
+version: '3'
+
+tasks:
+  default:
+    cmds:
+      - task --list
+    silent: true
+
+  install:
+    desc: Install JS dependencies (frozen lockfile)
+    cmds:
+      - pnpm install --frozen-lockfile
+
+  dev:
+    desc: Dev stack — Supabase, Rust API with reload, Astro dev server
+    cmds:
+      - echo "dev stack is added in S01–S03"
+
+  web:dev:
+    desc: Astro dev server on :4321
+    cmds:
+      - echo "web:dev is added in S03"
+
+  api:dev:
+    desc: Rust API with reload on :8080
+    cmds:
+      - echo "api:dev is added in S01"
+
+  lint:
+    desc: Lint and format check (Biome)
+    cmds:
+      - pnpm exec biome check .
+
+  typecheck:
+    desc: Typecheck every TS project through Nx
+    cmds:
+      - pnpm exec nx run-many -t typecheck --outputStyle=static
+
+  test:
+    desc: Unit tests
+    cmds:
+      - pnpm exec nx run-many -t test --outputStyle=static
+
+  gen:
+    desc: Regenerate committed artefacts (sqlx offline data, API clients)
+    cmds:
+      - echo "gen is added in S02"
+
+  migrate:new:
+    desc: 'New Supabase migration: task migrate:new -- <name>'
+    cmds:
+      - echo "migrate:new is added in S02"
+
+  db:reset:
+    desc: Re-apply migrations and seed on the local Supabase database
+    cmds:
+      - echo "db:reset is added in S02"
+
+  check:
+    desc: Everything CI runs
+    cmds:
+      - task: lint
+      - task: typecheck

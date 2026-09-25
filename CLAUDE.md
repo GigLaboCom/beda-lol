@@ -1,6 +1,6 @@
-# beda-giglabo
+# beda.lol
 
-Website for the personal-branding rubric «Яхта Беда» at https://beda.giglabo.com. The rubric jokes that people build pet projects "sailing on the yacht Беда" and skip marketing: ПОБЕДА = ПО + БЕДА — lose the "ПО" and only "БЕДА" (trouble) remains. The site turns this into interactives: a ship-inspection quiz, a name game, a nail-by-nail progress tracker, a registry of user projects, and an epitaph wall for abandoned projects.
+Website for the personal-branding rubric «Яхта Беда» at https://beda.lol. The rubric jokes that people build pet projects "sailing on the yacht Беда" and skip marketing: ПОБЕДА = ПО + БЕДА — lose the "ПО" and only "БЕДА" (trouble) remains. The site turns this into interactives: a ship-inspection quiz, a name game, a nail-by-nail progress tracker, a registry of user projects, and an epitaph wall for abandoned projects.
 
 ## Sources of truth
 
@@ -18,7 +18,11 @@ Website for the personal-branding rubric «Яхта Беда» at https://beda.g
 
 Precedence: step file > amendments (`docs/08-amendments.md`) > spec. Note any deviation in PROGRESS.md.
 
+Two repo-wide deviations from the spec apply everywhere: the TypeScript side is orchestrated by **Nx** (wherever the spec or a step says Turborepo / `turbo`, read Nx / `nx`), and the site lives at **beda.lol** (the spec says `beda.giglabo.com`).
+
 ## Stack
+
+- Monorepo — pnpm workspaces for dependencies, **Nx** for task orchestration and caching of the TypeScript projects (`nx.json`; targets come from each package's `package.json` scripts). The Rust API is also an Nx project (`apps/api/project.json`, targets run `cargo`) so `nx graph` shows the whole repo; Cargo stays the source of truth for Rust.
 
 - `apps/web` — Astro with `@astrojs/node` (standalone), Preact islands. Pages are prerendered by default; UGC, personal and service routes opt out with `export const prerender = false`. Astro changes between majors: before writing config or using an API, check the official docs for the installed version (e.g. `output: 'hybrid'` no longer exists).
 - `apps/api` — **Rust** (amendment П-2), crate `beda-api` in a Cargo workspace rooted at the repo, single binary with subcommands `serve`, `admin`, `healthcheck`, `version`. `axum` + `tower-http`, `tokio`, `sqlx` (compile-time checked queries, offline data in `.sqlx/`), `tracing`, `thiserror`/`anyhow`, `clap`, `jsonwebtoken` + `reqwest` (rustls) for Supabase JWKS. Connects to the Supabase Postgres directly; verifies Supabase Auth JWTs locally. `#![forbid(unsafe_code)]`; no `unwrap`/`expect` outside tests and startup. Wherever the spec says "Go", read "the Rust API".
@@ -39,6 +43,7 @@ All common commands go through Task (`Taskfile.yml`). Prefer them over ad-hoc co
 | --- | --- |
 | `task dev` | dev stack: `supabase start` (Postgres, Auth, mail catcher), the Rust API with reload (`watchexec`), `astro dev` (proxies `/api` to the API) |
 | `task check` | everything CI runs: lint, typecheck, unit tests, builds, `gen` diff check |
+| `pnpm nx run-many -t build` | Nx directly: build every TS project (also `test`, `lint`, `typecheck`); `pnpm nx graph` shows the project graph |
 | `task test` | unit tests only |
 | `task gen` | `cargo sqlx prepare --workspace` (+ OpenAPI codegen from stage 2) |
 | `task migrate:new -- <name>` | `supabase migration new <name>` |
@@ -83,6 +88,6 @@ Run `task check` before declaring a step done. It must pass.
 
 ## Project facts
 
-- Domain: `beda.giglabo.com`. Repo: `beda-giglabo`, public.
-- GitHub owner: `OWNER` — filled in during S00 (ask the human if it is still `OWNER`).
+- Domain: `beda.lol`. Repo: `GigLaboCom/beda-lol`, public.
+- GitHub owner: `GigLaboCom` (GHCR images live under the lowercase `ghcr.io/giglabocom/`).
 - Ports (dev): web 4321, api 8080; Supabase local ports as printed by `supabase start` (defaults: API 54321, DB 54322, Studio 54323, mail 54324) — read them, don't hardcode.

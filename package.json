@@ -1,0 +1,21 @@
+{
+  "name": "beda-lol",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "build": "nx run-many -t build",
+    "test": "nx run-many -t test",
+    "lint": "biome check .",
+    "typecheck": "nx run-many -t typecheck",
+    "format": "biome format --write .",
+    "graph": "nx graph"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.14",
+    "nx": "23.2.1"
+  }
+}

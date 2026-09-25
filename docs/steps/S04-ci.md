@@ -16,7 +16,7 @@ Every PR and push runs the same checks as `task check` on GitHub Actions, with n
    - Every third-party action pinned to a full commit SHA with the version in a comment. Resolve SHAs with `git ls-remote https://github.com/<org>/<action> refs/tags/<tag>` (dereference annotated tags with `^{}`).
 2. `.github/workflows/codeql.yml`: JavaScript/TypeScript, plus Rust if CodeQL supports it in its current release (check the docs; if not, `cargo deny` covers advisories), on PR, push to `main`, weekly schedule. `permissions: security-events: write` only in that job.
 3. `.github/dependabot.yml`: weekly for `npm` (root), `cargo` (root workspace), `github-actions`, `docker` (`/apps/web`, `/apps/api` once Dockerfiles exist — add now, harmless before). Group minor/patch updates.
-4. `.github/CODEOWNERS`: `/deploy/`, `/.github/`, `/supabase/migrations/` → `@OWNER`.
+4. `.github/CODEOWNERS`: `/deploy/`, `/.github/`, `/supabase/migrations/` → `@GigLaboCom`.
 5. `.github/pull_request_template.md` (what, why, how verified, step id) and issue templates `bug.md`, `idea.md` (short).
 6. `SECURITY.md`: how to report a vulnerability privately (GitHub private advisories), what is in scope.
 7. `docs/repo-settings.md`: the exact GitHub settings to click through (from the spec table), each as a checkbox — this is for the human.

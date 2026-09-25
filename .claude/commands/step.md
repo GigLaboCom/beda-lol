@@ -1,4 +1,4 @@
-Execute step $ARGUMENTS of the beda-giglabo plan.
+Execute step $ARGUMENTS of the beda.lol plan.
 
 1. Read `CLAUDE.md`, `docs/steps/README.md`, `docs/steps/PROGRESS.md`, and the file `docs/steps/S$ARGUMENTS-*.md`.
 2. Confirm every dependency listed in the step is ticked in PROGRESS.md. If one is not, stop and tell me which.

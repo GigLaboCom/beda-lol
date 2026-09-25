@@ -16,7 +16,7 @@ Stage 1 · Depends on: S07, S08 · Medium–large
 3. Moorings: built routes are links (`/osmotr`, `/kak-nazovesh`, `/bukvy/...` for the pillars later); unbuilt ones are non-link cards with «скоро». No dead links.
 4. Hero sequence: `Transom` rendered with all letters nailed; a small inline module script (not a framework island) attaches the controller and plays: 0.9 s → П to 1 nail, 3.9 s → О to 0. Skipped under reduced motion (show the final state immediately). Runs once per page load.
 5. Journal SVG and the triangle section ported as is.
-6. Meta: title «Яхта «Беда» — рубрика о пет-проектах», description from the lead, canonical `https://beda.giglabo.com/`.
+6. Meta: title «Яхта «Беда» — рубрика о пет-проектах», description from the lead, canonical `https://beda.lol/`.
 
 ## Out of scope
 No quiz logic on this page. No analytics. No OG image yet (S13).
