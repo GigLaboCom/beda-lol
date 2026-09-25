@@ -4,10 +4,16 @@ use axum::Router;
 use axum::body::{Body, Bytes};
 use axum::http::{Request, StatusCode};
 use axum::routing::{get, post};
-use beda_api::{Config, app, http};
+use beda_api::{AppState, Config, Store, app, http};
 use http_body_util::BodyExt as _;
 use serde_json::Value;
 use tower::ServiceExt as _;
+
+/// App wired to a database that is not there: fine for every route but readyz.
+fn test_app() -> Router {
+    let store = Store::connect_lazy("postgres://nobody@127.0.0.1:1/none", 1).unwrap();
+    app(&Config::default(), AppState { store })
+}
 
 async fn json_body(res: axum::response::Response) -> Value {
     let bytes = res.into_body().collect().await.unwrap().to_bytes();
@@ -16,7 +22,7 @@ async fn json_body(res: axum::response::Response) -> Value {
 
 #[tokio::test]
 async fn healthz_is_ok() {
-    let res = app(&Config::default())
+    let res = test_app()
         .oneshot(Request::get("/api/healthz").body(Body::empty()).unwrap())
         .await
         .unwrap();
@@ -26,7 +32,7 @@ async fn healthz_is_ok() {
 
 #[tokio::test]
 async fn request_id_is_generated_when_absent() {
-    let res = app(&Config::default())
+    let res = test_app()
         .oneshot(Request::get("/api/healthz").body(Body::empty()).unwrap())
         .await
         .unwrap();
@@ -39,7 +45,7 @@ async fn request_id_is_generated_when_absent() {
 
 #[tokio::test]
 async fn request_id_is_echoed_when_present() {
-    let res = app(&Config::default())
+    let res = test_app()
         .oneshot(
             Request::get("/api/healthz")
                 .header("x-request-id", "abc-123")
@@ -53,7 +59,7 @@ async fn request_id_is_echoed_when_present() {
 
 #[tokio::test]
 async fn unknown_route_uses_error_shape() {
-    let res = app(&Config::default())
+    let res = test_app()
         .oneshot(Request::get("/api/nope").body(Body::empty()).unwrap())
         .await
         .unwrap();
@@ -106,4 +112,14 @@ async fn panic_becomes_500_with_error_shape() {
     let body = json_body(res).await;
     assert_eq!(body["error"]["code"], "internal");
     assert_eq!(body["error"]["message"], "internal error");
+}
+
+#[tokio::test]
+async fn readyz_is_503_without_database() {
+    let res = test_app()
+        .oneshot(Request::get("/api/readyz").body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::SERVICE_UNAVAILABLE);
+    assert_eq!(json_body(res).await["error"]["code"], "unavailable");
 }

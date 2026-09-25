@@ -2,6 +2,14 @@
 # and Rust (Cargo) halves of the monorepo. See CLAUDE.md → Commands.
 version: '3'
 
+vars:
+  # Dev-only password for the `beda_api` role on the LOCAL Supabase database.
+  DEV_API_PASSWORD: beda_api_dev
+  # Superuser URL of the local Supabase database, read from the CLI (ports are not hardcoded).
+  # Override with LOCAL_DB_URL=... when the database runs elsewhere.
+  LOCAL_DB_URL:
+    sh: '[ -n "$LOCAL_DB_URL" ] && echo "$LOCAL_DB_URL" || (supabase status -o env 2>/dev/null | sed -n "s/^DB_URL=\"\(.*\)\"$/\1/p")'
+
 tasks:
   default:
     cmds:
@@ -16,7 +24,10 @@ tasks:
   dev:
     desc: Dev stack — Supabase, Rust API with reload, Astro dev server
     cmds:
-      - echo "dev stack is added in S01–S03"
+      - supabase start
+      - task: db:dev-role
+      # Nx runs every project's continuous `dev` target in parallel (api, web).
+      - BEDA_DATABASE_URL="$(task db:api-url)" pnpm exec nx run-many -t dev --outputStyle=stream
 
   web:dev:
     desc: Astro dev server on :4321
@@ -24,9 +35,47 @@ tasks:
       - echo "web:dev is added in S03"
 
   api:dev:
-    desc: Rust API with reload on :8080 (needs watchexec)
+    desc: Rust API with reload on :8080 (needs watchexec and a running database)
     cmds:
-      - watchexec -r -e rs,toml -- cargo run -p beda-api -- serve
+      - BEDA_DATABASE_URL="${BEDA_DATABASE_URL:-$(task db:api-url)}" watchexec -r -e rs,toml -- cargo run -p beda-api -- serve
+
+  db:url:
+    desc: Print the local database URL (superuser)
+    silent: true
+    cmds:
+      - echo '{{.LOCAL_DB_URL}}'
+
+  db:api-url:
+    desc: Print the local database URL for the beda_api role
+    silent: true
+    cmds:
+      - echo '{{.LOCAL_DB_URL}}' | sed 's#//[^@]*@#//beda_api:{{.DEV_API_PASSWORD}}@#'
+
+  db:dev-role:
+    desc: Give the beda_api role a dev-only password on the local database
+    cmds:
+      - psql '{{.LOCAL_DB_URL}}' -v ON_ERROR_STOP=1 -q -c "alter role beda_api password '{{.DEV_API_PASSWORD}}'"
+
+  db:reset:
+    desc: Re-apply migrations and seed on the local Supabase database
+    cmds:
+      - supabase db reset
+      - task: db:dev-role
+
+  migrate:new:
+    desc: 'New Supabase migration: task migrate:new -- <name>'
+    cmds:
+      - supabase migration new {{.CLI_ARGS}}
+
+  gen:
+    desc: Regenerate committed artefacts (sqlx offline data; needs the local database)
+    cmds:
+      - DATABASE_URL='{{.LOCAL_DB_URL}}' cargo sqlx prepare --workspace
+
+  gen:check:
+    desc: Fail if committed generated artefacts are stale (needs the local database)
+    cmds:
+      - DATABASE_URL='{{.LOCAL_DB_URL}}' cargo sqlx prepare --workspace --check
 
   lint:
     desc: Lint and format check (Biome for TS/JSON/CSS, rustfmt + clippy for Rust)
@@ -41,34 +90,21 @@ tasks:
       - pnpm exec nx run-many -t typecheck --outputStyle=static
 
   test:
-    desc: Unit tests (every Nx project, including the Rust API)
+    desc: Unit tests of every Nx project, including the Rust API (DB tests use the local database)
     cmds:
-      - pnpm exec nx run-many -t test --outputStyle=static
-
-  gen:
-    desc: Regenerate committed artefacts (sqlx offline data, API clients)
-    cmds:
-      - echo "gen is added in S02"
-
-  migrate:new:
-    desc: 'New Supabase migration: task migrate:new -- <name>'
-    cmds:
-      - echo "migrate:new is added in S02"
-
-  db:reset:
-    desc: Re-apply migrations and seed on the local Supabase database
-    cmds:
-      - echo "db:reset is added in S02"
+      - BEDA_TEST_DATABASE_URL='{{.LOCAL_DB_URL}}' pnpm exec nx run-many -t test --outputStyle=static
 
   deny:
     desc: cargo-deny (licenses, advisories, bans, sources)
     cmds:
-      - cargo deny check
+      - cargo deny check --hide-inclusion-graph
 
   check:
-    desc: Everything CI runs
+    desc: Everything CI runs (needs `supabase start` for the database checks)
     cmds:
       - task: lint
       - task: typecheck
       - task: test
       - task: deny
+      - task: gen:check
+      - SQLX_OFFLINE=true cargo build --release -p beda-api

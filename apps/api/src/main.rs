@@ -5,7 +5,7 @@ use std::process::ExitCode;
 use std::time::Duration;
 
 use anyhow::Context as _;
-use beda_api::{Config, telemetry};
+use beda_api::{AppState, Config, Store, telemetry};
 use clap::{Parser, Subcommand};
 use tokio::io::{AsyncReadExt as _, AsyncWriteExt as _};
 use tokio::net::{TcpListener, TcpStream};
@@ -76,7 +76,9 @@ async fn serve() -> anyhow::Result<()> {
     let config = Config::from_env()?;
     telemetry::init(&config);
 
-    let app = beda_api::app(&config);
+    let store = Store::connect_lazy(&config.database_url, config.db_max_connections)
+        .context("invalid BEDA_DATABASE_URL")?;
+    let app = beda_api::app(&config, AppState { store });
     let listener = TcpListener::bind(config.http_addr)
         .await
         .with_context(|| format!("binding {}", config.http_addr))?;
@@ -136,8 +138,14 @@ async fn shutdown_signal() {
 
 /// Minimal HTTP/1.1 probe so the distroless image needs no curl.
 async fn healthcheck() -> anyhow::Result<()> {
-    let config = Config::from_env()?;
-    let port = config.http_addr.port();
+    // Only the listen address matters here; do not require the full config.
+    let port = match std::env::var("BEDA_HTTP_ADDR") {
+        Ok(addr) => addr
+            .parse::<std::net::SocketAddr>()
+            .context("invalid BEDA_HTTP_ADDR")?
+            .port(),
+        Err(_) => Config::default().http_addr.port(),
+    };
     let probe = async {
         let mut stream = TcpStream::connect(("127.0.0.1", port)).await?;
         stream

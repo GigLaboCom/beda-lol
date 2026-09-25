@@ -23,7 +23,8 @@ pub struct Config {
     pub http_addr: SocketAddr,
     pub base_url: String,
     pub log: String,
-    pub database_url: Option<String>,
+    pub database_url: String,
+    pub db_max_connections: u32,
     pub supabase_url: Option<String>,
 }
 
@@ -48,7 +49,8 @@ impl Default for Config {
             http_addr: SocketAddr::from(([0, 0, 0, 0], 8080)),
             base_url: "http://localhost:4321".to_owned(),
             log: "info".to_owned(),
-            database_url: None,
+            database_url: "postgres://beda_api@127.0.0.1:54322/postgres".to_owned(),
+            db_max_connections: 10,
             supabase_url: None,
         }
     }
@@ -101,11 +103,21 @@ impl Config {
             config.log = filter;
         }
 
-        config.database_url = get("BEDA_DATABASE_URL");
-        if let Some(url) = &config.database_url
-            && !(url.starts_with("postgres://") || url.starts_with("postgresql://"))
-        {
-            problems.push("BEDA_DATABASE_URL must be a postgres:// URL".to_owned());
+        match get("BEDA_DATABASE_URL") {
+            None => problems.push("BEDA_DATABASE_URL is required".to_owned()),
+            Some(url) if url.starts_with("postgres://") || url.starts_with("postgresql://") => {
+                config.database_url = url;
+            }
+            Some(_) => problems.push("BEDA_DATABASE_URL must be a postgres:// URL".to_owned()),
+        }
+
+        if let Some(max) = get("BEDA_DB_MAX_CONNECTIONS") {
+            match max.parse::<u32>() {
+                Ok(n) if n > 0 => config.db_max_connections = n,
+                _ => problems.push(format!(
+                    "BEDA_DB_MAX_CONNECTIONS must be a positive integer, got `{max}`"
+                )),
+            }
         }
 
         config.supabase_url = get("BEDA_SUPABASE_URL");
@@ -137,13 +149,13 @@ mod tests {
     }
 
     #[test]
-    fn defaults_apply_when_env_is_empty() {
-        let config = load(&[]).unwrap();
+    fn defaults_apply_when_only_database_url_is_set() {
+        let config = load(&[("BEDA_DATABASE_URL", "postgres://u@h/db")]).unwrap();
         assert_eq!(config.env, Env::Dev);
         assert_eq!(config.http_addr.port(), 8080);
         assert_eq!(config.base_url, "http://localhost:4321");
         assert_eq!(config.log, "info");
-        assert!(config.database_url.is_none());
+        assert_eq!(config.db_max_connections, 10);
     }
 
     #[test]
@@ -158,7 +170,7 @@ mod tests {
         assert!(config.env.is_prod());
         assert_eq!(config.http_addr.port(), 9000);
         assert_eq!(config.base_url, "https://beda.lol");
-        assert_eq!(config.database_url.as_deref(), Some("postgres://u@h/db"));
+        assert_eq!(config.database_url, "postgres://u@h/db");
     }
 
     #[test]
@@ -168,8 +180,15 @@ mod tests {
             ("BEDA_HTTP_ADDR", "nope"),
             ("BEDA_BASE_URL", "beda.lol"),
             ("BEDA_DATABASE_URL", "mysql://x"),
+            ("BEDA_DB_MAX_CONNECTIONS", "0"),
         ])
         .unwrap_err();
-        assert_eq!(err.0.len(), 4, "{err}");
+        assert_eq!(err.0.len(), 5, "{err}");
+    }
+
+    #[test]
+    fn database_url_is_required() {
+        let err = load(&[]).unwrap_err();
+        assert_eq!(err.0, vec!["BEDA_DATABASE_URL is required".to_owned()]);
     }
 }

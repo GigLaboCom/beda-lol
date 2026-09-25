@@ -21,6 +21,7 @@ use tower_http::trace::{DefaultOnResponse, TraceLayer};
 use tracing::Level;
 
 use crate::config::Config;
+use crate::state::AppState;
 use error::{AppError, error_body};
 
 pub const REQUEST_ID_HEADER: HeaderName = HeaderName::from_static("x-request-id");
@@ -28,11 +29,12 @@ pub const BODY_LIMIT: usize = 64 * 1024;
 pub const REQUEST_TIMEOUT: Duration = Duration::from_secs(15);
 
 /// Routes under `/api`, without middleware.
-pub fn routes(_config: &Config) -> Router {
+pub fn routes(_config: &Config, state: AppState) -> Router {
     Router::new()
         .route("/api/healthz", get(health::healthz))
         .route("/api/readyz", get(health::readyz))
         .fallback(|| async { AppError::NotFound })
+        .with_state(state)
 }
 
 /// Wraps a router in the standard middleware stack, outermost first:

@@ -1,0 +1,2 @@
+-- Seed data for local development, applied by `supabase db reset`.
+-- Intentionally empty: stage 1 needs no fixtures. Never put real personal data here.
