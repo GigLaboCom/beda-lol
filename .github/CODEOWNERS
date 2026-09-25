@@ -1,0 +1,4 @@
+# Changes to deployment, CI and database migrations need the owner's review.
+/deploy/               @GigLaboCom
+/.github/              @GigLaboCom
+/supabase/migrations/  @GigLaboCom

@@ -1,0 +1,83 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  web:
+    name: web
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Enable corepack (pnpm from packageManager)
+        run: corepack enable
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Biome
+        run: pnpm exec biome ci .
+      - name: Typecheck (Nx)
+        run: pnpm exec nx run-many -t typecheck --exclude=api --outputStyle=static
+      - name: Unit tests (Nx)
+        run: pnpm exec nx run-many -t test --exclude=api --outputStyle=static
+      - name: Build (Nx)
+        run: pnpm exec nx run-many -t build --exclude=api --outputStyle=static
+
+  api:
+    name: api
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SQLX_OFFLINE: 'true'
+      LOCAL_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Rust toolchain from rust-toolchain.toml
+        uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        with:
+          cache: false
+          rustflags: ''
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - name: Install sqlx-cli and cargo-deny (prebuilt)
+        uses: taiki-e/install-action@9983c65e42da123ff25d1f78505eb6de315aa172 # v2.87.20
+        with:
+          tool: sqlx-cli,cargo-deny
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.117.0
+      - name: Start Supabase (Postgres only)
+        run: >-
+          supabase start
+          -x gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+      - name: Migrations apply from zero
+        run: supabase db reset
+      - run: cargo fmt --all --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - name: cargo test (with the local database)
+        run: cargo test
+        env:
+          BEDA_TEST_DATABASE_URL: ${{ env.LOCAL_DB_URL }}
+      - name: sqlx offline data is up to date
+        run: cargo sqlx prepare --workspace --check
+        env:
+          SQLX_OFFLINE: 'false'
+          DATABASE_URL: ${{ env.LOCAL_DB_URL }}
+      - name: Release build without a database
+        run: cargo build --release -p beda-api
+      - run: cargo deny check --hide-inclusion-graph
