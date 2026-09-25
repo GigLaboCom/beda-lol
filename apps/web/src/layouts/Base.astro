@@ -1,0 +1,47 @@
+---
+import '@beda/tokens/tokens.css';
+import '@beda/tokens/fonts.css';
+import '../styles/global.css';
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import { t } from '../i18n/ru';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Path (or absolute URL) of the canonical page; defaults to the current path. */
+  canonical?: string;
+  /** e.g. "noindex, follow" for result and personal pages. */
+  robots?: string;
+}
+
+const {
+  title = t('site.title'),
+  description = t('site.description'),
+  canonical = Astro.url.pathname,
+  robots,
+} = Astro.props;
+const canonicalUrl = new URL(canonical, Astro.site).href;
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+    {robots && <meta name="robots" content={robots} />}
+    <meta name="color-scheme" content="dark light" />
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#content">{t('a11y.skip')}</a>
+    <SiteHeader />
+    <main id="content">
+      <slot />
+    </main>
+    <SiteFooter />
+  </body>
+</html>

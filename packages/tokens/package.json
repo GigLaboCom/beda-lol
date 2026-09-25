@@ -1,0 +1,22 @@
+{
+  "name": "@beda/tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Design tokens (CSS custom properties) and self-hosted fonts for beda.lol",
+  "exports": {
+    "./tokens.css": "./src/tokens.css",
+    "./fonts.css": "./src/fonts.css"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fontsource/ibm-plex-mono": "5.3.0",
+    "@fontsource/ibm-plex-sans": "5.3.0",
+    "@fontsource/playfair-display": "5.3.0"
+  }
+}

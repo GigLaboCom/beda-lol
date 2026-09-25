@@ -30,9 +30,9 @@ tasks:
       - BEDA_DATABASE_URL="$(task db:api-url)" pnpm exec nx run-many -t dev --outputStyle=stream
 
   web:dev:
-    desc: Astro dev server on :4321
+    desc: Astro dev server on :4321 (proxies /api to :8080)
     cmds:
-      - echo "web:dev is added in S03"
+      - pnpm exec nx run web:dev --outputStyle=stream
 
   api:dev:
     desc: Rust API with reload on :8080 (needs watchexec and a running database)
@@ -94,6 +94,11 @@ tasks:
     cmds:
       - BEDA_TEST_DATABASE_URL='{{.LOCAL_DB_URL}}' pnpm exec nx run-many -t test --outputStyle=static
 
+  build:
+    desc: Build every TS project through Nx (web → dist/, server entry dist/server/entry.mjs)
+    cmds:
+      - pnpm exec nx run-many -t build --exclude=api --outputStyle=static
+
   deny:
     desc: cargo-deny (licenses, advisories, bans, sources)
     cmds:
@@ -105,6 +110,7 @@ tasks:
       - task: lint
       - task: typecheck
       - task: test
+      - task: build
       - task: deny
       - task: gen:check
       - SQLX_OFFLINE=true cargo build --release -p beda-api

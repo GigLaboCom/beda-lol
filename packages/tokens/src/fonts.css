@@ -1,0 +1,18 @@
+/*
+ * Self-hosted fonts (Fontsource), Cyrillic + Latin only, font-display: swap.
+ * Playfair Display 700/900, IBM Plex Sans 400/500/600, IBM Plex Mono 400/500.
+ */
+@import "@fontsource/playfair-display/cyrillic-700.css";
+@import "@fontsource/playfair-display/latin-700.css";
+@import "@fontsource/playfair-display/cyrillic-900.css";
+@import "@fontsource/playfair-display/latin-900.css";
+@import "@fontsource/ibm-plex-sans/cyrillic-400.css";
+@import "@fontsource/ibm-plex-sans/latin-400.css";
+@import "@fontsource/ibm-plex-sans/cyrillic-500.css";
+@import "@fontsource/ibm-plex-sans/latin-500.css";
+@import "@fontsource/ibm-plex-sans/cyrillic-600.css";
+@import "@fontsource/ibm-plex-sans/latin-600.css";
+@import "@fontsource/ibm-plex-mono/cyrillic-400.css";
+@import "@fontsource/ibm-plex-mono/latin-400.css";
+@import "@fontsource/ibm-plex-mono/cyrillic-500.css";
+@import "@fontsource/ibm-plex-mono/latin-500.css";

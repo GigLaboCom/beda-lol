@@ -1,0 +1,59 @@
+/*
+ * beda.lol design tokens. Ported verbatim from archive/site/yacht-beda-site.html.
+ * Colours are used only through these custom properties.
+ * Dark-first: the base palette is dark; `prefers-color-scheme` and `data-theme`
+ * switch the few values that differ.
+ */
+:root {
+  --tar: #1c140e;
+  --hull: #2a1e15;
+  --line: #3a2a1d;
+  --plank: #6e4b2d;
+  --seam: #4b321e;
+  --plank-hi: #8a6038;
+  --shelf: #a9834f;
+  --canvas: #ede4cf;
+  --canvas-2: #f7f1e3;
+  --ink: #1c140e;
+  --muted-ink: #5e4a35;
+  --brass: #d6a93e;
+  --brass-hi: #ebc565;
+  --brass-deep: #7a5716;
+  --brass-card: #c9971e;
+  --iron: #8c8174;
+  --text: #ede4cf;
+  --text-2: #d9cdb4;
+  --muted: #b8a385;
+  --rust: #c2542d;
+  --rust-hi: #e88a62;
+  --rust-ink: #a33a18;
+  --ok-ink: #3f6b45;
+  --sea: #151e22;
+  --sea-2: #1e2a2f;
+  --sea-muted: #9fb3b8;
+  --sea-line: #4a5d63;
+
+  /* Fixed-purpose shades used by the transom and a few controls. */
+  --hole: #2a1d13;
+  --glyph-shadow: #3a2412;
+  --nail-iron: #b3a898;
+  --shelf-light: #d9cdb4;
+  --ink-hover: #33251a;
+  --wreck-empty-text: #b5c4c8;
+
+  --display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --sans: "IBM Plex Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tar: #17100a;
+    --hull: #261b13;
+  }
+}
+
+:root[data-theme="dark"] {
+  --tar: #17100a;
+  --hull: #261b13;
+}
