@@ -1,7 +1,8 @@
 //! API error type with a stable JSON shape: `{"error":{"code":"…","message":"…"}}`.
 
 use axum::Json;
-use axum::http::StatusCode;
+use axum::http::header::WWW_AUTHENTICATE;
+use axum::http::{HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
 use serde_json::json;
 
@@ -11,6 +12,11 @@ pub enum AppError {
     NotFound,
     #[error("{0}")]
     BadRequest(String),
+    /// No valid bearer token. The reason is logged, not sent.
+    #[error("unauthorized")]
+    Unauthorized,
+    #[error("{0}")]
+    Forbidden(String),
     #[error("request body is too large")]
     PayloadTooLarge,
     #[error("too many requests")]
@@ -27,6 +33,8 @@ impl AppError {
         match self {
             Self::NotFound => StatusCode::NOT_FOUND,
             Self::BadRequest(_) => StatusCode::BAD_REQUEST,
+            Self::Unauthorized => StatusCode::UNAUTHORIZED,
+            Self::Forbidden(_) => StatusCode::FORBIDDEN,
             Self::PayloadTooLarge => StatusCode::PAYLOAD_TOO_LARGE,
             Self::TooManyRequests => StatusCode::TOO_MANY_REQUESTS,
             Self::Unavailable => StatusCode::SERVICE_UNAVAILABLE,
@@ -38,6 +46,8 @@ impl AppError {
         match self {
             Self::NotFound => "not_found",
             Self::BadRequest(_) => "bad_request",
+            Self::Unauthorized => "unauthorized",
+            Self::Forbidden(_) => "forbidden",
             Self::PayloadTooLarge => "payload_too_large",
             Self::TooManyRequests => "too_many_requests",
             Self::Unavailable => "unavailable",
@@ -64,6 +74,12 @@ impl IntoResponse for AppError {
             }
             other => other.to_string(),
         };
-        error_body(self.status(), self.code(), &message)
+        let mut response = error_body(self.status(), self.code(), &message);
+        if matches!(self, Self::Unauthorized) {
+            response
+                .headers_mut()
+                .insert(WWW_AUTHENTICATE, HeaderValue::from_static("Bearer"));
+        }
+        response
     }
 }

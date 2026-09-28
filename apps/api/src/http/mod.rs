@@ -5,6 +5,7 @@ pub mod error;
 pub mod events;
 pub mod health;
 pub mod json;
+pub mod me;
 pub mod quiz;
 pub mod rate_limit;
 
@@ -46,6 +47,7 @@ pub fn routes(_config: &Config, state: AppState) -> Router {
     Router::new()
         .route("/api/healthz", get(health::healthz))
         .route("/api/readyz", get(health::readyz))
+        .route("/api/me", get(me::me))
         .route(
             "/api/quiz/attempts",
             post(quiz::create_attempt).layer(limited(state.limits.quiz_attempts.clone())),

@@ -26,6 +26,8 @@ pub struct Config {
     pub database_url: String,
     pub db_max_connections: u32,
     pub supabase_url: Option<String>,
+    /// Expected `iss` of access tokens; default `{supabase_url}/auth/v1`.
+    pub jwt_issuer: Option<String>,
 }
 
 /// Every problem found in the environment, reported at once.
@@ -52,11 +54,28 @@ impl Default for Config {
             database_url: "postgres://beda_api@127.0.0.1:54322/postgres".to_owned(),
             db_max_connections: 10,
             supabase_url: None,
+            jwt_issuer: None,
         }
     }
 }
 
 impl Config {
+    /// Where the Supabase project publishes its signing keys.
+    pub fn jwks_url(&self) -> Option<String> {
+        self.supabase_url
+            .as_ref()
+            .map(|url| format!("{url}/auth/v1/.well-known/jwks.json"))
+    }
+
+    /// The `iss` access tokens must carry.
+    pub fn issuer(&self) -> Option<String> {
+        self.jwt_issuer.clone().or_else(|| {
+            self.supabase_url
+                .as_ref()
+                .map(|url| format!("{url}/auth/v1"))
+        })
+    }
+
     /// Reads the configuration from the process environment.
     pub fn from_env() -> Result<Self, ConfigError> {
         Self::from_lookup(|key| std::env::var(key).ok())
@@ -120,12 +139,17 @@ impl Config {
             }
         }
 
-        config.supabase_url = get("BEDA_SUPABASE_URL");
-        if let Some(url) = &config.supabase_url
-            && !(url.starts_with("http://") || url.starts_with("https://"))
-        {
-            problems.push("BEDA_SUPABASE_URL must start with http:// or https://".to_owned());
+        config.supabase_url = get("BEDA_SUPABASE_URL").map(|u| u.trim_end_matches('/').to_owned());
+        match &config.supabase_url {
+            Some(url) if !(url.starts_with("http://") || url.starts_with("https://")) => {
+                problems.push("BEDA_SUPABASE_URL must start with http:// or https://".to_owned());
+            }
+            None if config.env.is_prod() => {
+                problems.push("BEDA_SUPABASE_URL is required when BEDA_ENV=prod".to_owned());
+            }
+            _ => {}
         }
+        config.jwt_issuer = get("BEDA_JWT_ISSUER").map(|u| u.trim_end_matches('/').to_owned());
 
         if problems.is_empty() {
             Ok(config)
@@ -166,9 +190,18 @@ mod tests {
             ("BEDA_HTTP_ADDR", "127.0.0.1:9000"),
             ("BEDA_BASE_URL", "https://beda.lol/"),
             ("BEDA_DATABASE_URL", "postgres://u@h/db"),
+            ("BEDA_SUPABASE_URL", "https://ref.supabase.co/"),
         ])
         .unwrap();
         assert!(config.env.is_prod());
+        assert_eq!(
+            config.jwks_url().as_deref(),
+            Some("https://ref.supabase.co/auth/v1/.well-known/jwks.json")
+        );
+        assert_eq!(
+            config.issuer().as_deref(),
+            Some("https://ref.supabase.co/auth/v1")
+        );
         assert_eq!(config.http_addr.port(), 9000);
         assert_eq!(config.base_url, "https://beda.lol");
         assert_eq!(config.database_url, "postgres://u@h/db");
@@ -185,6 +218,35 @@ mod tests {
         ])
         .unwrap_err();
         assert_eq!(err.0.len(), 5, "{err}");
+    }
+
+    #[test]
+    fn supabase_url_is_required_in_prod_and_issuer_can_be_overridden() {
+        let err = load(&[
+            ("BEDA_ENV", "prod"),
+            ("BEDA_DATABASE_URL", "postgres://u@h/db"),
+        ])
+        .unwrap_err();
+        assert_eq!(
+            err.0,
+            vec!["BEDA_SUPABASE_URL is required when BEDA_ENV=prod".to_owned()]
+        );
+        let config = load(&[
+            ("BEDA_DATABASE_URL", "postgres://u@h/db"),
+            ("BEDA_SUPABASE_URL", "http://host.docker.internal:54321"),
+            ("BEDA_JWT_ISSUER", "http://127.0.0.1:54321/auth/v1"),
+        ])
+        .unwrap();
+        assert_eq!(
+            config.issuer().as_deref(),
+            Some("http://127.0.0.1:54321/auth/v1")
+        );
+        assert!(
+            load(&[("BEDA_DATABASE_URL", "postgres://u@h/db")])
+                .unwrap()
+                .issuer()
+                .is_none()
+        );
     }
 
     #[test]

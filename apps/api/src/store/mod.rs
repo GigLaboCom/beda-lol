@@ -5,6 +5,7 @@
 
 pub mod events;
 pub mod quiz;
+pub mod users;
 
 use std::time::Duration;
 

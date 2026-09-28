@@ -33,8 +33,11 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [ ] S09a English word on the transom (option A in place with a provisional word; D2 and the native-speaker check await the human)
 - [x] R1 ROADMAP: gamification and falls mapped into stages 2–6
 
+## Stage 2 — Accounts and tracker
+- [ ] S16 Supabase Auth wiring (API part done: token → user and account; web side and `admin promote` open)
+
 ## Stages 2–6
-See `ROADMAP.md`. Expand each into a step file before starting it.
+See `ROADMAP.md`. Expand each into a step file before starting it (S16's API part ran without one, by the human's decision).
 
 ---
 
@@ -400,3 +403,30 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
   - Biome, `astro check`, and typecheck, tests and build of every TS project pass.
 - [HUMAN] open: D2. Pick the English word (GOLD RUSH → COLD PUSH, BETA → PET, BEST BET → PEST PET, PROOF → OOF, POWER → OWE) with a native-speaker check, then set `EN_BOARD_GAG` and the `hero.caption` en copy, record D2 here and tick S09a.
 
+### S16 (API part) — users and accounts from the token — 2026-09-28
+- Done (no step file, by the human's decision: «не расписываешь… за основу берешь пользователей из voxwrite-web/api»):
+  - migration `20260928210000_users_accounts.sql`:
+    - tables `app.users` (id = `auth.users.id`, `display_name`, `role`, `trusted`, `status`), `app.accounts` (tenant, `kind = 'personal'`) and `app.account_members` (role `owner`/`member`, `priority`); RLS on, no policies;
+    - `app.provision_user`, idempotent, called by a trigger on `auth.users` insert and by a backfill for users that already exist; browser roles cannot execute it.
+  - `apps/api/src/auth/`:
+    - `token.rs`: `Verifier` checks the Supabase access token against the project JWKS (ES256/RS256; the key's algorithm must match the header; `iss`, `aud = authenticated`, `exp`, UUID `sub`; anonymous sessions are refused). Keys are cached for 5 min. An unknown `kid` refetches at most once per 30 s, and the cached keys keep working if a fetch fails.
+    - `user.rs`: the `CurrentUser` extractor (and `Option<CurrentUser>` for guests) resolves bearer → claims → `app.users` (60 s cache) → the account from `x-beda-account` if the user is a member, else the default one. `require_role`, `require_account_owner`.
+  - `GET /api/me` (`no-store`). New errors: 401 `unauthorized` with `WWW-Authenticate: Bearer`, and 403 `forbidden`.
+  - Config: `BEDA_SUPABASE_URL` is required in prod (already in `deploy/.env.example`); new optional `BEDA_JWT_ISSUER`.
+  - ADR 0003 (users, accounts, the tenancy rule); API README; ADR 0002 points at `app.users`.
+- Verified:
+  - `cargo +nightly fmt --check`;
+  - clippy `-D warnings` on fresh roots;
+  - `cargo test --workspace` with the database: lib 16, auth 9, db 5, events 3, http 7, quiz 4;
+  - `cargo sqlx prepare --workspace --check`, the offline release build, `cargo deny check`.
+  - The database was a `supabase/postgres:17.6.1.167` container with both migrations applied, not `supabase start`: the CLI binds ports on the Docker host, which this dev container cannot reach. A trigger check running as `supabase_auth_admin` (the role GoTrue writes with) passed.
+- Deviations:
+  - `app.users`, not `app.profiles` (amendment П-1): same columns plus `status`, and accounts/memberships added for tenancy.
+  - `jsonwebtoken` 9.3, not 10+: from 10 on, the crypto backend is `aws-lc-rs` (OpenSSL licence, not allowed by `deny.toml`) or `rust_crypto` (pulls `rsa`, RUSTSEC-2023-0071). 9.3 uses `ring`, which is already in the tree.
+  - `reqwest` 0.12 with `rustls-tls-webpki-roots`: `ring` again, and no system CA store needed in the distroless image. The two crates add duplicate `base64` and `tower-http` versions (`cargo deny` warns, bans stay ok).
+- New deps: `jsonwebtoken` 9.3, `reqwest` 0.12, and the `serde` feature of `uuid`; dev: `ring` 0.17 and `base64` 0.22 (already in the lockfile), used to sign test tokens with a key generated per run.
+- Follow-ups: the web side of S16 (`@supabase/ssr`, middleware, islands); `beda-api admin promote`; S20's `tracker_nails` carries `account_id`.
+- [HUMAN] open:
+  - local signing keys: Supabase publishes a JWKS only for asymmetric keys. Check that `task dev` issues ES256 tokens; if not, run `supabase gen signing-key --algorithm ES256`, keep the file out of git, and point `[auth] signing_keys_path` at it.
+  - in the prod project, switch JWT signing to asymmetric keys (Supabase dashboard → JWT signing keys);
+  - S17/S18: the GitHub OAuth app, SMTP, Turnstile.

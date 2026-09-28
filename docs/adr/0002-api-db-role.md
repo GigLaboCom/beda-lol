@@ -4,7 +4,7 @@ Date: 2026-09-25 · Status: accepted
 
 ## Context
 
-App tables live in schema `app`, closed to the Supabase Data API, with RLS enabled and no policies (amendment П-1, rule 1). Only the Rust API reads and writes them; it authorises every request itself (session JWT → `app.profiles` role).
+App tables live in schema `app`, closed to the Supabase Data API, with RLS enabled and no policies (amendment П-1, rule 1). Only the Rust API reads and writes them; it authorises every request itself (session JWT → `app.users` role, ADR 0003).
 
 ## Decision
 

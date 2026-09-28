@@ -89,3 +89,87 @@ async fn anon_cannot_read_app_tables() {
         tx.rollback().await.unwrap();
     }
 }
+
+#[tokio::test]
+async fn new_auth_user_gets_a_user_row_and_a_personal_account() {
+    let Some(mut conn) = connect().await else {
+        return;
+    };
+    let mut tx = conn.begin().await.unwrap();
+    let id = uuid::Uuid::new_v4();
+    sqlx::query(
+        "insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data)
+         values ($1, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+                 'provision@example.test', '{\"full_name\": \"  Капитан  \"}')",
+    )
+    .bind(id)
+    .execute(&mut *tx)
+    .await
+    .unwrap();
+
+    sqlx::query("set local role beda_api")
+        .execute(&mut *tx)
+        .await
+        .unwrap();
+    let user = beda_api::store::users::find_user(&mut *tx, id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        (
+            user.display_name.as_str(),
+            user.role.as_str(),
+            user.status.as_str(),
+            user.trusted
+        ),
+        ("Капитан", "user", "active", false)
+    );
+    let accounts = beda_api::store::users::memberships(&mut *tx, id)
+        .await
+        .unwrap();
+    assert_eq!(accounts.len(), 1);
+    assert_eq!(
+        (accounts[0].kind.as_str(), accounts[0].role.as_str()),
+        ("personal", "owner")
+    );
+    assert_eq!(accounts[0].name, "Капитан");
+
+    // Provisioning again (the backfill path) changes nothing.
+    sqlx::query("reset role").execute(&mut *tx).await.unwrap();
+    sqlx::query("select app.provision_user($1, '{}'::jsonb)")
+        .bind(id)
+        .execute(&mut *tx)
+        .await
+        .unwrap();
+    let again = beda_api::store::users::memberships(&mut *tx, id)
+        .await
+        .unwrap();
+    assert_eq!(again, accounts);
+
+    tx.rollback().await.unwrap();
+}
+
+#[tokio::test]
+async fn browser_roles_cannot_touch_users_or_call_provisioning() {
+    let Some(mut conn) = connect().await else {
+        return;
+    };
+    for set_role in ["set local role anon", "set local role authenticated"] {
+        for sql in [
+            "select * from app.users",
+            "select * from app.accounts",
+            "select * from app.account_members",
+            "select app.provision_user(gen_random_uuid(), '{}'::jsonb)",
+        ] {
+            let mut tx = conn.begin().await.unwrap();
+            sqlx::query(set_role).execute(&mut *tx).await.unwrap();
+            let err = sqlx::query(sql).execute(&mut *tx).await.unwrap_err();
+            assert_eq!(
+                err.as_database_error().unwrap().code().as_deref(),
+                Some("42501"),
+                "{set_role}: {sql}"
+            );
+            tx.rollback().await.unwrap();
+        }
+    }
+}

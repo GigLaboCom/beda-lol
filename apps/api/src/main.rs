@@ -5,6 +5,7 @@ use std::process::ExitCode;
 use std::time::Duration;
 
 use anyhow::Context as _;
+use beda_api::auth::Verifier;
 use beda_api::{AppState, Config, Store, telemetry};
 use clap::{Parser, Subcommand};
 use tokio::io::{AsyncReadExt as _, AsyncWriteExt as _};
@@ -78,13 +79,19 @@ async fn serve() -> anyhow::Result<()> {
 
     let store = Store::connect_lazy(&config.database_url, config.db_max_connections)
         .context("invalid BEDA_DATABASE_URL")?;
-    let state = AppState::new(store);
-    let limits = state.limits.clone();
+    let mut state = AppState::new(store);
+    if let (Some(jwks_url), Some(issuer)) = (config.jwks_url(), config.issuer()) {
+        state = state
+            .with_auth(Verifier::remote(jwks_url, issuer).context("building the JWKS client")?);
+    } else {
+        tracing::warn!("BEDA_SUPABASE_URL is not set: routes that need a user answer 503");
+    }
+    let housekeeping = state.clone();
     tokio::spawn(async move {
         let mut tick = tokio::time::interval(Duration::from_secs(60));
         loop {
             tick.tick().await;
-            limits.housekeeping();
+            housekeeping.housekeeping();
         }
     });
     let app = beda_api::app(&config, state);
