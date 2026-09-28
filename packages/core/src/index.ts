@@ -1,5 +1,6 @@
 export * from './breaks';
 export * from './charset.gen';
+export * from './gags';
 export * from './letters';
 export * from './locale';
 export * from './namer';

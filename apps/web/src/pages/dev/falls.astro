@@ -1,0 +1,148 @@
+---
+/**
+ * Dev bench for the pun catalogue (S08d): every gag on the v2 transom.
+ * Not linked anywhere, noindex, disallowed in robots.txt and excluded from
+ * the sitemap (the /dev rule).
+ */
+import FallsBench from '../../components/falls/FallsBench';
+import { getLangFromUrl, useTranslations } from '../../i18n';
+import Base from '../../layouts/Base.astro';
+import '@beda/transom/transom.css';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<Base title={t('falls.title')} robots="noindex, nofollow">
+  <div class="wrap falls-page">
+    <h1 class="display">{t('falls.title')}</h1>
+    <p class="lead">{t('falls.lead')}</p>
+    <FallsBench client:load lang={lang} />
+  </div>
+</Base>
+
+<style is:global>
+  .falls-page {
+    padding-block: 28px 64px;
+  }
+  .falls-page .lead {
+    color: var(--text-2);
+    max-width: 44em;
+  }
+  .falls .stage {
+    margin: 28px 0 12px;
+    padding: clamp(18px, 3vw, 32px);
+    background: var(--hull);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .falls .stage-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px 24px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .falls .stage-title {
+    font-size: clamp(24px, 3vw, 34px);
+    line-height: 1.1;
+    margin: 0;
+  }
+  .falls .arrow,
+  .falls .card .t span {
+    color: var(--muted);
+    padding: 0 0.25em;
+  }
+  .falls .stage-meta {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .falls .stage-joke {
+    color: var(--text-2);
+    margin: 6px 0 0;
+    max-width: 40em;
+  }
+  .falls .controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .falls .controls label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--muted);
+    min-height: 44px;
+  }
+  .falls .stage-body {
+    min-height: 200px;
+    padding-top: 8px;
+  }
+  .falls .status {
+    font-size: 13px;
+    color: var(--brass);
+    min-height: 1.5em;
+    margin-top: 10px;
+    text-align: center;
+  }
+  .falls .filter {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 26px;
+  }
+  .falls .filter [aria-pressed="true"],
+  .falls .card[aria-pressed="true"] {
+    border-color: var(--brass);
+    color: var(--brass);
+  }
+  .falls .sect {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 12px 0 0;
+  }
+  .falls .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 14px;
+    margin: 18px 0 40px;
+  }
+  .falls .card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    background: var(--hull);
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
+    text-align: left;
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+    min-width: 0;
+  }
+  .falls .card[hidden] {
+    display: none;
+  }
+  .falls .card .t {
+    font-weight: 700;
+    font-size: 17px;
+    line-height: 1.2;
+  }
+  .falls .card .m {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .falls .card .mini .transom-wrap {
+    --ts: 28px;
+  }
+  .falls .btn-sm {
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: 14px;
+  }
+</style>

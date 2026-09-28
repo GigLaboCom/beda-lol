@@ -24,6 +24,7 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [x] S08b Glyph data and break table (stage 1 follow-up)
 - [ ] S08c Transom v2: SVG renderer and controller with falls and breaks (stage 1 follow-up; parity sheet awaits the human)
 - [ ] S13a Share images on the shared transom renderer (stage 1 follow-up; image sheet awaits the human)
+- [ ] S08d Pun catalogue in core and the /dev/falls bench (stage 1 follow-up; contact sheet and English copy await the human)
 
 ## Stages 2–6
 See `ROADMAP.md`. Expand each into a step file before starting it.
@@ -274,4 +275,28 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
   - Biome, `astro check`, and typecheck, test and build of every TS project pass (transom 100 tests, tokens 11, brand 63).
 - Deviations: the palette is the `base` scheme, not `dark`. Share images have always used the `:root` values (`--tar` #1c140e); the `dark` scheme darkens `--tar` and `--hull`, which would change every card.
 - [HUMAN] open: review the image sheet `docs/scratch/1111/spike/shots/og.html` (222222, 002222, 112020, default, one article; before = pre-S08c). Then tick S13a.
+
+### S08d — Pun catalogue in `@beda/core` and the `/dev/falls` bench — 2026-09-28
+- Done:
+  - `@beda/core/src/gags.ts`:
+    - `GAGS`: 30 gags with slug ids, the pun's `lang`, text, result and `ops`;
+    - `gagById`, `gagsByLang`, `getGagCopy(id, locale)`;
+    - copy per UI locale: `GAG_COPY_RU` from the prototype and `GAG_COPY_EN`, drafted by Claude for review (D7). The Russian puns are explained in English, not re-punned.
+  - `breaks.test.ts` no longer carries its own copy of the gags.
+  - Tests: every gag passes `validateOps` and `applyOps(text, ops) === result`; every character is in `BOARD_CHARSET`; ids are unique slugs; copy exists in both locales.
+  - `/dev/falls` (`pages/dev/falls.astro` + `components/falls/FallsBench.tsx`), a port of the prototype page on the v2 transom:
+    - the stage fits the width with `fitSize` and has play/reset, slow motion (`k = 2.5`), a debug checkbox and an `aria-live` status;
+    - a language filter and a gallery of final-state cards (`aria-pressed`);
+    - copy through the dictionary (`falls.*`);
+    - noindex, disallowed in robots.txt, and out of the sitemap by the existing `/dev` rule.
+- Verified:
+  - core 115 tests, and every TS project typechecks, tests and builds;
+  - all 30 gags in Chromium (375 and 1280 px) and WebKit (1280 px), with reduced motion emulated so `play` jumps to the end: the status and the aria-label read the stated result, no page errors, no horizontal scroll, one pressed card, the English filter shows 15;
+  - production build, Chromium and WebKit: no CSP violations on `/dev/falls`;
+  - by render, every remainder reads as the intended letter (Т→Г, Ё→Е, Д→Л, О→С, G→C, R→P, B→P, O→C, E→L). No mask changes in this step. The E>L remainder keeps a small stub of the middle arm at the stem; it was already in the prototype mask.
+- Deviations: 30 gags, not 31. BEST LAUNCH → PEST LUNCH is out, because the catalogue rejects it (S00a, D2 recommendation).
+- [HUMAN] open:
+  - review the English gag copy (`GAG_COPY_EN`, D7);
+  - review the contact sheet (`docs/scratch/1111/spike/shots/falls-sheet.html`);
+  - confirm that PEST LUNCH stays out (D2).
 
