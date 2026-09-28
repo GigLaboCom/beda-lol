@@ -20,6 +20,8 @@ target/
 
 # scratch
 tmp/
+docs/scratch/*
+!docs/scratch/README.md
 
 # OS / editors
 .DS_Store
