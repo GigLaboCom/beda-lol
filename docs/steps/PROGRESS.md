@@ -21,6 +21,7 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [x] S13 Share images
 - [ ] S14 SEO baseline and stage 1 launch
 - [x] S00a Import the falls / puns / gamification bundle (stage 1 follow-up)
+- [x] S08b Glyph data and break table (stage 1 follow-up)
 
 ## Stages 2–6
 See `ROADMAP.md`. Expand each into a step file before starting it.
@@ -177,3 +178,31 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
 - New deps: none.
 - Follow-ups: S08a spike (SVG glyph pipeline), then S08b–S08d, S13a, S11a, S14a; R1 (gamification into ROADMAP) any time.
 - [HUMAN] open: D2 (English board word, native-speaker check), D6 (namer charset), D7 (English gag copy) — see the plan pack.
+
+### S08b — Glyph data and break table — 2026-09-28
+- Done:
+  - `@beda/core`: `breaks.ts` (19 catalogue breaks, no M>N; `BreakKey`, `breakFrom`/`breakTo`/`breaksFor`/`isBreakKey`, `Op`, `applyOps`, `validateOps`) and the generated `charset.gen.ts` (`BOARD_CHARSET`, 295 characters; `FALLING`, 210 letters and digits).
+  - `@beda/transom`:
+    - `glyphs.config.ts` holds every generator input: font files, family and weight, charset rules, core set, px/em, alpha thresholds, rivet letters, hinge overrides (none, D9), fixed-glyph nail sizes;
+    - `pieces.ts`, `geometry.ts` (board sizes, drop formulas, `fallX`/`fallRotation` moved here from `mounts.ts`, piece drift and tumble), `timeline.ts`, `glyph-analysis.ts`, `glyphs.ts` (`glyphFor`, `needsExt`, `loadExt`);
+    - generator `scripts/gen-glyphs.ts` + `scripts/glyphs-build.ts`;
+    - committed output `src/glyphs.core.gen.ts` and `src/glyphs.ext.gen.ts`.
+  - Wiring: `pnpm --filter @beda/transom gen` runs both generators; Nx target `gen` with inputs and outputs; `task transom:glyphs`; `task gen` runs it and `task gen:check` diffs it. In CI the freshness test in `glyphs.test.ts` fails on stale output (the web job runs `nx test`), so `.github/` is unchanged. `*.gen.ts` is excluded from Biome.
+  - `/dev/animacii` is committed and reads the generated tables, geometry and timeline, with no scratch files. It shows all 210 falling characters, 19 breaks and a new section with the 85 fixed characters and their nails. The "как сейчас (MOUNTS)" variant stays until S08c.
+- Sizes: `glyphs.core.gen.ts` 80.5 KB raw / 24.8 KB gzip (106 characters, all 19 breaks); `glyphs.ext.gen.ts` 156.5 KB / 39.1 KB (189 characters); `charset.gen.ts` 1.3 KB / 0.8 KB. The S08a estimate was about 20 + 33 KB for paths only; nails, centroids and breaks add the rest. Client bundles are unchanged, because nothing loads the tables yet.
+- Verified:
+  - tests: core 112, transom 82;
+  - hang references ±1°: the largest gap is B>P at +0.7°;
+  - exact vs raster centroid within 0.0001 em;
+  - `astro check`, Biome, typecheck and the build of every TS project pass;
+  - `/dev/animacii` in Chromium, Firefox and WebKit: no errors, paint layers in order, 232 hanging states with the centroid on the plumb line within 0.05 px.
+  - `task` is not installed in this container, so its parts ran directly. Rust is unchanged.
+- Deviations:
+  - **Raster:** the analysis rasterises the outline itself (non-zero winding, 16 sub-scanlines, exact horizontal coverage, pure JS) instead of resvg. The freshness test must be byte-identical on the arm64 dev container and the x64 CI runner, and resvg is a native prebuilt per platform. The result agrees with the S08a resvg references (above), and `@beda/transom` has one dev dependency fewer.
+  - **Break masks fixed** (`pieces.ts`, G>C, E>L, E>F, Т>Г, Й>И, Б>Ь, П>Г, Ы>Ь): the prototype masks cut through serifs and left crumbs of 17–236 raster px on the board, and remainder nails snapped onto them. The human saw the Ы>Ь case: the rivets of the stem stayed when Ы became Ь. The masks now have notches, so each crumb goes with its piece, and a test requires every remainder to be one connected region. Т>Г changed the most: its hinge sat on a crumb of the bar's serif (68.4°), and now sits on the bar at the cut (20.7°). The test reference moved with it.
+  - Nails are stored as integers, and the piece test runs on the stored point, so a rounded nail never lands inside its piece.
+  - Swing duration is 2.6 s (was 2.8 s in `transom.css`): one value from `timeline.ts`, and a test keeps `transom.css` in step until S08c generates it.
+- New deps (dev, `@beda/transom`, already in the lockfile): `fontkitten` 1.0.3 (font parser, chosen in S08a) and `@fontsource/playfair-display` 5.3.0 (the font files, same version as `@beda/tokens`). `@beda/core` is a workspace dependency of `@beda/transom` (`BreakKey`).
+- Follow-ups: S08c (renderer and controller on the tables, generated CSS, `MOUNTS` removed; tune the drop formula against the shelf); S13a; S08d; S11a (namer normaliser on `BOARD_CHARSET`).
+- [HUMAN] open: check the notched breaks on `/dev/animacii` (Ы>Ь, Т>Г, П>Г, E>F and the rest).
+

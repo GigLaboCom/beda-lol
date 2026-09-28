@@ -1,0 +1,891 @@
+---
+/**
+ * Dev bench: every transom animation on its own, with descriptions, and the
+ * hang angle of every glyph (decision D9). Not linked anywhere, noindex,
+ * disallowed in robots.txt and excluded from the sitemap.
+ *
+ * Geometry comes from the generated glyph tables (`glyphFor`, core + ext) and
+ * `@beda/transom`'s geometry and timeline; nothing is measured here. The
+ * "как сейчас (MOUNTS)" variant shows today's hand-tuned angles until S08c
+ * removes MOUNTS.
+ */
+import { BOARD_CHARSET, BREAKS, breakFrom, isBreakKey } from '@beda/core';
+import {
+  BASELINE,
+  fallRotation,
+  fallX,
+  GAP,
+  type Glyph,
+  glyphFor,
+  loadExt,
+  MOUNTS,
+  PAD_BOTTOM,
+  pieceFallRotation,
+  pieceFallX,
+  SHELF_GAP,
+  SLOT_H as SLOT_H_EM,
+  UNITS_PER_EM as U,
+} from '@beda/transom';
+import Base from '../../layouts/Base.astro';
+
+await loadExt();
+
+type Pt = [number, number];
+interface Variant {
+  label: string;
+  hinge: Pt;
+  cen: Pt | null;
+  nails: Pt[];
+  hang: number;
+  fixed?: boolean;
+}
+/** A glyph or a break, in em from the slot's top-left corner (baseline at BASELINE). */
+interface Entry {
+  key: string;
+  ch: string;
+  d: string;
+  adv: number;
+  ink: [number, number, number, number];
+  drop: number;
+  falls: boolean;
+  variants: Variant[];
+  poly?: Pt[];
+  pcen?: Pt;
+  pdrop?: number;
+}
+
+const cell = ([x, y]: readonly [number, number]): Pt => [x / U, y / U + BASELINE];
+function entry(key: string): Entry | undefined {
+  const brk = isBreakKey(key) ? key : undefined;
+  const ch = brk ? breakFrom(brk) : key;
+  const g: Glyph | undefined = glyphFor(ch);
+  if (!g) return undefined;
+  const b = brk ? g.breaks?.[brk] : undefined;
+  if (brk && !b) return undefined;
+  const nails = (b ?? g).nails.map(cell);
+  const centre = b ? b.rest : g.centroid;
+  const calc: Variant = {
+    label: 'расчёт',
+    hinge: nails[0] as Pt,
+    cen: centre ? cell(centre) : null,
+    nails,
+    hang: (b ? b.hang : g.hang) ?? 0,
+  };
+  const variants = [calc];
+  const m = MOUNTS[ch];
+  if (!brk && m) {
+    // Today's board: slot 0.75 em, glyph centred in it.
+    const off = (0.75 - g.adv / U) / 2;
+    const [mx, my] = m.pts[0];
+    variants.push({
+      label: 'как сейчас (MOUNTS)',
+      hinge: [mx - off, my],
+      cen: null,
+      nails,
+      hang: m.hang,
+      fixed: true,
+    });
+  }
+  const [x0, y0] = cell([g.ink[0], g.ink[1]]);
+  const [x1, y1] = cell([g.ink[2], g.ink[3]]);
+  return {
+    key,
+    ch,
+    d: g.d,
+    adv: g.adv / U,
+    ink: [x0, y0, x1, y1],
+    drop: g.drop ?? 0,
+    falls: g.falls,
+    variants,
+    ...(b ? { poly: b.poly.map(cell), pcen: cell(b.centroid), pdrop: b.drop } : {}),
+  };
+}
+
+const data: Entry[] = [...Array.from(BOARD_CHARSET), ...BREAKS].flatMap((k) => entry(k) ?? []);
+const byKey = new Map(data.map((e) => [e.key, e]));
+
+// Geometry of the cell, in user units (1000 per em).
+const SLOT_H = SLOT_H_EM * U;
+const BASE = BASELINE * U;
+const GAP_U = GAP * U;
+const SHELF_Y = SLOT_H + (PAD_BOTTOM + SHELF_GAP) * U;
+const r = (n: number) => Math.round(n);
+const em = (n: number) => r(n * U);
+
+let uid = 0;
+type Op = 'fall' | 'brk' | null;
+
+/** One slot: ghost, letter (remainder) on its hinge, piece, nails, debug marks. */
+/** Paint order across the whole board (SVG has no z-index), as on the site: wood imprints, holes, letters, pieces, nails. */
+const LAYERS = ['ghost', 'hole', 'main', 'piece', 'nail', 'dbg'] as const;
+type Layer = (typeof LAYERS)[number];
+interface Built {
+  defs: string[];
+  layers: Record<Layer, string>;
+}
+function slot(e: Entry, v: Variant, i: number, x: number, op: Op, id: string): Built {
+  const cp = e.ch.codePointAt(0);
+  const [hx, hy] = v.hinge.map(em) as [number, number];
+  const use = (cls: string, dy = 0) =>
+    `<use href="#${id}-g${cp}" class="${cls}" transform="translate(0 ${BASE + dy})"/>`;
+  const face = use('t-shadow', 25) + use('t-brass');
+  const drop = e.drop;
+  const vars = [
+    `hang:${v.hang.toFixed(1)}deg`,
+    `fx:${em(fallX(i))}px`,
+    `fr:${fallRotation(i)}deg`,
+    `drop:${drop}px`,
+  ];
+  const defs = [`<path id="${id}-g${cp}" d="${e.d}"/>`];
+  let ghosts = use('t-ghost ghost');
+  let letter: string;
+  let piece = '';
+  const cen = v.cen
+    ? `<circle class="dbg d-cen" cx="${em(v.cen[0])}" cy="${em(v.cen[1])}" r="26"/>`
+    : '';
+  if (op === 'brk' && e.poly && e.pcen) {
+    const pd = `M${e.poly.map(([px, py]) => `${em(px)} ${em(py)}`).join('L')}Z`;
+    const W = em(e.adv);
+    defs.push(
+      `<clipPath id="${id}-k${i}"><path clip-rule="evenodd" d="M-600 -600H${W + 600}V1700H-600Z ${pd}"/></clipPath><clipPath id="${id}-p${i}"><path d="${pd}"/></clipPath>`,
+    );
+    const [pcx, pcy] = e.pcen.map(em) as [number, number];
+    vars.push(`pfx:${em(pieceFallX(i))}px`, `pfr:${pieceFallRotation(i)}deg`, `pdrop:${e.pdrop}px`);
+    ghosts += `<g clip-path="url(#${id}-p${i})" class="gpiece">${use('t-ghost')}</g>`;
+    letter = `<g transform="translate(${hx} ${hy})"><g class="main"><g transform="translate(${-hx} ${-hy})"><g clip-path="url(#${id}-k${i})">${face}</g>${cen}</g></g></g>`;
+    piece = `<g transform="translate(${pcx} ${pcy})"><g class="piece"><g transform="translate(${-pcx} ${-pcy})"><g clip-path="url(#${id}-p${i})">${face}</g><path class="dbg d-poly" d="${pd}"/></g></g></g>`;
+  } else {
+    letter = `<g transform="translate(${hx} ${hy})"><g class="main"><g transform="translate(${-hx} ${-hy})">${face}${cen}</g></g></g>`;
+  }
+  const at = v.nails.map(([nx, ny], k) => (k === 0 ? [hx, hy] : [em(nx), em(ny)]));
+  const holes = at
+    .map(([cx, cy]) => `<circle class="t-hole" cx="${cx}" cy="${cy}" r="26"/>`)
+    .join('');
+  const nails = at
+    .map(([cx, cy], k) => `<circle class="nail n${k}" cx="${cx}" cy="${cy}" r="36"/>`)
+    .join('');
+  const plumb = `<line class="dbg d-plumb" x1="${hx}" y1="${hy}" x2="${hx}" y2="${hy + 1500}"/><circle class="dbg d-hinge" cx="${hx}" cy="${hy}" r="30"/>`;
+  // Each layer gets its own wrapper for this slot; state classes go on all of them.
+  const wrap = (layer: Layer, inner: string) =>
+    inner
+      ? `<g class="slot i${i}" data-layer="${layer}" data-vars="${vars.join(';')}" transform="translate(${r(x)} 0)">${inner}</g>`
+      : '';
+  return {
+    defs,
+    layers: {
+      ghost: wrap('ghost', ghosts),
+      hole: wrap('hole', holes),
+      main: wrap('main', letter),
+      piece: wrap('piece', piece),
+      nail: wrap('nail', nails),
+      dbg: wrap('dbg', plumb),
+    },
+  };
+}
+
+/** A board of one or more slots; `ops` per slot index. */
+function board(
+  items: { e: Entry; v: Variant; op: Op }[],
+  kind: string,
+  opts: { shelf?: boolean } = {},
+): string {
+  const id = `ab${uid++}`;
+  let x = 0;
+  const defs = new Set<string>();
+  const layers = Object.fromEntries(LAYERS.map((l) => [l, [] as string[]])) as Record<
+    Layer,
+    string[]
+  >;
+  items.forEach(({ e, v, op }, i) => {
+    const s = slot(e, v, i, x, op, id);
+    for (const d of s.defs) defs.add(d);
+    for (const l of LAYERS) layers[l].push(s.layers[l]);
+    x += em(e.adv) + GAP_U;
+  });
+  const w = x - GAP_U;
+  const top = -250;
+  const bottom = opts.shelf ? SHELF_Y + 300 : 2100;
+  const side = 750;
+  const shelf = opts.shelf
+    ? `<rect class="t-shelf" x="${-side + 150}" y="${SHELF_Y}" width="${w + 2 * side - 300}" height="90"/>`
+    : '';
+  const ops = items
+    .map(({ op }, i) => (op ? `${i}:${op}` : ''))
+    .filter(Boolean)
+    .join(',');
+  return `<svg class="ab-svg" viewBox="${-side} ${top} ${w + 2 * side} ${bottom - top}" data-kind="${kind}" data-ops="${ops}" role="img" aria-label="${items.map(({ e }) => e.ch).join('')}"><defs>${[...defs].join('')}</defs><rect class="t-plank" x="-120" y="0" width="${w + 240}" height="${SLOT_H}" rx="40"/>${shelf}${LAYERS.map((l) => layers[l].join('')).join('')}</svg>`;
+}
+
+const whole = (ch: string) => byKey.get(ch);
+const calc = (e: Entry) => e.variants[0] as Variant;
+const one = (key: string, op: Op, kind: string, shelf = false) => {
+  const e = byKey.get(key);
+  return e ? board([{ e, v: calc(e), op }], kind, { shelf }) : '';
+};
+const word = (text: string, ops: Record<number, string>) => {
+  const items = Array.from(text).flatMap((ch, i) => {
+    const o = ops[i];
+    const e = o && o !== 'fall' ? byKey.get(o) : whole(ch);
+    return e ? [{ e, v: calc(e), op: (o ? (o === 'fall' ? 'fall' : 'brk') : null) as Op }] : [];
+  });
+  return board(items, 'word', { shelf: true });
+};
+
+const demos = data.length
+  ? [
+      {
+        title: 'Гвозди вылетают',
+        svg: one('П', 'fall', 'nails'),
+        text: 'Первыми уходят гвозди 3, 2 и 1, по одному через 120 мс. Каждый падает вниз на 1,25 em и гаснет за 550 мс, кривая ускоряющаяся. Гвоздь 0, шарнир, держит дольше всех.',
+        params: 'гвозди 3, 2, 1: t = 0, 120, 240 мс · 550 мс · cubic-bezier(.55, 0, 1, .45)',
+      },
+      {
+        title: 'Вис и качание',
+        svg: one('П', 'fall', 'hang'),
+        text: 'На последнем гвозде буква поворачивается вокруг шарнира, пока центр тяжести не окажется прямо под ним: θ = atan2(dx, dy), где (dx, dy) — вектор от шарнира к центру тяжести. Дорога к θ — затухающее качание: перелёт ×1,42, недолёт ×0,70, потом ×1,20, ×0,88, ×1,05 и покой.',
+        params: 'старт t = 420 мс · 2,6 с · ease-out · ключевые кадры 16/34/52/70/86 %',
+      },
+      {
+        title: 'Падение на полку',
+        svg: one('П', 'fall', 'fall', true),
+        text: 'Через 2,6 с виса вылетает шарнир, и буква падает на полку с небольшим сносом и наклоном. Снос и наклон зависят только от номера слота, поэтому одна и та же доска выглядит одинаково на сайте, в картинке для шеринга и на сервере.',
+        params:
+          't = 3020 мс · 750 мс · cubic-bezier(.55, 0, 1, .45) · снос ±(0,04…0,17) em, наклон ±(6…17)°',
+      },
+      {
+        title: 'Круглая буква опрокидывается',
+        svg: one('О', 'fall', 'hang'),
+        text: 'У круглых букв (O Q C G S О С Э Ю Ф) гвозди стоят клёпками по овалу, а шарнир — нижняя левая клёпка. Центр тяжести оказывается выше шарнира, поэтому буква переворачивается больше чем на 120°.',
+        params: 'та же формула θ; для О θ ≈ 122°',
+      },
+      {
+        title: 'Надлом: дрожь и падение куска',
+        svg: one('Д>Л', 'brk', 'break', true),
+        text: 'Кусок буквы (многоугольник из карты надломов) дрожит на месте и падает на полку, кувыркаясь. На доске остаётся другая буква: Д → Л. На месте куска проступает след на дереве.',
+        params: 'дрожь t = 0, 450 мс · падение t = 470 мс, 800 мс · вращение ±(25…64)°',
+      },
+      {
+        title: 'Остаток повисает',
+        svg: one('Т>Г', 'brk', 'break-hang'),
+        text: 'Сценарий для проверки: после надлома у остатка вылетают гвозди, и он повисает. Угол остатка считается по его собственному центру тяжести, без куска. Гвозди остатка стоят только на нём самом: для Т>Г шарнир — на перекладине сразу за сколом.',
+        params: 'надлом, затем через 1,2 с гвозди остатка и вис',
+      },
+      {
+        title: 'Целое слово: ДЕНЬГИ → ЛЕНЬ',
+        svg: word('ДЕНЬГИ', { 0: 'Д>Л', 4: 'fall', 5: 'fall' }),
+        text: 'Операции над словом идут по порядку с шагом 520 мс, каждая по своему сценарию. Здесь надлом Д, потом падение Г и И.',
+        params: 'шаг операций 520 мс · весь ролик ≈ 4,8 с',
+      },
+      {
+        title: 'Целое слово: ПОБЕДА → БЕДА',
+        svg: word('ПОБЕДА', { 0: 'fall', 1: 'fall' }),
+        text: 'Главная шутка рубрики. П и О срываются целиком, П висит на верхнем левом гвозде, О — на нижней левой клёпке.',
+        params: 'шаг операций 520 мс · весь ролик ≈ 4,3 с',
+      },
+    ]
+  : [];
+
+const group = (e: Entry) =>
+  /\p{Script=Cyrillic}/u.test(e.ch) ? 'ru' : /\p{Script=Latin}/u.test(e.ch) ? 'en' : 'num';
+const letters = data.filter((e) => !isBreakKey(e.key) && e.falls);
+const fixed = data.filter((e) => !e.falls);
+const breaks = data.filter((e) => isBreakKey(e.key));
+const fmt = (n: number) => `${n.toFixed(1)}°`;
+const disputed = (e: Entry) => e.variants.length > 1;
+---
+
+<Base title="Анимации транца — стенд" robots="noindex, nofollow">
+  <div class="wrap ab" id="ab">
+    <h1 class="display">Анимации транца</h1>
+    <p class="lead">
+      Каждая анимация отдельно, с описанием, и угол виса каждой буквы. Буквы нарисованы
+      SVG-контурами из файла шрифта (решение A1). Гвозди, шарнир и угол посчитаны при сборке,
+      а не в браузере.
+    </p>
+
+    {
+      data.length === 0 ? (
+        <p class="note">
+          Нет данных глифов. Сгенерируй их: <code>task transom:glyphs</code>, затем перезагрузи
+          страницу.
+        </p>
+      ) : (
+        <>
+          <div class="controls" role="group" aria-label="Управление">
+            <button class="btn btn-brass" type="button" id="ab-play">Проиграть всё видимое</button>
+            <button class="btn" type="button" id="ab-reset">Прибить обратно</button>
+            <label><input type="checkbox" id="ab-slow" /> Замедлить ×2,5</label>
+            <label><input type="checkbox" id="ab-debug" /> Шарнир, отвес, центр тяжести</label>
+            <label><input type="checkbox" id="ab-still" /> Сразу конечное состояние</label>
+          </div>
+
+          <section>
+            <h2 class="display">Как читать отладку</h2>
+            <ul class="legend">
+              <li><span class="sw sw-hinge"></span> шарнир — гвоздь 0, вокруг него буква поворачивается;</li>
+              <li><span class="sw sw-plumb"></span> отвес — вертикаль вниз от шарнира;</li>
+              <li><span class="sw sw-cen"></span> центр тяжести (для целой буквы — точный, по контуру; для остатка — по пикселям без куска). Он поворачивается вместе с буквой.</li>
+              <li><span class="sw sw-poly"></span> граница куска при надломе.</li>
+            </ul>
+            <p>
+              Проверка угла: когда буква повисла, зелёная точка должна лечь на отвес. Если точка
+              левее или правее, угол посчитан неверно. Вариант «как сейчас (MOUNTS)» — это ручные
+              углы из <code>packages/transom/src/mounts.ts</code>, для них центр тяжести не
+              показывается. Все числа — из сгенерированных таблиц
+              (<code>packages/transom/src/glyphs.*.gen.ts</code>, <code>task transom:glyphs</code>).
+            </p>
+          </section>
+
+          <section>
+            <h2 class="display">Анимации по отдельности</h2>
+            <div class="demos">
+              {demos.map((d) => (
+                <article class="demo">
+                  <div class="stage" set:html={d.svg} />
+                  <div>
+                    <h3>{d.title}</h3>
+                    <p>{d.text}</p>
+                    <p class="mono params">{d.params}</p>
+                    <button class="btn btn-sm" type="button" data-play>Проиграть</button>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <h3>Таймлайн (docs/09-transom-falls-component.md §4)</h3>
+            <table class="mono">
+              <thead><tr><th>Сценарий</th><th>t, мс</th><th>Событие</th></tr></thead>
+              <tbody>
+                <tr><td>падение</td><td>0, 120, 240</td><td>гвозди 3, 2, 1 вылетают (1,25 em вниз и гаснут, 550 мс)</td></tr>
+                <tr><td>падение</td><td>420</td><td>вис: поворот к θ с затухающим качанием, 2,6 с</td></tr>
+                <tr><td>падение</td><td>3020</td><td>вылетает шарнир, буква падает на полку, 750 мс</td></tr>
+                <tr><td>надлом</td><td>0</td><td>дрожь куска, 450 мс</td></tr>
+                <tr><td>надлом</td><td>470</td><td>кусок падает на полку, кувыркаясь, 800 мс</td></tr>
+                <tr><td>слово</td><td>+520</td><td>следующая операция</td></tr>
+              </tbody>
+            </table>
+            <p>Все длительности умножаются на <code>--k</code> (1 обычно, 2,5 медленно). При <code>prefers-reduced-motion</code> сразу конечное состояние.</p>
+          </section>
+
+          <section>
+            <h2 class="display">Углы виса: все буквы и цифры (D9)</h2>
+            <p>
+              Все {letters.length} символов, которые могут падать. «Расчёт» — гвозди притянуты к
+              металлу на полной сетке, центр тяжести точно по контуру. У шести букв ПОБЕДЫ рядом
+              нынешний ручной угол. Шарнир можно переопределить для отдельной буквы в
+              <code>packages/transom/glyphs.config.ts</code> (<code>hinges</code>).
+            </p>
+            <div class="filter" role="group" aria-label="Фильтр">
+              <button class="btn btn-sm" type="button" data-filter="all" aria-pressed="true">Все</button>
+              <button class="btn btn-sm" type="button" data-filter="disputed" aria-pressed="false">С ручным углом</button>
+              <button class="btn btn-sm" type="button" data-filter="ru" aria-pressed="false">Кириллица</button>
+              <button class="btn btn-sm" type="button" data-filter="en" aria-pressed="false">Латиница</button>
+              <button class="btn btn-sm" type="button" data-filter="num" aria-pressed="false">Цифры</button>
+            </div>
+            <div class="grid">
+              {letters.map((e) => (
+                <article class="card" data-group={group(e)} data-disputed={disputed(e) ? '1' : '0'}>
+                  <h3 class="display">{e.ch}</h3>
+                  <div class="variants">
+                    {e.variants.map((v) => (
+                      <figure>
+                        <div class="stage" set:html={board([{ e, v, op: 'fall' }], 'hang')} />
+                        <figcaption>
+                          <span>{v.label}</span>
+                          <span class="mono">θ = {fmt(v.hang)}</span>
+                        </figcaption>
+                      </figure>
+                    ))}
+                  </div>
+                  <p class="mono small">U+{(e.ch.codePointAt(0) ?? 0).toString(16).toUpperCase().padStart(4, '0')}</p>
+                  <button class="btn btn-sm" type="button" data-play>Проиграть</button>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h2 class="display">Знаки: прибиты насовсем</h2>
+            <p>
+              Знаки препинания и символы ({fixed.length}) рисуются, но не падают и не ломаются. Гвоздей
+              по размеру: мелкий знак — один гвоздь в центре, узкий — два по концам, крупный — четыре.
+            </p>
+            <div class="grid grid-fixed">
+              {fixed.map((e) => (
+                <article class="card" data-group="fixed">
+                  <div class="stage" set:html={board([{ e, v: calc(e), op: null }], 'static')} />
+                  <p class="mono small">{e.ch} · {e.variants[0]?.nails.length} гв.</p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h2 class="display">Надломы: кусок и остаток</h2>
+            <p>Кусок откалывается и падает. Потом у остатка вылетают гвозди, и он повисает: угол остатка считается без куска.</p>
+            <div class="grid">
+              {breaks.map((e) => (
+                <article class="card" data-group="brk" data-disputed={disputed(e) ? '1' : '0'}>
+                  <h3 class="display">{e.key.replace('>', ' → ')}</h3>
+                  <div class="stage" set:html={board([{ e, v: calc(e), op: 'brk' }], 'break-hang')} />
+                  <p class="mono small">остаток: θ = {fmt(calc(e).hang)}</p>
+                  <button class="btn btn-sm" type="button" data-play>Проиграть</button>
+                </article>
+              ))}
+            </div>
+          </section>
+        </>
+      )
+    }
+  </div>
+</Base>
+
+<style is:global>
+  .ab {
+    --k: 1;
+    padding-block: 32px 64px;
+  }
+  .ab.slow {
+    --k: 2.5;
+  }
+  .ab section {
+    margin-top: 40px;
+  }
+  .ab .lead {
+    max-width: 44em;
+    color: var(--text-2);
+  }
+  .ab .note {
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  .ab .controls,
+  .ab .filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    align-items: center;
+    margin-top: 20px;
+  }
+  .ab .controls label {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    min-height: 44px;
+    color: var(--muted);
+  }
+  .ab .btn-sm {
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: 14px;
+  }
+  .ab .filter [aria-pressed="true"] {
+    border-color: var(--brass);
+    color: var(--brass);
+  }
+  .ab .legend {
+    list-style: none;
+    padding: 0;
+  }
+  .ab .legend li {
+    margin: 6px 0;
+  }
+  .ab .sw {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    vertical-align: middle;
+  }
+  .ab .sw-hinge {
+    background: #66ccff;
+  }
+  .ab .sw-plumb {
+    width: 2px;
+    height: 14px;
+    border-radius: 0;
+    background: #66ccff;
+  }
+  .ab .sw-cen {
+    background: #7cfc9a;
+  }
+  .ab .sw-poly {
+    border-radius: 0;
+    border: 2px solid #ff5a36;
+  }
+  .ab .demos {
+    display: grid;
+    gap: 16px;
+  }
+  .ab .demo {
+    display: grid;
+    gap: 16px;
+    padding: 16px;
+    background: var(--hull);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  @media (min-width: 760px) {
+    .ab .demo {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+      align-items: center;
+    }
+  }
+  .ab .demo h3 {
+    margin: 0 0 8px;
+  }
+  .ab .params {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .ab .stage {
+    display: flex;
+    justify-content: center;
+  }
+  .ab .ab-svg {
+    width: 100%;
+    max-width: 420px;
+    height: auto;
+    overflow: visible;
+  }
+  .ab .grid .ab-svg {
+    max-width: 160px;
+  }
+  .ab table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .ab th,
+  .ab td {
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  .ab .grid.grid-fixed {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  }
+  .ab .grid-fixed .ab-svg {
+    max-width: 80px;
+  }
+  .ab .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+    gap: 14px;
+    margin-top: 16px;
+  }
+  .ab .card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px;
+    background: var(--hull);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  .ab .card[hidden] {
+    display: none;
+  }
+  .ab .card h3 {
+    margin: 0;
+    font-size: 28px;
+  }
+  .ab .variants {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 8px;
+  }
+  .ab figure {
+    margin: 0;
+  }
+  .ab figcaption {
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+  }
+  .ab .small {
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  /* Board: CSS owns the state (S08a §4). User units: 1000 per em, so px = units. */
+  .ab .t-plank {
+    fill: var(--plank);
+  }
+  .ab .t-shelf {
+    fill: var(--shelf);
+  }
+  .ab .t-ghost {
+    fill: var(--plank-hi);
+  }
+  .ab .t-brass {
+    fill: var(--brass);
+  }
+  .ab .t-shadow {
+    fill: var(--glyph-shadow);
+  }
+  .ab .t-hole {
+    fill: var(--hole);
+  }
+  .ab .nail {
+    fill: var(--brass-hi);
+  }
+  .ab .main,
+  .ab .piece,
+  .ab .nail {
+    transform-box: view-box;
+    transform-origin: 0 0;
+    transform: none;
+    opacity: 1;
+  }
+  .ab .main {
+    transition: transform calc(0.8s * var(--k)) cubic-bezier(0.25, 0.8, 0.35, 1);
+  }
+  .ab .piece {
+    transition: transform calc(var(--t-pdrop) * var(--k)) cubic-bezier(0.55, 0, 1, 0.45);
+  }
+  .ab .gpiece {
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .ab .pmoved .gpiece {
+    opacity: 1;
+  }
+  .ab .hang .main {
+    transform: rotate(var(--hang));
+    animation: ab-swing calc(var(--t-swing) * var(--k)) ease-out;
+  }
+  .ab .fall .main {
+    transform: translate(var(--fx), var(--drop)) rotate(var(--fr));
+    transition: transform calc(var(--t-fall) * var(--k)) cubic-bezier(0.55, 0, 1, 0.45);
+  }
+  .ab .crack .piece {
+    animation: ab-crack calc(var(--t-crack) * var(--k)) linear;
+  }
+  .ab .pdrop .piece {
+    transform: translate(var(--pfx), var(--pdrop)) rotate(var(--pfr));
+  }
+  .ab .nail {
+    transition:
+      transform calc(var(--t-pop) * var(--k)) cubic-bezier(0.55, 0, 1, 0.45),
+      opacity calc(var(--t-pop) * var(--k));
+  }
+  .ab .nail.off {
+    transform: translate(-80px, 1250px);
+    opacity: 0;
+  }
+  .ab.still .main,
+  .ab.still .piece,
+  .ab.still .nail {
+    transition: none;
+    animation: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ab .main,
+    .ab .piece,
+    .ab .nail {
+      transition: none;
+      animation: none;
+    }
+  }
+  .ab .dbg {
+    display: none;
+  }
+  .ab.debug .dbg {
+    display: inline;
+  }
+  .ab .d-hinge {
+    fill: #66ccff;
+  }
+  .ab .d-plumb {
+    stroke: #66ccff;
+    stroke-width: 14;
+    stroke-dasharray: 40 30;
+  }
+  .ab .d-cen {
+    fill: #7cfc9a;
+  }
+  .ab .d-poly {
+    fill: none;
+    stroke: #ff5a36;
+    stroke-width: 14;
+  }
+  @keyframes ab-swing {
+    0% {
+      transform: rotate(0);
+    }
+    16% {
+      transform: rotate(calc(var(--hang) * 1.42));
+    }
+    34% {
+      transform: rotate(calc(var(--hang) * 0.7));
+    }
+    52% {
+      transform: rotate(calc(var(--hang) * 1.2));
+    }
+    70% {
+      transform: rotate(calc(var(--hang) * 0.88));
+    }
+    86% {
+      transform: rotate(calc(var(--hang) * 1.05));
+    }
+    100% {
+      transform: rotate(var(--hang));
+    }
+  }
+  @keyframes ab-crack {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    20% {
+      transform: translate(12px, -6px) rotate(1deg);
+    }
+    40% {
+      transform: translate(-10px, 8px) rotate(-1.2deg);
+    }
+    60% {
+      transform: translate(14px, 4px) rotate(1.4deg);
+    }
+    80% {
+      transform: translate(-6px, -10px) rotate(-0.8deg);
+    }
+  }
+</style>
+
+<script>
+  import { TIMELINE as T } from '@beda/transom/timeline';
+
+  // The doc-09 timeline (§4) from @beda/transom, driven by classes. Per-slot
+  // values arrive as data-vars and are set through CSSOM: no style attributes (CSP).
+  const root = document.getElementById('ab');
+  const durations = { swing: T.swing, fall: T.fall, crack: T.crack, pdrop: T.pieceDrop, pop: T.nailPop };
+  for (const [name, ms] of Object.entries(durations)) root?.style.setProperty(`--t-${name}`, `${ms}ms`);
+  const timers = new Map<SVGSVGElement, number[]>();
+  const k = () => (root?.classList.contains('slow') ? 2.5 : 1);
+
+  for (const slot of document.querySelectorAll<SVGGElement>('.ab .slot[data-vars]')) {
+    for (const pair of (slot.dataset.vars ?? '').split(';')) {
+      const [name, value] = pair.split(':');
+      if (name && value) slot.style.setProperty(`--${name}`, value);
+    }
+  }
+
+  function reset(svg: SVGSVGElement) {
+    for (const t of timers.get(svg) ?? []) clearTimeout(t);
+    timers.set(svg, []);
+    for (const s of svg.querySelectorAll('.slot')) {
+      s.classList.remove('hang', 'fall', 'crack', 'pmoved', 'pdrop', 'moved');
+    }
+
+    for (const n of svg.querySelectorAll('.nail')) n.classList.remove('off');
+  }
+
+  function play(svg: SVGSVGElement) {
+    reset(svg);
+    const list = timers.get(svg) ?? [];
+    const still = root?.classList.contains('still') ?? false;
+    const at = (fn: () => void, ms: number) => {
+      if (still) fn();
+      else list.push(window.setTimeout(fn, ms * k()));
+    };
+    const kind = svg.dataset.kind ?? 'hang';
+    const ops = (svg.dataset.ops ?? '').split(',').filter(Boolean);
+    // One slot is several wrappers (one per paint layer): classes go on all of them.
+    type Slot = { i: string; add: (...c: string[]) => void; remove: (...c: string[]) => void };
+    const slotOf = (i: string): Slot => {
+      const all = [...svg.querySelectorAll(`.slot.i${i}`)];
+      return {
+        i,
+        add: (...c) => all.forEach((el) => el.classList.add(...c)),
+        remove: (...c) => all.forEach((el) => el.classList.remove(...c)),
+      };
+    };
+    const nailsOf = (s: Slot) => [...svg.querySelectorAll(`.slot.i${s.i} .nail`)];
+    const hangSlot = (s: Slot, t0: number, thenFall: boolean) => {
+      const n = nailsOf(s);
+      [3, 2, 1].forEach((i, j) => at(() => n[i]?.classList.add('off'), t0 + (T.nailPops[j] ?? 0)));
+      at(() => s.add('moved', 'hang'), t0 + T.hangAt);
+      if (thenFall) {
+        at(() => {
+          n[0]?.classList.add('off');
+          s.remove('hang');
+          s.add('fall');
+        }, t0 + T.fallAt);
+      }
+    };
+    const breakSlot = (s: Slot, t0: number) => {
+      at(() => s.add('crack'), t0);
+      at(() => {
+        s.remove('crack');
+        s.add('pmoved', 'pdrop');
+      }, t0 + T.pieceDropAt);
+    };
+    ops.forEach((spec, order) => {
+      const [i, op] = spec.split(':');
+      if (!i || !svg.querySelector(`.slot.i${i}`)) return;
+      const s = slotOf(i);
+      const t0 = order * T.opGap;
+      if (op === 'brk') {
+        breakSlot(s, t0);
+        if (kind === 'break-hang') hangSlot(s, t0 + T.pieceDropAt + T.pieceDrop, false);
+      } else if (kind === 'nails') {
+        const n = nailsOf(s);
+        [3, 2, 1].forEach((x, j) => at(() => n[x]?.classList.add('off'), t0 + (T.nailPops[j] ?? 0)));
+      } else {
+        hangSlot(s, t0, kind === 'fall' || kind === 'word');
+      }
+    });
+  }
+
+  for (const b of document.querySelectorAll<HTMLButtonElement>('.ab [data-play]')) {
+    b.addEventListener('click', () => {
+      const box = b.closest('.demo, .card');
+      for (const svg of box?.querySelectorAll<SVGSVGElement>('svg.ab-svg') ?? []) play(svg);
+    });
+  }
+  const visible = () =>
+    [...document.querySelectorAll<SVGSVGElement>('.ab svg.ab-svg')].filter(
+      (s) => !s.closest('[hidden]'),
+    );
+  document.getElementById('ab-play')?.addEventListener('click', () => visible().forEach(play));
+  document.getElementById('ab-reset')?.addEventListener('click', () => visible().forEach(reset));
+  const toggle = (id: string, cls: string) =>
+    document.getElementById(id)?.addEventListener('change', (e) => {
+      root?.classList.toggle(cls, (e.target as HTMLInputElement).checked);
+    });
+  toggle('ab-slow', 'slow');
+  toggle('ab-debug', 'debug');
+  toggle('ab-still', 'still');
+
+  for (const f of document.querySelectorAll<HTMLButtonElement>('.ab [data-filter]')) {
+    f.addEventListener('click', () => {
+      const v = f.dataset.filter;
+      for (const x of document.querySelectorAll('.ab [data-filter]')) {
+        x.setAttribute('aria-pressed', String(x === f));
+      }
+      for (const c of document.querySelectorAll<HTMLElement>('.ab .card')) {
+        const ok =
+          v === 'all' ||
+          (v === 'disputed' ? c.dataset.disputed === '1' : c.dataset.group === v);
+        c.hidden = !ok;
+      }
+    });
+  }
+
+  // For automated checks: after an instant hang, how far (screen px) each
+  // centroid lies from the plumb line through its hinge.
+  (window as unknown as { abPlumb: () => number[] }).abPlumb = () =>
+    [...document.querySelectorAll('.ab .slot.hang[data-layer="main"]')].flatMap((s) => {
+      const c = s.querySelector('.d-cen');
+      const h = s.parentElement?.querySelector(`.slot.${s.classList[1]}[data-layer="dbg"] .d-hinge`);
+      if (!c || !h) return [];
+      const a = c.getBoundingClientRect();
+      const b = h.getBoundingClientRect();
+      return [Math.abs(a.left + a.width / 2 - (b.left + b.width / 2))];
+    });
+</script>
