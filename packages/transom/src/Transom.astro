@@ -5,6 +5,7 @@
  */
 import type { BreakKey } from '@beda/core';
 import './transom.css';
+import { nextBoardPrefix } from './ids';
 import { renderTransom } from './render';
 import { type BoardState, EN_LABEL_TEXT, type TransomLabelText } from './state';
 
@@ -15,6 +16,8 @@ interface Props {
   breaks?: readonly (BreakKey | undefined)[];
   broken?: readonly boolean[];
   id?: string;
+  /** Prefix for inner ids; defaults to the `id`, or a fresh one per board. */
+  idPrefix?: string;
   label?: string;
   /** Wording for the generated aria-label. */
   labelText?: TransomLabelText;
@@ -25,9 +28,10 @@ interface Props {
   debug?: boolean;
 }
 
-const { lang, labelText, ...rest } = Astro.props;
+const { lang, labelText, idPrefix, ...rest } = Astro.props;
 const html = renderTransom({
   ...rest,
+  idPrefix: idPrefix ?? (rest.id ? `${rest.id}-` : nextBoardPrefix()),
   labelText: labelText ?? (lang === 'en' ? EN_LABEL_TEXT : undefined),
 });
 ---

@@ -1,4 +1,4 @@
-import { GAGS, type Gag, type GagId, getGagCopy } from '@beda/core';
+import { GAGS, type Gag, getGagCopy } from '@beda/core';
 import { EN_LABEL_TEXT, finalOf, fitSize, fromOps, renderTransom } from '@beda/transom';
 import { attachTransom, type TransomController } from '@beda/transom/client';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
@@ -22,7 +22,7 @@ export default function FallsBench({ lang = 'ru' }: { lang?: Locale }) {
   const [status, setStatus] = useState('');
   const stageRef = useRef<HTMLDivElement>(null);
   const stage = useRef<TransomController | null>(null);
-  const copy = getGagCopy(current.id as GagId, lang);
+  const copy = getGagCopy(current.id, lang);
 
   const minis = useMemo(
     () =>
@@ -167,7 +167,7 @@ export default function FallsBench({ lang = 'ru' }: { lang?: Locale }) {
             <span class="t display">
               {g.text} <span>→</span> {g.result}
             </span>
-            <span class="m mono">{getGagCopy(g.id as GagId, lang).meta}</span>
+            <span class="m mono">{getGagCopy(g.id, lang).meta}</span>
             <span class="mini" dangerouslySetInnerHTML={{ __html: minis[i] ?? '' }} />
           </button>
         ))}

@@ -1,8 +1,15 @@
 ---
+import { getGagCopy, pickGag } from '@beda/core';
+import { fromOps } from '@beda/transom';
+import Transom from '@beda/transom/Transom.astro';
 import { getLangFromUrl, getLocalizedPath, useTranslations } from '../i18n';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
+// A plaque from the pun catalogue, picked by the path (the page renders on
+// request, so the same missing path always shows the same plaque).
+const gag = pickGag(Astro.url.pathname, lang);
+const copy = getGagCopy(gag.id, lang);
 ---
 
 <section class="section not-found">
@@ -10,6 +17,10 @@ const t = useTranslations(lang);
     <p class="kicker">404</p>
     <h1 class="display">{t('notFound.title')}</h1>
     <p>{t('notFound.text')}</p>
+    <figure class="plaque" data-plaque data-gag={gag.id} data-ops={JSON.stringify(gag.ops)}>
+      <Transom state={fromOps(gag.text, gag.ops)} id="plaque" lang={lang} />
+      <figcaption>{copy.joke}</figcaption>
+    </figure>
     <p class="links">
       <a class="btn btn-brass" href={getLocalizedPath('/osmotr', lang)}>{t('hero.cta')}</a>
       <a class="btn" href={getLocalizedPath('/', lang)}>{t('notFound.home')}</a>
@@ -17,10 +28,43 @@ const t = useTranslations(lang);
   </div>
 </section>
 
+<script>
+  // The plaque plays once when it comes into view; reduced motion shows the end.
+  import type { Op } from '@beda/core';
+  import { attachTransom } from '@beda/transom/client';
+  import { watchEgg } from '../lib/eggs';
+
+  const fig = document.querySelector<HTMLElement>('[data-plaque]');
+  const board = fig?.querySelector('[data-transom]');
+  if (fig && board) {
+    const tr = attachTransom(board);
+    const ops = JSON.parse(fig.dataset.ops ?? '[]') as Op[];
+    watchEgg(fig, `plaque:${fig.dataset.gag}`, () => tr.play(ops));
+  }
+</script>
+
 <style>
   h1 {
     font-size: clamp(40px, 6vw, 72px);
     margin: 14px 0 18px;
+  }
+  .plaque {
+    margin: 36px 0 0;
+    max-width: 640px;
+  }
+  .plaque :global(.transom-wrap) {
+    --ts: 64px;
+    justify-content: flex-start;
+  }
+  /* Scale a long plaque down to the column; the viewBox keeps the proportions. */
+  .plaque :global(.transom) {
+    max-width: 100%;
+    height: auto;
+  }
+  .plaque figcaption {
+    margin-top: 14px;
+    color: var(--muted);
+    max-width: 36em;
   }
   .links {
     display: flex;

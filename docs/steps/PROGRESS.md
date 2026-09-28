@@ -26,6 +26,7 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [ ] S13a Share images on the shared transom renderer (stage 1 follow-up; image sheet awaits the human)
 - [ ] S08d Pun catalogue in core and the /dev/falls bench (stage 1 follow-up; contact sheet and English copy await the human)
 - [ ] S11a Name game with letter breaks (stage 1 follow-up; English word list awaits the human)
+- [ ] S14a Pun plaques and easter eggs (stage 1 follow-up; the breaking logo waits for a design decision)
 
 ## Stages 2–6
 See `ROADMAP.md`. Expand each into a step file before starting it.
@@ -336,4 +337,28 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
   - Biome, `astro check` and every TS project's typecheck, tests and build pass.
 - Follow-ups: letters with diacritics don't match plain words (`CRÈME` is not `creme`). Folding for the search is an open question.
 - [HUMAN] open: review the English word list (`FUNNY_EN`, D7).
+
+### S14a — Pun plaques and easter eggs — 2026-09-28 (partly)
+- Done:
+  - `@beda/core/gags.ts`: `public: false` on ДОХОД → ЛОХ (the catalogue says «грубовато — решать автору»), `publicGags(lang)`, and `pickGag(key, lang)`, a deterministic FNV-1a pick. `getGagCopy` takes any id and throws on an unknown one.
+  - **404 plaque:**
+    - `/404` now renders on request (`prerender = false`), so the plaque is picked by the missing path in the page's locale (`/en/…` gets an English pun) and the server markup is final, with no flash;
+    - it plays once when half of it is on screen (IntersectionObserver); under reduced motion it shows the final state;
+    - the joke is under the board, and a long plaque scales down to the column through its viewBox.
+  - **Footer pun:**
+    - a final-state board in the footer, picked by path + build day. Prerendered pages change only on a new build, and SSR pages keep the same pun for the day;
+    - no link (the human picks; see below);
+    - the aria-label reads the result («Надпись на транце: МЕЛЬ»).
+  - `beda:find`: `apps/web/src/lib/eggs.ts` `watchEgg(el, id)` sends `CustomEvent('beda:find', { detail: { id } })` once per page when an egg is seen (`plaque:<id>`, `footer:<id>`). Nothing is stored.
+  - Bug fixed: `Transom.astro` boards without an `id` all used the prefix `t-`, so two such boards on one page shared clip-path ids (visible on `/dev/transom`). Each board now gets a fresh prefix (`ids.ts`).
+- Not done: the **breaking logo**. The fallen rim piece in `tile.svg` is drawn shorter than the gap in the rim (about 3.4 against 7.1 units), so no rigid transform puts it back in place. Deriving `logo-intact` "by reversing the fall" needs the artwork changed, and that changes the favicons, which the step says must not change. Editing `tile.svg` would also invalidate its embedded C2PA manifest. The header still draws its own intact wheel, a second drawing of the brand that should go when the logo comes from `tile.svg`.
+- Verified:
+  - core 145 tests, transom 100, and every TS project's typecheck, tests and build pass;
+  - production build, Chromium and WebKit: `/does-not-exist` returns 404 with a plaque that plays once and sends `beda:find` once; `/en/does-not-exist` shows an English pun and caption; 375 px has no horizontal scroll; no CSP violations and no page errors; no duplicate ids on `/`;
+  - 404 CLS (PerformanceObserver): 0 at 375 px and 0.0002 at 1280 px. Lighthouse doesn't score pages that answer 404.
+  - Lighthouse `/` mobile, 8 runs: perf 0.91–1.00, a11y 1.00, CLS 0–0.001, LCP 1.5–2.9 s (median ≈ 2.35 s, following FCP). The footer board adds 14 KB uncompressed to every page.
+- [HUMAN] open:
+  - which gags may appear on public pages (ДОХОД → ЛОХ is off for now);
+  - the footer pun's link target (none now, or the quiz);
+  - the breaking logo. Options: redraw the fallen piece so it matches the gap, which changes the favicons; derive a separate intact drawing, which is a second drawing; or keep the logo static.
 

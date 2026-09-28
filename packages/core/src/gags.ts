@@ -17,6 +17,8 @@ export interface Gag {
   text: string;
   result: string;
   ops: readonly Op[];
+  /** `false` keeps it off public pages (dev benches only). */
+  public?: boolean;
 }
 
 /** Copy around a gag: what falls off (`meta`) and the punchline (`joke`). */
@@ -120,6 +122,8 @@ export const GAGS = [
       { i: 3, fall: true },
       { i: 4, fall: true },
     ],
+    // «Грубовато — решать автору» (catalogue): off public pages until the author decides.
+    public: false,
   },
   {
     id: 'ogon',
@@ -467,7 +471,33 @@ export function gagsByLang(lang: Locale): Gag[] {
   return GAGS.filter((g) => g.lang === lang);
 }
 
-/** Copy for a gag in a UI locale (defaults to Russian). */
-export function getGagCopy(id: GagId, locale: Locale = DEFAULT_LOCALE): GagCopy {
-  return (COPY[locale] ?? GAG_COPY_RU)[id];
+/** Copy for a gag in a UI locale (defaults to Russian). Throws on an unknown id. */
+export function getGagCopy(id: string, locale: Locale = DEFAULT_LOCALE): GagCopy {
+  const copy = (COPY[locale] ?? GAG_COPY_RU)[id as GagId];
+  if (!copy) throw new Error(`no gag ${id}`);
+  return copy;
+}
+
+/** Gags that may appear on public pages (404 plaque, footer), for pun language `lang`. */
+export function publicGags(lang: Locale): Gag[] {
+  return gagsByLang(lang).filter((g) => g.public !== false);
+}
+
+/** FNV-1a, 32 bit: a stable small hash for picking. */
+function hash(key: string): number {
+  let h = 0x811c9dc5;
+  for (const ch of key) {
+    h ^= ch.codePointAt(0) ?? 0;
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h;
+}
+
+/**
+ * A public gag chosen deterministically by `key` (e.g. the page path), so the
+ * server and the client, or two builds of the same page, agree.
+ */
+export function pickGag(key: string, lang: Locale): Gag {
+  const list = publicGags(lang);
+  return list[hash(key) % list.length] as Gag;
 }

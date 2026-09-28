@@ -1,4 +1,7 @@
 ---
+import { pickGag } from '@beda/core';
+import { EN_LABEL_TEXT, finalOf, fromOps, RU_LABEL_TEXT } from '@beda/transom';
+import Transom from '@beda/transom/Transom.astro';
 import { getLangFromUrl, getLocalizedPath, isPlaceholder, useTranslations } from '../i18n';
 
 const lang = getLangFromUrl(Astro.url);
@@ -9,6 +12,14 @@ const links = [
   { href: `${getLocalizedPath('/', lang)}#journal`, label: t('foot.journal') },
   { href: t('foot.contactHref'), label: t('foot.write') },
 ];
+
+// A pun plaque from the catalogue, final state, no motion. It changes with
+// the page and the build day, not per request, so prerendered pages stay as built.
+const day = new Date().toISOString().slice(0, 10);
+const pun = pickGag(`${Astro.url.pathname}|${day}`, lang);
+const punState = finalOf(fromOps(pun.text, pun.ops), pun.ops);
+// Read the pun as it ends, not slot by slot: «Надпись на транце: МЕЛЬ».
+const punLabel = `${(lang === 'en' ? EN_LABEL_TEXT : RU_LABEL_TEXT).prefix}: ${pun.result}`;
 ---
 
 <footer class="foot" id="subscribe">
@@ -16,6 +27,9 @@ const links = [
     <div>
       <div class="display foot-title">{t('site.name')}</div>
       <p>{t('foot.about')}</p>
+      <div class="foot-pun" data-foot-pun={pun.id}>
+        <Transom state={punState} id="footPun" lang={lang} label={punLabel} />
+      </div>
     </div>
     <nav aria-label={t('foot.navLabel')}>
       {
@@ -32,6 +46,13 @@ const links = [
     </nav>
   </div>
 </footer>
+
+<script>
+  import { watchEgg } from '../lib/eggs';
+
+  const pun = document.querySelector<HTMLElement>('[data-foot-pun]');
+  if (pun) watchEgg(pun, `footer:${pun.dataset.footPun}`);
+</script>
 
 <style>
   .foot {
@@ -57,6 +78,18 @@ const links = [
     display: flex;
     gap: 28px;
     flex-wrap: wrap;
+  }
+  .foot-pun {
+    margin-top: 20px;
+    max-width: 100%;
+  }
+  .foot-pun :global(.transom-wrap) {
+    --ts: 22px;
+    justify-content: flex-start;
+  }
+  .foot-pun :global(.transom) {
+    max-width: 100%;
+    height: auto;
   }
   .pending {
     color: var(--muted);
