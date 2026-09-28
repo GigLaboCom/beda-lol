@@ -25,9 +25,9 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [x] S00a Import the falls / puns / gamification bundle
 - [x] S08a Spike: SVG glyph pipeline (no commit; findings in the plan pack)
 - [x] S08b Glyph data and break table
-- [ ] S08c Transom v2: SVG renderer and controller with falls and breaks (parity sheet awaits the human)
-- [ ] S13a Share images on the shared transom renderer (image sheet awaits the human)
-- [ ] S08d Pun catalogue in core and the /dev/falls bench (contact sheet and English copy await the human)
+- [x] S08c Transom v2: SVG renderer and controller with falls and breaks
+- [x] S13a Share images on the shared transom renderer
+- [x] S08d Pun catalogue in core and the /dev/falls bench (English copy review, D7, still open)
 - [ ] S11a Name game with letter breaks (English word list awaits the human)
 - [ ] S14a Pun plaques and easter eggs (the breaking logo waits for a design decision)
 - [ ] S09a English word on the transom (option A in place with a provisional word; D2 and the native-speaker check await the human)
@@ -215,6 +215,7 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
 - New deps (dev, `@beda/transom`, already in the lockfile): `fontkitten` 1.0.3 (font parser, chosen in S08a) and `@fontsource/playfair-display` 5.3.0 (the font files, same version as `@beda/tokens`). `@beda/core` is a workspace dependency of `@beda/transom` (`BreakKey`).
 - Follow-ups: S08c (renderer and controller on the tables, generated CSS, `MOUNTS` removed; tune the drop formula against the shelf); S13a; S08d; S11a (namer normaliser on `BOARD_CHARSET`).
 - [HUMAN] open: check the notched breaks on `/dev/animacii` (Ы>Ь, Т>Г, П>Г, E>F and the rest).
+- Closed 2026-09-28: the human checked the notched breaks on `/dev/animacii`.
 
 ### S08c — Transom v2: SVG renderer and controller — 2026-09-28
 - Done:
@@ -265,6 +266,7 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
   - The namer keeps `set(nails)`: letters drop without the per-op timeline. S11a switches it to `play(ops)`.
 - Follow-ups: S13a (share images on `renderTransom`; `og.ts` still lays out the card with its own copy of the geometry and colours), S08d, S11a.
 - [HUMAN] open: review the parity sheet: before/after at 375 and 1280 px, ru and en; hero, quiz, the three result codes, a pillar article and the namer. Then tick S08c.
+- Closed 2026-09-28: the human reviewed the parity sheet; S08c ticked.
 
 ### S13a — Share images on the shared transom renderer — 2026-09-28
 - Done:
@@ -282,6 +284,7 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
   - Biome, `astro check`, and typecheck, test and build of every TS project pass (transom 100 tests, tokens 11, brand 63).
 - Deviations: the palette is the `base` scheme, not `dark`. Share images have always used the `:root` values (`--tar` #1c140e); the `dark` scheme darkens `--tar` and `--hull`, which would change every card.
 - [HUMAN] open: review the image sheet `docs/scratch/1111/spike/shots/og.html` (222222, 002222, 112020, default, one article; before = pre-S08c). Then tick S13a.
+- Closed 2026-09-28: the human reviewed the image sheet; S13a ticked.
 
 ### S08d — Pun catalogue in `@beda/core` and the `/dev/falls` bench — 2026-09-28
 - Done:
@@ -306,6 +309,7 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
   - review the English gag copy (`GAG_COPY_EN`, D7);
   - review the contact sheet (`docs/scratch/1111/spike/shots/falls-sheet.html`);
   - confirm that PEST LUNCH stays out (D2).
+- Closed 2026-09-28: the human reviewed the contact sheet; S08d ticked. The English gag copy (D7) and PEST LUNCH (D2) stay open and move with S11a and S09a.
 
 ### S11a — Name game with letter breaks — 2026-09-28
 - Done:
