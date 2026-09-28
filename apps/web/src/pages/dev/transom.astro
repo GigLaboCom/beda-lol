@@ -1,26 +1,58 @@
 ---
 /**
- * Visual check page for the transom (S08). Not linked anywhere, noindex,
- * disallowed in robots.txt and excluded from the sitemap.
+ * Visual check page for the transom (S08, v2 in S08c). Not linked anywhere,
+ * noindex, disallowed in robots.txt and excluded from the sitemap. Every
+ * animation on its own: /dev/animacii.
  */
-import { WORD } from '@beda/core';
+import { type Op, WORD } from '@beda/core';
+import { fromOps, glyphFor } from '@beda/transom';
 import Transom from '@beda/transom/Transom.astro';
 import Base from '../../layouts/Base.astro';
 
 const counts = [4, 1, 0] as const;
 const combos = counts.flatMap((p) => counts.map((o) => [p, o, 4, 4, 4, 4]));
 const latin = Array.from('BUG TRACKER PRO');
+const hang = (ch: string) => glyphFor(ch)?.hang?.toFixed(1).replace('.', ',') ?? '—';
+const gags: { text: string; ops: Op[] }[] = [
+  {
+    text: 'ДЕНЬГИ',
+    ops: [
+      { i: 0, brk: 'Д>Л' },
+      { i: 4, fall: true },
+      { i: 5, fall: true },
+    ],
+  },
+  {
+    text: 'ВЗЛЁТ',
+    ops: [
+      { i: 0, fall: true },
+      { i: 1, fall: true },
+      { i: 4, brk: 'Т>Г' },
+    ],
+  },
+  {
+    text: 'BETA',
+    ops: [
+      { i: 0, brk: 'B>P' },
+      { i: 3, fall: true },
+    ],
+  },
+];
 ---
 
 <Base title="Транец — стенд" robots="noindex, nofollow">
   <div class="wrap bench">
     <h1 class="display">Транец: стенд</h1>
-    <p class="kicker">П и О: 4, 1, 0 гвоздей. Висящая П ≈ 37°, О опрокидывается по часовой ≈ 124° вокруг нижней левой клёпки.</p>
+    <p class="kicker">
+      П и О: 4, 1, 0 гвоздей. Висящая П ≈ {hang('П')}°, О опрокидывается по часовой ≈ {hang('О')}° вокруг
+      нижней левой клёпки. Углы посчитаны при сборке из шрифта.
+    </p>
+    <label class="mono"><input type="checkbox" id="debug" /> Шарнир, отвес, центр тяжести</label>
     <div class="grid">
       {
         combos.map((nails) => (
           <figure>
-            <Transom letters={WORD} nails={nails} />
+            <Transom letters={WORD} nails={nails} debug />
             <figcaption class="mono">{nails.join(' ')}</figcaption>
           </figure>
         ))
@@ -28,7 +60,22 @@ const latin = Array.from('BUG TRACKER PRO');
     </div>
     <h2 class="display">Длинное латинское название</h2>
     <div class="latin">
-      <Transom letters={latin} nails={latin.map((_, i) => (i % 5 === 0 ? 0 : i % 3 === 0 ? 1 : 4))} />
+      <Transom letters={latin} nails={latin.map((_, i) => (i % 5 === 0 ? 0 : i % 3 === 0 ? 1 : 4))} debug />
+    </div>
+    <h2 class="display">Надломы: Д → Л, Т → Г, B → P</h2>
+    <div class="grid">
+      {
+        gags.map(({ text, ops }) => (
+          <figure class="gag" data-ops={JSON.stringify(ops)}>
+            <Transom state={fromOps(text, ops)} debug />
+            <figcaption>
+              <button class="btn btn-sm" type="button" data-play>
+                Проиграть {text}
+              </button>
+            </figcaption>
+          </figure>
+        ))
+      }
     </div>
     <h2 class="display">Анимация</h2>
     <div class="live"><Transom letters={WORD} id="live" /></div>
@@ -37,18 +84,28 @@ const latin = Array.from('BUG TRACKER PRO');
 </Base>
 
 <script>
+  import type { Op } from '@beda/core';
   import { attachTransom } from '@beda/transom/client';
 
-  const root = document.getElementById('live');
-  const button = document.getElementById('play');
-  if (root && button) {
-    const tr = attachTransom(root);
-    button.addEventListener('click', () => {
-      tr.set([4, 4, 4, 4, 4, 4], { animate: false });
-      setTimeout(() => tr.set([1, 4, 4, 4, 4, 4]), 300);
-      setTimeout(() => tr.set([1, 0, 4, 4, 4, 4]), 1800);
-    });
+  const boards = [...document.querySelectorAll<HTMLElement>('.bench [data-transom]')].map((el) => ({
+    el,
+    tr: attachTransom(el),
+  }));
+  document.getElementById('debug')?.addEventListener('change', (e) => {
+    for (const { tr } of boards) tr.debug((e.target as HTMLInputElement).checked);
+  });
+  for (const fig of document.querySelectorAll<HTMLElement>('.gag')) {
+    const board = boards.find((b) => fig.contains(b.el));
+    const ops = JSON.parse(fig.dataset.ops ?? '[]') as Op[];
+    fig.querySelector('[data-play]')?.addEventListener('click', () => board?.tr.play(ops));
   }
+  const live = boards.find((b) => b.el.id === 'live')?.tr;
+  document.getElementById('play')?.addEventListener('click', () => {
+    if (!live) return;
+    live.set([4, 4, 4, 4, 4, 4], { animate: false });
+    setTimeout(() => live.set([1, 4, 4, 4, 4, 4]), 300);
+    setTimeout(() => live.set([1, 0, 4, 4, 4, 4]), 1800);
+  });
 </script>
 
 <style>

@@ -11,11 +11,10 @@ import {
   resultCode,
   resumeSession,
   sessionNails,
-  WORD,
 } from '@beda/core';
-import { EN_LABEL_TEXT, renderTransom } from '@beda/transom';
 import { attachTransom, type TransomController } from '@beda/transom/client';
-import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import type { ComponentChildren } from 'preact';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { fmt, getLocalizedPath, type Locale, useTranslations } from '../../i18n';
 import { recordQuizAttempt } from '../../lib/api';
 import { clearSession, loadSession, saveReveal, saveSession } from '../../lib/quiz-storage';
@@ -26,11 +25,21 @@ function sourceParam(): string | undefined {
   return /^[a-z0-9_-]{1,32}$/.test(from) ? from : undefined;
 }
 
-export default function QuizIsland({ lang = 'ru' }: { lang?: Locale }) {
+/**
+ * The quiz. The board comes in as `children`, rendered on the server by the
+ * page (`<Transom>` in the island's slot), so the island ships no glyph data;
+ * the controller takes that markup over.
+ */
+export default function QuizIsland({
+  lang = 'ru',
+  children,
+}: {
+  lang?: Locale;
+  children?: ComponentChildren;
+}) {
   const t = useTranslations(lang);
   const QUESTIONS = getQuestions(lang);
   const PILLARS = getPillars(lang);
-  const labelText = lang === 'en' ? EN_LABEL_TEXT : undefined;
   const answers: { value: Answer; label: string; cls: string }[] = [
     { value: 1, label: t('quiz.yes'), cls: 'btn' },
     { value: 0.5, label: t('quiz.partly'), cls: 'btn' },
@@ -42,14 +51,10 @@ export default function QuizIsland({ lang = 'ru' }: { lang?: Locale }) {
   const transomRef = useRef<HTMLDivElement>(null);
   const controller = useRef<TransomController | null>(null);
   const firstApply = useRef(true);
-  const transomHtml = useMemo(
-    () => renderTransom({ letters: WORD, nails: sessionNails(EMPTY_SESSION), labelText }),
-    [labelText],
-  );
 
   useEffect(() => {
-    const el = transomRef.current?.firstElementChild;
-    if (el instanceof HTMLElement) controller.current = attachTransom(el);
+    const el = transomRef.current?.querySelector('[data-transom]');
+    if (el) controller.current = attachTransom(el);
     const params = new URLSearchParams(location.search);
     if (params.has('restart')) {
       clearSession();
@@ -111,7 +116,7 @@ export default function QuizIsland({ lang = 'ru' }: { lang?: Locale }) {
       <section class="quiz">
         <div class="wrap">
           <div>
-            <div ref={transomRef} dangerouslySetInnerHTML={{ __html: transomHtml }} />
+            <div ref={transomRef}>{children}</div>
             <p class="caption">{t('quiz.caption')}</p>
           </div>
           <div aria-live="polite">

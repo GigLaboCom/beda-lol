@@ -5,7 +5,8 @@ import { breadcrumbList } from '../../lib/jsonld';
 import JsonLd from '../JsonLd.astro';
 import QuizIsland from '../quiz/QuizIsland';
 import '../../styles/quiz.css';
-import '@beda/transom/transom.css';
+import { EMPTY_SESSION, sessionNails, WORD } from '@beda/core';
+import Transom from '@beda/transom/Transom.astro';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -18,5 +19,7 @@ const crumbs = breadcrumbList(Astro.site, [
 
 <Base title={t('quiz.title')} description={t('quiz.description')}>
   <JsonLd slot="head" data={crumbs} />
-  <QuizIsland client:load lang={lang} />
+  <QuizIsland client:load lang={lang}>
+    <Transom letters={WORD} nails={sessionNails(EMPTY_SESSION)} id="quizTransom" lang={lang} />
+  </QuizIsland>
 </Base>

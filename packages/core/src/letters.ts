@@ -5,6 +5,15 @@ export const WORD = ['П', 'О', 'Б', 'Е', 'Д', 'А'] as const;
 
 export type Letter = (typeof WORD)[number];
 
+/**
+ * The hero board's story, as nails per letter of {@link WORD}: П starts
+ * hanging, then О falls — «ПО» lets go and «БЕДА» stays.
+ */
+export const HERO_STEPS: readonly (readonly number[])[] = [
+  [1, 4, 4, 4, 4, 4],
+  [1, 0, 4, 4, 4, 4],
+];
+
 export interface Pillar {
   /** Pillar name, e.g. «Позиционирование». */
   name: string;

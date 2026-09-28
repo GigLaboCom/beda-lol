@@ -3,10 +3,9 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { opDuration, SWING_KEYFRAMES, TIMELINE } from './timeline';
 
-// transom.css still has the durations written out until S08c generates them
-// from TIMELINE; this keeps the two in step meanwhile.
+// transom.css reads every duration from --t-* (set by the controller from
+// TIMELINE); only the keyframe shapes are written out, so they are checked here.
 const css = readFileSync(new URL('./transom.css', import.meta.url), 'utf8');
-const s = (ms: number) => `${ms / 1000}s`;
 
 describe('timeline', () => {
   it('falls when the swing ends', () => {
@@ -15,10 +14,11 @@ describe('timeline', () => {
     expect(opDuration('brk')).toBe(1270);
   });
 
-  it('matches the durations in transom.css', () => {
-    expect(css).toContain(`animation: transom-swing ${s(TIMELINE.swing)} ease-out`);
-    expect(css).toContain(`transition: transform ${s(TIMELINE.fall)} `);
-    expect(css).toContain(`transform ${s(TIMELINE.nailPop)} `);
+  it('leaves no duration literal in transom.css', () => {
+    expect(css).not.toMatch(/\d(\.\d+)?m?s\b/);
+    for (const name of ['swing', 'fall', 'pop', 'crack', 'pdrop', 'settle']) {
+      expect(css).toContain(`var(--t-${name})`);
+    }
   });
 
   it('matches the swing keyframes in transom.css', () => {

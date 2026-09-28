@@ -29,7 +29,7 @@ Two repo-wide deviations from the spec apply everywhere: the TypeScript side is 
 - `apps/api` — **Rust** (amendment П-2), crate `beda-api` in a Cargo workspace rooted at the repo, single binary with subcommands `serve`, `admin`, `healthcheck`, `version`. `axum` + `tower-http`, `tokio`, `sqlx` (compile-time checked queries, offline data in `.sqlx/`), `tracing`, `thiserror`/`anyhow`, `clap`, `jsonwebtoken` + `reqwest` (rustls) for Supabase JWKS. Connects to the Supabase Postgres directly; verifies Supabase Auth JWTs locally. `#![forbid(unsafe_code)]`; no `unwrap`/`expect` outside tests and startup. Wherever the spec says "Go", read "the Rust API".
 - **Supabase** — Postgres + Auth (GitHub provider, magic link). Schema and migrations with the Supabase CLI in `supabase/migrations/`. Local dev with `supabase start`. App tables live in schema `app`, which is **not exposed** through the Data API; the browser uses supabase-js only for sign-in. Never create app tables in `public`.
 - `packages/core` — pure TS logic (quiz, name search, result codec, later the storm game). No DOM, no framework.
-- `packages/transom` — the transom (name board) component: CSS, per-letter mounts, SSR markup + client controller.
+- `packages/transom` — the transom (name board) component: SVG letters from glyph data generated from the font (`glyphs.config.ts`, `task transom:glyphs`), SSR markup + client controller.
 - `packages/tokens` — design tokens (CSS custom properties) and fonts.
 - `packages/brand` — brand sources (`src/tile.svg`) and the favicon / app-icon / manifest-icon set generated from them into `apps/web/public/` (committed). `task brand:icons` regenerates.
 - `packages/api-contract` — OpenAPI spec and generated TS client (added in stage 2).

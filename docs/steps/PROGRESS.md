@@ -22,6 +22,7 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [ ] S14 SEO baseline and stage 1 launch
 - [x] S00a Import the falls / puns / gamification bundle (stage 1 follow-up)
 - [x] S08b Glyph data and break table (stage 1 follow-up)
+- [ ] S08c Transom v2: SVG renderer and controller with falls and breaks (stage 1 follow-up; parity sheet awaits the human)
 
 ## Stages 2–6
 See `ROADMAP.md`. Expand each into a step file before starting it.
@@ -205,4 +206,54 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
 - New deps (dev, `@beda/transom`, already in the lockfile): `fontkitten` 1.0.3 (font parser, chosen in S08a) and `@fontsource/playfair-display` 5.3.0 (the font files, same version as `@beda/tokens`). `@beda/core` is a workspace dependency of `@beda/transom` (`BreakKey`).
 - Follow-ups: S08c (renderer and controller on the tables, generated CSS, `MOUNTS` removed; tune the drop formula against the shelf); S13a; S08d; S11a (namer normaliser on `BOARD_CHARSET`).
 - [HUMAN] open: check the notched breaks on `/dev/animacii` (Ы>Ь, Т>Г, П>Г, E>F and the rest).
+
+### S08c — Transom v2: SVG renderer and controller — 2026-09-28
+- Done:
+  - `@beda/transom` renders every board as SVG from the generated glyph data (`render.ts`):
+    - board-wide paint layers (imprints, holes, letters, pieces, nails, debug) with one slot wrapper per layer;
+    - nested hinge groups, a remainder clipped by an even-odd path and the piece by its polygon;
+    - the final state in `transform` attributes, so it works without JS or CSS and in resvg;
+    - slot width = glyph advance;
+    - `boardWidthEm`, `BOARD_HEIGHT_EM`, `fitSize` (replaces the namer's `transomSize`);
+    - ids prefixed per board; `highlight`/`dim` and `.nail.iron` kept; colours by class from the tokens.
+  - State model (`state.ts`): `SlotState { nails, broken }`, `BoardState` with `breaks`, `fromNails`, `fromOps`, `finalOf`. `transomLabel(state)` reads a broken letter as the letter it became.
+  - Controller (`client.ts`):
+    - `set(state | nails)`, backward compatible for the quiz;
+    - `play(ops, { k, onDone })` on the doc-09 timeline from `timeline.ts`;
+    - `reset()`, `finalState()`, `debug(on)`, `destroy()`;
+    - timers are cleared on reset and when the board leaves the page; reduced motion jumps to the end; the aria-label is updated at the end.
+  - Call sites migrated:
+    - Hero and ResultView attach to SSR markup, with their choreography times now in `TIMELINE`;
+    - the hero's story is `HERO_STEPS` in `@beda/core`;
+    - QuizIsland gets the board as a server-rendered child (slot), so the quiz ships no glyph data;
+    - NamerIsland renders on the client with `fitSize` and calls `loadExt()` only when a name needs it;
+    - PillarArticle is unchanged (SSR highlight);
+    - `og.ts` reads nails, hang and drop from `glyphFor` (a small adapter until S13a).
+  - `MOUNTS`, `mounts.ts`, `mounts.css`, `mounts.test.ts` and `scripts/gen-css.ts` are deleted, with no shims.
+  - `/dev/transom` has the state grid, the long Latin name, break examples (Д>Л, Т>Г, B>P) and a debug toggle. `/dev/animacii` is rebuilt on `renderTransom` + `attachTransom`, so the bench checks the engine itself; the MOUNTS variant is gone.
+  - `call-sites.test.ts`: no ПОБЕДА/БЕДА literals in `apps/web/src/components`, only public `@beda/transom` entry points, and no board internals (classes, layers, custom properties) outside `/dev`.
+  - README rewritten. The glyph-ink snapping known issue in `docs/05-site.md` is resolved: nails snap to ink at build time (S08b).
+- Intentional visual changes:
+  - nails snap to ink; hinges and angles are computed (П 47.6° instead of 37°, О 122.3°);
+  - slots are glyph-width;
+  - the swing is 2.6 s;
+  - fallen letters rest on the shelf (drop from each glyph's ink bottom);
+  - the shelf spans the board plus 0.6 em each side, up to 7 em (was the container width, up to 7 em).
+- Verified:
+  - unit tests: transom 97 (render, client under fake timers, reduced motion, reset, leave-the-page, `fitSize`, call sites), core 112;
+  - Biome, `astro check`, typecheck and the build of every TS project, including the 729 share images, pass;
+  - on the production build, in Chromium, Firefox and WebKit, 16 pages (ru and en, `/dev/*`) have no CSP violations (read before any screenshot) and no page errors;
+  - the hero ends with П at 47.60° in all three engines;
+  - without JS, `/osmotr/r/002222` shows П and О fallen, from the attributes;
+  - `/dev/animacii`: 232 hanging states, centroid on the plumb line within 0.03 px in all three engines;
+  - no horizontal scroll at 375 px on any parity page.
+  - Lighthouse mobile on `/`, 3 runs each, local production build:
+    - before S08c: perf 0.97–0.98, a11y 1.00, LCP 2.0–2.1 s, CLS 0–0.001;
+    - after: perf 0.97–1.00, a11y 1.00, LCP 1.4–2.3 s (median 2.1 s), CLS 0–0.001.
+- Deviations:
+  - **No generated CSS** (`glyphs.gen.css`): per-slot values ride in `data-v` and the controller sets them through CSSOM, together with the `--t-*` durations from `TIMELINE`. With the D6 charset (295 glyphs) a generated sheet would put about 210 glyph rules on every page; this way a page carries only its board's numbers. CSS rules apply only under `.live`, so the no-JS state comes from the attributes.
+  - QuizIsland takes the board as a server-rendered child instead of rendering it on the client, so the quiz needs no glyph table.
+  - The namer keeps `set(nails)`: letters drop without the per-op timeline. S11a switches it to `play(ops)`.
+- Follow-ups: S13a (share images on `renderTransom`; `og.ts` still lays out the card with its own copy of the geometry and colours), S08d, S11a.
+- [HUMAN] open: review the parity sheet: before/after at 375 and 1280 px, ru and en; hero, quiz, the three result codes, a pillar article and the namer. Then tick S08c.
 

@@ -1,9 +1,8 @@
 /**
  * Board geometry, in em of the board's font size (one em = one letter
  * height). The one place for these numbers: the renderer, the share images
- * and the glyph generator read them from here. Today's CSS (`transom.css`)
- * and `apps/web/scripts/og.ts` still carry copies until S08c and S13a move
- * them over.
+ * and the glyph generator read them from here. (`apps/web/scripts/og.ts`
+ * still carries a copy until S13a moves it over.)
  */
 
 /** User units per em in the glyph data and in the board SVG (font units, integers). */
@@ -29,6 +28,15 @@ export const SHELF_GAP = 0.52;
 export const SHELF_H = 0.55;
 export const SHELF_TOP = 0.09;
 export const SHELF_MAX_W = 7;
+/** Board corners: top radius, bottom radii (elliptic), as `border-radius` would clamp them. */
+export const RADIUS_TOP = 0.09;
+export const RADIUS_BOTTOM_X = 1.4;
+export const RADIUS_BOTTOM_Y = 0.75;
+/** Light line along the top edge and the shade that darkens the bottom of the board. */
+export const TOP_LIGHT = 0.05;
+export const BOTTOM_SHADE = 0.4;
+/** The shelf reaches this far past the board on each side (up to `SHELF_MAX_W`). */
+export const SHELF_OVERHANG = 0.6;
 /** Nail radius; the hole under it is this much smaller. */
 export const NAIL_R = 0.036;
 export const HOLE_SCALE = 0.72;

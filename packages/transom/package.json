@@ -3,13 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "The transom (name board) with nailed, hanging and fallen letters: SSR markup, client controller, Astro wrapper",
+  "description": "The transom (name board): SVG letters from the font with nails, hangs, falls and breaks; SSR markup, client controller, Astro wrapper",
   "exports": {
     ".": "./src/index.ts",
     "./client": "./src/client.ts",
     "./Transom.astro": "./src/Transom.astro",
     "./transom.css": "./src/transom.css",
-    "./mounts.css": "./src/mounts.css",
     "./timeline": "./src/timeline.ts"
   },
   "files": [
@@ -21,7 +20,7 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "gen": "tsx scripts/gen-css.ts && tsx scripts/gen-glyphs.ts"
+    "gen": "tsx scripts/gen-glyphs.ts"
   },
   "dependencies": {
     "@beda/core": "workspace:*"
@@ -45,14 +44,12 @@
           "{projectRoot}/src/pieces.ts",
           "{projectRoot}/src/geometry.ts",
           "{projectRoot}/src/glyph-analysis.ts",
-          "{projectRoot}/src/mounts.ts",
           "{workspaceRoot}/packages/core/src/breaks.ts",
           "{workspaceRoot}/pnpm-lock.yaml"
         ],
         "outputs": [
           "{projectRoot}/src/glyphs.core.gen.ts",
           "{projectRoot}/src/glyphs.ext.gen.ts",
-          "{projectRoot}/src/mounts.css",
           "{workspaceRoot}/packages/core/src/charset.gen.ts"
         ]
       }

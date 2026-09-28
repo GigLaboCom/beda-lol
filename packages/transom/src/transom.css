@@ -1,93 +1,136 @@
 /*
- * Transom (name board). Ported from archive/site/yacht-beda-site.html.
- * Every size is in em of the wrapper's font size, set through --ts, so one
- * variable scales letters, nails, seams, radius and fall distance together.
- * Colours only through tokens (@beda/tokens). Per-letter positions live in
- * the generated mounts.css.
+ * Transom (name board), SVG from `renderTransom`. The SVG is sized in em of
+ * the wrapper's font size (`--ts`), so one variable scales the whole board.
+ * Colours only through tokens (@beda/tokens), by class.
+ *
+ * Without JavaScript the final state is in the SVG's `transform` attributes.
+ * `attachTransom` adds `.live`, sets per-slot values (`--hang`, `--drop`,
+ * `--fx`, `--fr`, `--pfx`, `--pfr`, `--pdrop`) and durations (`--t-*`, from
+ * timeline.ts) through CSSOM, and from then on these rules own the state.
+ * Inside the SVG, px are glyph units (1000 per em).
  */
-@import "./mounts.css";
 .transom-wrap {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  justify-content: center;
   font-size: var(--ts, 112px);
 }
 .transom {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  gap: 0.1em;
-  padding: 0.46em 0.4em 0.5em;
-  background: repeating-linear-gradient(
-    180deg,
-    var(--plank) 0,
-    var(--plank) 0.4em,
-    var(--seam) 0.4em,
-    var(--seam) 0.42em
-  );
-  border-radius: 0.09em 0.09em 1.4em 1.4em / 0.09em 0.09em 0.75em 0.75em;
-  box-shadow:
-    inset 0 -0.15em 0.25em rgb(0 0 0 / 0.35),
-    inset 0 0.05em 0 var(--plank-hi);
+  display: block;
+  overflow: visible;
+  max-width: none;
 }
-.shelf {
-  width: 100%;
-  max-width: 7em;
-  height: 0.55em;
-  margin-top: 0.52em;
-  border-top: 0.09em solid var(--shelf);
-  background: var(--hull);
+.transom .t-plank {
+  fill: var(--plank);
 }
-.light .shelf {
-  background: var(--shelf-light);
+.transom .t-seam {
+  fill: var(--seam);
 }
-.slot {
-  position: relative;
-  width: 0.75em;
-  height: 1.07em;
+.transom .t-plank-hi,
+.transom .t-ghost {
+  fill: var(--plank-hi);
 }
-.slot.space {
-  width: 0.35em;
+.transom .t-hull {
+  fill: var(--hull);
 }
-.slot .g,
-.slot .ghost {
-  position: absolute;
-  inset: 0;
-  text-align: center;
-  font-family: var(--display);
-  font-weight: 900;
-  font-size: 1em;
-  font-style: normal;
-  line-height: 1.07em;
-  user-select: none;
+.transom .t-shelf {
+  fill: var(--shelf);
 }
-.slot .ghost {
-  color: var(--plank-hi);
+.transom .t-brass {
+  fill: var(--brass);
 }
-.slot .g {
-  color: var(--brass);
-  text-shadow: 0 0.025em 0 var(--glyph-shadow);
-  transform-origin: var(--ox) var(--oy);
-  transition: transform 0.8s cubic-bezier(0.25, 0.8, 0.35, 1);
-  z-index: 2;
+.transom .t-shadow {
+  fill: var(--glyph-shadow);
 }
-.slot.dim .g {
-  color: var(--plank-hi);
-  text-shadow: none;
+.transom .hole {
+  fill: var(--hole);
 }
-.slot.dim .nail {
+.transom .nail {
+  fill: var(--brass-hi);
+}
+.transom .nail.iron {
+  fill: var(--nail-iron);
+}
+.transom .dim .t-brass {
+  fill: var(--plank-hi);
+}
+.transom .dim .t-shadow {
+  fill: none;
+}
+.transom .dim .nail {
   opacity: 0.35;
 }
-.slot.hang .g {
+
+/* Debug overlay (dev only; rendered with `debug`, shown with `.debug`). */
+.transom:not(.debug) .layer-dbg,
+.transom:not(.debug) .d-cen,
+.transom:not(.debug) .d-poly {
+  display: none;
+}
+.transom .d-plumb,
+.transom .d-poly,
+.transom .d-cell {
+  fill: none;
+  stroke-width: 8px;
+}
+.transom .d-plumb,
+.transom .d-hinge {
+  stroke: var(--sea-muted);
+  fill: var(--sea-muted);
+}
+.transom .d-cen {
+  fill: var(--ok-ink);
+}
+.transom .d-poly {
+  stroke: var(--rust);
+}
+.transom .d-cell {
+  stroke: var(--muted);
+  stroke-dasharray: 20 20;
+}
+
+/* Live: CSS owns the state. */
+.transom.live .main,
+.transom.live .piece,
+.transom.live .nail {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  transform: none;
+}
+.transom.live .main {
+  transition: transform calc(var(--t-settle) * var(--k, 1)) cubic-bezier(0.25, 0.8, 0.35, 1);
+}
+.transom.live .hang .main {
   transform: rotate(var(--hang));
 }
-/* The swing plays only when a letter starts hanging (the client adds .swinging). */
-.slot.hang.swinging .g {
-  animation: transom-swing 2.6s ease-out;
+/* The swing plays only when a letter starts hanging (the controller adds .swinging). */
+.transom.live .hang.swinging .main {
+  animation: transom-swing calc(var(--t-swing) * var(--k, 1)) ease-out;
 }
-.slot.fall .g {
+.transom.live .fall .main {
   transform: translate(var(--fx), var(--drop)) rotate(var(--fr));
-  transition: transform 0.75s cubic-bezier(0.55, 0, 1, 0.45);
+  transition: transform calc(var(--t-fall) * var(--k, 1)) cubic-bezier(0.55, 0, 1, 0.45);
+}
+.transom.live .crack .piece {
+  animation: transom-crack calc(var(--t-crack) * var(--k, 1)) linear;
+}
+.transom.live .piece {
+  transition: transform calc(var(--t-pdrop) * var(--k, 1)) cubic-bezier(0.55, 0, 1, 0.45);
+}
+.transom.live .broken .piece {
+  transform: translate(var(--pfx), var(--pdrop)) rotate(var(--pfr));
+}
+.transom.live .nail {
+  opacity: 1;
+  transition:
+    transform calc(var(--t-pop) * var(--k, 1)) cubic-bezier(0.55, 0, 1, 0.45),
+    opacity calc(var(--t-pop) * var(--k, 1));
+}
+.transom.live .dim .nail {
+  opacity: 0.35;
+}
+.transom.live .nail.off {
+  transform: var(--nail-off);
+  opacity: 0;
 }
 @keyframes transom-swing {
   0% {
@@ -112,46 +155,41 @@
     transform: rotate(var(--hang));
   }
 }
-.slot .hole,
-.slot .nail {
-  position: absolute;
-  width: 0.072em;
-  height: 0.072em;
-  border-radius: 50%;
-  margin: -0.036em 0 0 -0.036em;
-}
-.slot .hole {
-  background: var(--hole);
-  transform: scale(0.72);
-}
-.slot .nail {
-  background: var(--brass-hi);
-  box-shadow: 0 0.01em 0 var(--hole);
-  z-index: 3;
-  transition:
-    transform 0.55s cubic-bezier(0.55, 0, 1, 0.45),
-    opacity 0.55s;
-}
-.slot .nail.iron {
-  background: var(--nail-iron);
-}
-.slot .nail.off {
-  transform: translateY(1.25em) translateX(-0.08em);
-  opacity: 0;
+@keyframes transom-crack {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(12px, -6px) rotate(1deg);
+  }
+  40% {
+    transform: translate(-10px, 8px) rotate(-1.2deg);
+  }
+  60% {
+    transform: translate(14px, 4px) rotate(1.4deg);
+  }
+  80% {
+    transform: translate(-6px, -10px) rotate(-0.8deg);
+  }
 }
 /* Instant state changes (server render, `set(…, { animate: false })`) and reduced motion. */
-.transom.still .slot .g,
-.transom.still .slot.hang.swinging .g,
-.transom.still .slot.fall .g,
-.transom.still .slot .nail {
+.transom.live.still .slot .main,
+.transom.live.still .slot.hang.swinging .main,
+.transom.live.still .slot.fall .main,
+.transom.live.still .slot .piece,
+.transom.live.still .slot.crack .piece,
+.transom.live.still .slot .nail {
   transition: none;
   animation: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .transom .slot .g,
-  .transom .slot.hang.swinging .g,
-  .transom .slot.fall .g,
-  .transom .slot .nail {
+  .transom.live .slot .main,
+  .transom.live .slot.hang.swinging .main,
+  .transom.live .slot.fall .main,
+  .transom.live .slot .piece,
+  .transom.live .slot.crack .piece,
+  .transom.live .slot .nail {
     transition: none;
     animation: none;
   }

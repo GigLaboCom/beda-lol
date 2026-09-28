@@ -133,6 +133,7 @@ Astro.response.headers.set('Cache-Control', 'public, max-age=300, s-maxage=86400
   // live state to the final one, letter by letter. Shared links show the
   // final state instantly (nothing in sessionStorage).
   import { attachTransom } from '@beda/transom/client';
+  import { TIMELINE } from '@beda/transom/timeline';
   import { takeReveal } from '../../lib/quiz-storage';
 
   const root = document.getElementById('resultTransom');
@@ -145,7 +146,10 @@ Astro.response.headers.set('Cache-Control', 'public, max-age=300, s-maxage=86400
     if (!reduce) {
       tr.set(live, { animate: false });
       final.forEach((_, i) => {
-        setTimeout(() => tr.set(final.map((n, k) => (k <= i ? n : (live[k] ?? n)))), 500 + 520 * i);
+        setTimeout(
+          () => tr.set(final.map((n, k) => (k <= i ? n : (live[k] ?? n)))),
+          TIMELINE.revealStart + TIMELINE.opGap * i,
+        );
       });
     }
   }

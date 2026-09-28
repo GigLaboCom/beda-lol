@@ -26,18 +26,22 @@ const t = useTranslations(lang);
 </section>
 
 <script>
-  // Hero sequence, once per load: П starts hanging at 0.9 s, О falls at 3.9 s.
-  // Under reduced motion the final state is shown at once.
+  // Hero sequence, once per load (HERO_STEPS on the TIMELINE). Under reduced
+  // motion the final state is shown at once.
+  import { HERO_STEPS } from '@beda/core';
   import { attachTransom } from '@beda/transom/client';
+  import { TIMELINE } from '@beda/transom/timeline';
 
   const root = document.getElementById('heroTransom');
   if (root) {
     const tr = attachTransom(root);
+    const last = HERO_STEPS[HERO_STEPS.length - 1];
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      tr.set([1, 0, 4, 4, 4, 4], { animate: false });
+      if (last) tr.set(last, { animate: false });
     } else {
-      setTimeout(() => tr.set([1, 4, 4, 4, 4, 4]), 900);
-      setTimeout(() => tr.set([1, 0, 4, 4, 4, 4]), 3900);
+      HERO_STEPS.forEach((nails, i) => {
+        setTimeout(() => tr.set(nails), TIMELINE.heroStart + i * TIMELINE.heroStep);
+      });
     }
   }
 </script>

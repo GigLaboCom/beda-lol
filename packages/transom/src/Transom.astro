@@ -3,14 +3,17 @@
  * The transom, rendered on the server with its state. Add `attachTransom`
  * from `@beda/transom/client` on the page to animate it.
  */
+import type { BreakKey } from '@beda/core';
 import './transom.css';
 import { renderTransom } from './render';
-import { EN_LABEL_TEXT, type TransomLabelText } from './state';
+import { type BoardState, EN_LABEL_TEXT, type TransomLabelText } from './state';
 
 interface Props {
-  letters: readonly string[];
+  letters?: readonly string[];
+  state?: BoardState;
   nails?: readonly number[];
-  size?: string;
+  breaks?: readonly (BreakKey | undefined)[];
+  broken?: readonly boolean[];
   id?: string;
   label?: string;
   /** Wording for the generated aria-label. */
@@ -18,6 +21,8 @@ interface Props {
   /** Convenience: 'en' switches the aria-label wording to English. */
   lang?: string;
   highlight?: number;
+  /** Dev only: hinge, plumb line, centroid, pieces (shown with `.debug`). */
+  debug?: boolean;
 }
 
 const { lang, labelText, ...rest } = Astro.props;

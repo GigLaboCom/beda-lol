@@ -1,4 +1,9 @@
-export { attachTransom, type SetOptions, type TransomController } from './client';
+export {
+  attachTransom,
+  type PlayOptions,
+  type SetOptions,
+  type TransomController,
+} from './client';
 export * from './geometry';
 export {
   type Glyph,
@@ -8,14 +13,25 @@ export {
   loadExt,
   needsExt,
 } from './glyphs';
-export { DEFAULT_MOUNT, MOUNTS, type Mount, mountFor } from './mounts';
 export { PIECES, type Polygon } from './pieces';
-export { escapeHtml, type RenderOptions, renderTransom } from './render';
 export {
+  BOARD_HEIGHT_EM,
+  boardWidthEm,
+  escapeHtml,
+  fitSize,
+  type RenderOptions,
+  renderTransom,
+} from './render';
+export {
+  type BoardState,
   EN_LABEL_TEXT,
+  finalOf,
+  fromNails,
+  fromOps,
   RU_LABEL_TEXT,
+  type SlotLook,
   type SlotState,
-  slotState,
+  slotLook,
   type TransomLabelText,
   transomLabel,
 } from './state';

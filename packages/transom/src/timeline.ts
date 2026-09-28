@@ -24,6 +24,15 @@ export const TIMELINE = {
   /** …then falls to the shelf with a tumble. */
   pieceDropAt: 470,
   pieceDrop: 800,
+  /** A letter going back to its place (reset, a quiz answer taken back). */
+  settle: 800,
+  /** Page choreography: the hero's first change, and the gap to its second. */
+  heroStart: 900,
+  heroStep: 3000,
+  /** The result page's reveal starts after this; letters follow `opGap` apart. */
+  revealStart: 500,
+  /** The name game plays its ops this long after the board appears. */
+  namerStart: 450,
 } as const;
 
 /**

@@ -18,7 +18,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { allCodes, classify, decode, type LetterState, statesToNails, WORD } from '@beda/core';
-import { fallRotation, fallX, mountFor } from '@beda/transom';
+import { BASELINE, fallRotation, fallX, glyphFor, UNITS_PER_EM } from '@beda/transom';
 import { Resvg } from '@resvg/resvg-js';
 import satori from 'satori';
 import sharp from 'sharp';
@@ -125,11 +125,27 @@ function glyph(letter: string, color: string, extra: Record<string, unknown> = {
   );
 }
 
+/**
+ * Nails (em from the slot's top-left) and hang of a letter from the generated
+ * glyph data; the card still centres each letter in a 0.75 em slot until S13a
+ * draws the board with the shared SVG renderer.
+ */
+function mount(letter: string) {
+  const g = glyphFor(letter);
+  if (!g) throw new Error(`no glyph for ${letter}`);
+  const off = (SLOT_W / EM - g.adv / UNITS_PER_EM) / 2;
+  const pts = g.nails.map(([x, y]): [number, number] => [
+    off + x / UNITS_PER_EM,
+    BASELINE + y / UNITS_PER_EM,
+  ]);
+  return { pts, hang: g.hang ?? 0, drop: (g.drop ?? 0) / UNITS_PER_EM };
+}
+
 function transom(nails: number[]): Node {
   const slots = WORD.map((letter, i) => {
     const count = nails[i] ?? 4;
-    const m = mountFor(letter);
-    const [ox, oy] = m.pts[0];
+    const m = mount(letter);
+    const [ox, oy] = m.pts[0] ?? [0, 0];
     const origin = `${ox * EM}px ${oy * EM}px`;
     const children: Node[] = [glyph(letter, C.plankHi)];
     const shadow = `0 ${0.025 * EM}px 0 ${C.glyphShadow}`;
@@ -147,7 +163,7 @@ function transom(nails: number[]): Node {
       children.push(
         glyph(letter, C.brass, {
           textShadow: shadow,
-          transform: `translate(${fallX(i) * EM}px, ${1.12 * EM}px) rotate(${fallRotation(i)}deg)`,
+          transform: `translate(${fallX(i) * EM}px, ${m.drop * EM}px) rotate(${fallRotation(i)}deg)`,
           transformOrigin: origin,
         }),
       );
