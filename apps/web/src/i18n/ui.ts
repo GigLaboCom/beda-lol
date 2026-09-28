@@ -216,8 +216,7 @@ const en: Record<Key, string> = {
   'hero.title2': 'No victory in sight.',
   'hero.cta': 'Inspect your vessel',
   'hero.ctaNote': '12 questions, a minute and a half',
-  'hero.caption':
-    'PO + BEDA = POBEDA (Russian for “victory”). Lose the PO — only BEDA, trouble, remains.',
+  'hero.caption': 'PROOF without its PR: all that’s left is “oof”.',
 
   'falls.title': 'Transom: falls and breaks',
   'falls.lead':

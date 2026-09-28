@@ -30,7 +30,7 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [ ] S08d Pun catalogue in core and the /dev/falls bench (contact sheet and English copy await the human)
 - [ ] S11a Name game with letter breaks (English word list awaits the human)
 - [ ] S14a Pun plaques and easter eggs (the breaking logo waits for a design decision)
-- [ ] S09a English word on the transom (waits for D2)
+- [ ] S09a English word on the transom (option A in place with a provisional word; D2 and the native-speaker check await the human)
 - [x] R1 ROADMAP: gamification and falls mapped into stages 2–6
 
 ## Stages 2–6
@@ -380,4 +380,19 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
   - The "Learned in stage 1" CSP note now describes the v2 transom (`data-v` + CSSOM, no `mounts.css`).
   - `docs/steps/README.md` order table and this file list stage 1b (S00a, S08a–S08d, S13a, S11a, S14a, S09a). Their step files stay in the plan pack, uncommitted, by the human's choice.
 - Deviations: none (docs only).
+
+### S09a — English board word, option A — 2026-09-28 (provisional word)
+- Done:
+  - `@beda/core/src/board.ts`: `getBoardWord(locale) → { letters, ops, result, story? }`.
+    - Russian: ПОБЕДА, ops П and О fall → БЕДА. `story` is `HERO_STEPS`, so the Russian hero is unchanged (П hangs on its last nail, О falls).
+    - English: the catalogue gag named by `EN_BOARD_GAG`, one line to change.
+  - The hero reads `getBoardWord(lang)`. It tells the story in nails when there is one, otherwise it plays the ops (`play`, or `finalState` under reduced motion).
+  - The `/en` caption tells the English pun instead of explaining the Russian one.
+  - The quiz stays on ПОБЕДА on both locales (option A).
+- Provisional word: **PROOF → OOF** (P and R fall, "without its PR"), the closest to ПО + БЕДА among the D2 candidates. Not checked with native speakers.
+- Verified:
+  - core 149 tests (`getBoardWord` valid and yields its result in both locales);
+  - Chromium and WebKit: `/` ends as before (П hanging, О fallen), and `/en` ends as OOF with P and R fallen;
+  - Biome, `astro check`, and typecheck, tests and build of every TS project pass.
+- [HUMAN] open: D2. Pick the English word (GOLD RUSH → COLD PUSH, BETA → PET, BEST BET → PEST PET, PROOF → OOF, POWER → OWE) with a native-speaker check, then set `EN_BOARD_GAG` and the `hero.caption` en copy, record D2 here and tick S09a.
 

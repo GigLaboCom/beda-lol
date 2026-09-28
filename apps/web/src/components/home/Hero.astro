@@ -1,10 +1,13 @@
 ---
-import { WORD } from '@beda/core';
+import { getBoardWord } from '@beda/core';
+import { fromOps } from '@beda/transom';
 import Transom from '@beda/transom/Transom.astro';
 import { getLangFromUrl, getLocalizedPath, useTranslations } from '../../i18n';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
+// The board word per locale (@beda/core): the Russian word, or a pun on /en.
+const board = getBoardWord(lang);
 ---
 
 <section class="hero" id="top">
@@ -19,30 +22,39 @@ const t = useTranslations(lang);
       </div>
     </div>
     <div>
-      <Transom letters={WORD} id="heroTransom" lang={lang} />
+      <div data-hero-board data-story={board.story ? JSON.stringify(board.story) : undefined} data-ops={JSON.stringify(board.ops)}>
+        <Transom state={fromOps(board.letters.join(''), board.ops)} id="heroTransom" lang={lang} />
+      </div>
       <p class="caption">{t('hero.caption')}</p>
     </div>
   </div>
 </section>
 
 <script>
-  // Hero sequence, once per load (HERO_STEPS on the TIMELINE). Under reduced
-  // motion the final state is shown at once.
-  import { HERO_STEPS } from '@beda/core';
+  // Hero sequence, once per load: a story in nails when the board word has
+  // one, otherwise the pun's ops. Under reduced motion the final state shows.
+  import type { Op } from '@beda/core';
   import { attachTransom } from '@beda/transom/client';
   import { TIMELINE } from '@beda/transom/timeline';
 
+  const host = document.querySelector<HTMLElement>('[data-hero-board]');
   const root = document.getElementById('heroTransom');
-  if (root) {
+  if (host && root) {
     const tr = attachTransom(root);
-    const last = HERO_STEPS[HERO_STEPS.length - 1];
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      if (last) tr.set(last, { animate: false });
-    } else {
-      HERO_STEPS.forEach((nails, i) => {
-        setTimeout(() => tr.set(nails), TIMELINE.heroStart + i * TIMELINE.heroStep);
-      });
-    }
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const story = host.dataset.story ? (JSON.parse(host.dataset.story) as number[][]) : null;
+    const ops = JSON.parse(host.dataset.ops ?? '[]') as Op[];
+    if (story) {
+      const last = story[story.length - 1];
+      if (reduce) {
+        if (last) tr.set(last, { animate: false });
+      } else {
+        story.forEach((nails, i) => {
+          setTimeout(() => tr.set(nails), TIMELINE.heroStart + i * TIMELINE.heroStep);
+        });
+      }
+    } else if (reduce) tr.finalState(ops);
+    else setTimeout(() => tr.play(ops), TIMELINE.heroStart);
   }
 </script>
 
