@@ -110,7 +110,7 @@ export default function FallsBench({ lang = 'ru' }: { lang?: Locale }) {
             <div class="stage-meta mono">{fmt(t('falls.meta'), { meta: copy.meta })}</div>
             <p class="stage-joke">{copy.joke}</p>
           </div>
-          <div class="controls" role="group" aria-label={t('falls.controls')}>
+          <fieldset class="controls" aria-label={t('falls.controls')}>
             <button class="btn btn-brass" type="button" onClick={play} disabled={playing}>
               {t('falls.play')}
             </button>
@@ -133,14 +133,14 @@ export default function FallsBench({ lang = 'ru' }: { lang?: Locale }) {
               />{' '}
               {t('falls.debug')}
             </label>
-          </div>
+          </fieldset>
         </div>
         <div class="stage-body" ref={stageRef} />
         <div class="status mono" role="status" aria-live="polite">
           {status}
         </div>
       </section>
-      <div class="filter" role="group" aria-label={t('falls.filter')}>
+      <fieldset class="filter" aria-label={t('falls.filter')}>
         {filters.map((f) => (
           <button
             key={f}
@@ -152,7 +152,7 @@ export default function FallsBench({ lang = 'ru' }: { lang?: Locale }) {
             {t(`falls.${f}`)}
           </button>
         ))}
-      </div>
+      </fieldset>
       <p class="sect mono">{t('falls.hint')}</p>
       <div class="gallery">
         {GAGS.map((g, i) => (
