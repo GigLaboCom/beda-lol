@@ -17,6 +17,7 @@ export { PIECES, type Polygon } from './pieces';
 export {
   BOARD_HEIGHT_EM,
   boardWidthEm,
+  CLASS_TOKENS,
   escapeHtml,
   fitSize,
   type RenderOptions,

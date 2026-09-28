@@ -23,3 +23,16 @@ describe('tokens.css', () => {
     expect(css).toContain(':root[data-theme="dark"]');
   });
 });
+
+describe('readTokens', () => {
+  it('reads the base palette and the dark overrides', async () => {
+    const { readTokens } = await import('./read');
+    const base = readTokens();
+    const dark = readTokens('dark');
+    expect(base.brass).toMatch(/^#[0-9a-f]{6}$/);
+    expect(base.tar).not.toBe(dark.tar);
+    expect(dark.brass).toBe(base.brass);
+    expect(base.display).toContain('Playfair Display');
+    expect(Object.keys(base).length).toBeGreaterThan(30);
+  });
+});

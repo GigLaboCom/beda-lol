@@ -26,7 +26,8 @@ import { fromOps } from '@beda/transom';
 
 | Export | What |
 | --- | --- |
-| `renderTransom({ letters, nails?, breaks?, broken?, state?, label?, labelText?, id?, idPrefix?, highlight?, debug? })` | SVG markup string with the state applied, `role="img"` and an `aria-label` |
+| `renderTransom({ letters, nails?, breaks?, broken?, state?, label?, labelText?, id?, idPrefix?, highlight?, debug?, standalone? })` | SVG markup string with the state applied, `role="img"` and an `aria-label`. `standalone: { palette }` (from `readTokens()` in `@beda/tokens/read`) gives a self-contained `<svg>` with the colours in a `<style>`, for resvg and share images |
+| `CLASS_TOKENS` | board class → colour token, shared by `transom.css` and the standalone style (a test checks) |
 | `attachTransom(root)` | `{ letters, nails, state, set(state \| nails, { animate }), play(ops, { k, onDone }), reset(), finalState(ops?), debug(on), destroy() }` |
 | `fromNails`, `fromOps`, `finalOf`, `transomLabel`, `BoardState`, `SlotState` | the state model: nails per slot (0–4) and a broken flag; `breaks[i]` is the piece slot `i` can lose, fixed at render time |
 | `boardWidthEm(letters)`, `BOARD_HEIGHT_EM`, `fitSize(letters, px, { min, max })` | board size in em, and the font size that fits a width |

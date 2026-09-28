@@ -23,6 +23,7 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [x] S00a Import the falls / puns / gamification bundle (stage 1 follow-up)
 - [x] S08b Glyph data and break table (stage 1 follow-up)
 - [ ] S08c Transom v2: SVG renderer and controller with falls and breaks (stage 1 follow-up; parity sheet awaits the human)
+- [ ] S13a Share images on the shared transom renderer (stage 1 follow-up; image sheet awaits the human)
 
 ## Stages 2–6
 See `ROADMAP.md`. Expand each into a step file before starting it.
@@ -256,4 +257,21 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
   - The namer keeps `set(nails)`: letters drop without the per-op timeline. S11a switches it to `play(ops)`.
 - Follow-ups: S13a (share images on `renderTransom`; `og.ts` still lays out the card with its own copy of the geometry and colours), S08d, S11a.
 - [HUMAN] open: review the parity sheet: before/after at 375 and 1280 px, ru and en; hero, quiz, the three result codes, a pillar article and the namer. Then tick S08c.
+
+### S13a — Share images on the shared transom renderer — 2026-09-28
+- Done:
+  - `@beda/tokens/read` has `readTokens(scheme)` and `parseTokens(css, scheme)`: the only parser of `tokens.css` for Node renderers. `base` is the `:root` palette; `dark` adds the `[data-theme="dark"]` overrides. `@beda/brand`'s colour test now uses it instead of its own regex.
+  - `renderTransom({ standalone: { palette } })` returns a self-contained `<svg xmlns>` with the board classes mapped to colours in an embedded `<style>`. `CLASS_TOKENS` is the one class → token map, and a test checks that `transom.css` maps the same classes to the same tokens.
+  - `apps/web/scripts/og.ts`:
+    - `C`, `EM`, `SLOT_*`, `GAP`, `PAD_*`, `NAIL`, `BOARD_*`, `SHELF_GAP`, the glyph and board builders and the S08c glyph adapter are deleted;
+    - the card layout stays in satori, and the board is the site's SVG as `<img src="data:image/svg+xml;base64,…">`, sized from `boardWidthEm` into the 580 px column;
+    - colours come from `readTokens()`, and the default card's board is `HERO_STEPS`;
+    - satori scales the embedded SVG correctly (as in S08a §6), so no separate resvg + sharp compositing is needed.
+  - Nx `web:og` inputs: `packages/transom/src/**` (with `glyphs.*.gen.ts`), `packages/tokens/src/tokens.css`, `read.ts` and `package.json`.
+- Numbers (local, 732 images): before 42.9 s and 11.5 MB (pre-S08c commit); after 29.2 s and 10.1 MB (−12 %, within ±20 %).
+- Verified:
+  - `grep -nE "#[0-9a-f]{6}" apps/web/scripts/og.ts` finds nothing;
+  - Biome, `astro check`, and typecheck, test and build of every TS project pass (transom 100 tests, tokens 11, brand 63).
+- Deviations: the palette is the `base` scheme, not `dark`. Share images have always used the `:root` values (`--tar` #1c140e); the `dark` scheme darkens `--tar` and `--hull`, which would change every card.
+- [HUMAN] open: review the image sheet `docs/scratch/1111/spike/shots/og.html` (222222, 002222, 112020, default, one article; before = pre-S08c). Then tick S13a.
 

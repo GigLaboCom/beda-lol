@@ -4,7 +4,9 @@
  *   public/og/default.png        — home page
  *   public/og/bukvy/<slug>.png   — one per pillar article
  *
- * satori lays the card out and turns text into paths; resvg renders the SVG;
+ * satori lays the card out and turns text into paths; the board is the site's
+ * SVG from renderTransom (standalone, colours from packages/tokens) embedded as
+ * an image; resvg renders the SVG;
  * sharp re-encodes to a palette PNG to keep 729 files small.
  * Run through Nx (`nx run web:og`), which caches public/og until the script,
  * @beda/core, @beda/transom or the fonts change.
@@ -17,8 +19,17 @@ import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
-import { allCodes, classify, decode, type LetterState, statesToNails, WORD } from '@beda/core';
-import { BASELINE, fallRotation, fallX, glyphFor, UNITS_PER_EM } from '@beda/transom';
+import {
+  allCodes,
+  classify,
+  decode,
+  HERO_STEPS,
+  type LetterState,
+  statesToNails,
+  WORD,
+} from '@beda/core';
+import { readTokens } from '@beda/tokens/read';
+import { BOARD_HEIGHT_EM, boardWidthEm, renderTransom } from '@beda/transom';
 import { Resvg } from '@resvg/resvg-js';
 import satori from 'satori';
 import sharp from 'sharp';
@@ -27,22 +38,8 @@ const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = resolve(here, '..');
 const repoRoot = resolve(webRoot, '../..');
 
-// Colours of the dark theme (packages/tokens/src/tokens.css).
-const C = {
-  tar: '#1c140e',
-  plank: '#6e4b2d',
-  seam: '#4b321e',
-  plankHi: '#8a6038',
-  shelf: '#a9834f',
-  hull: '#2a1e15',
-  text: '#ede4cf',
-  text2: '#d9cdb4',
-  muted: '#b8a385',
-  brass: '#d6a93e',
-  brassHi: '#ebc565',
-  hole: '#2a1d13',
-  glyphShadow: '#3a2412',
-};
+// The site's base (dark-first) palette, straight from packages/tokens.
+const T = readTokens();
 
 const DISPLAY = 'Playfair Display cyrillic, Playfair Display latin';
 const SANS = 'IBM Plex Sans cyrillic, IBM Plex Sans latin';
@@ -90,132 +87,21 @@ async function loadFonts() {
   return fonts;
 }
 
-// The board: the same geometry as the site's transom at 1em = EM px.
-const EM = 92;
-const SLOT_W = 0.75 * EM;
-const SLOT_H = 1.07 * EM;
-const GAP = 0.1 * EM;
-const PAD_X = 0.4 * EM;
-const PAD_TOP = 0.46 * EM;
-const PAD_BOTTOM = 0.5 * EM;
-const NAIL = 0.072 * EM;
-const BOARD_W = 6 * SLOT_W + 5 * GAP + 2 * PAD_X;
-const BOARD_H = PAD_TOP + SLOT_H + PAD_BOTTOM;
-const SHELF_GAP = 0.52 * EM;
-
-function glyph(letter: string, color: string, extra: Record<string, unknown> = {}): Node {
-  return h(
-    'div',
-    {
-      position: 'absolute',
-      left: 0,
-      top: 0,
-      width: SLOT_W,
-      height: SLOT_H,
-      display: 'flex',
-      justifyContent: 'center',
-      fontFamily: DISPLAY,
-      fontWeight: 900,
-      fontSize: EM,
-      lineHeight: `${SLOT_H}px`,
-      color,
-      ...extra,
-    },
-    letter,
-  );
-}
-
-/**
- * Nails (em from the slot's top-left) and hang of a letter from the generated
- * glyph data; the card still centres each letter in a 0.75 em slot until S13a
- * draws the board with the shared SVG renderer.
- */
-function mount(letter: string) {
-  const g = glyphFor(letter);
-  if (!g) throw new Error(`no glyph for ${letter}`);
-  const off = (SLOT_W / EM - g.adv / UNITS_PER_EM) / 2;
-  const pts = g.nails.map(([x, y]): [number, number] => [
-    off + x / UNITS_PER_EM,
-    BASELINE + y / UNITS_PER_EM,
-  ]);
-  return { pts, hang: g.hang ?? 0, drop: (g.drop ?? 0) / UNITS_PER_EM };
-}
+// The board is the site's own SVG (renderTransom), embedded as an image.
+const BOARD_BOX = 580;
 
 function transom(nails: number[]): Node {
-  const slots = WORD.map((letter, i) => {
-    const count = nails[i] ?? 4;
-    const m = mount(letter);
-    const [ox, oy] = m.pts[0] ?? [0, 0];
-    const origin = `${ox * EM}px ${oy * EM}px`;
-    const children: Node[] = [glyph(letter, C.plankHi)];
-    const shadow = `0 ${0.025 * EM}px 0 ${C.glyphShadow}`;
-    if (count >= 2) {
-      children.push(glyph(letter, C.brass, { textShadow: shadow }));
-    } else if (count === 1) {
-      children.push(
-        glyph(letter, C.brass, {
-          textShadow: shadow,
-          transform: `rotate(${m.hang}deg)`,
-          transformOrigin: origin,
-        }),
-      );
-    } else {
-      children.push(
-        glyph(letter, C.brass, {
-          textShadow: shadow,
-          transform: `translate(${fallX(i) * EM}px, ${m.drop * EM}px) rotate(${fallRotation(i)}deg)`,
-          transformOrigin: origin,
-        }),
-      );
-    }
-    m.pts.forEach(([x, y], k) => {
-      const on = k < count;
-      const size = on ? NAIL : NAIL * 0.72;
-      children.push(
-        h('div', {
-          position: 'absolute',
-          left: x * EM - size / 2,
-          top: y * EM - size / 2,
-          width: size,
-          height: size,
-          borderRadius: size,
-          backgroundColor: on ? C.brassHi : C.hole,
-        }),
-      );
-    });
-    return h(
-      'div',
-      { position: 'relative', display: 'flex', width: SLOT_W, height: SLOT_H },
-      children,
-    );
-  });
-
-  const board = h(
-    'div',
-    {
-      display: 'flex',
-      gap: GAP,
-      padding: `${PAD_TOP}px ${PAD_X}px ${PAD_BOTTOM}px`,
-      width: BOARD_W,
-      height: BOARD_H,
-      backgroundImage: `repeating-linear-gradient(180deg, ${C.plank} 0px, ${C.plank} ${0.4 * EM}px, ${C.seam} ${0.4 * EM}px, ${C.seam} ${0.42 * EM}px)`,
-      borderRadius: `${0.09 * EM}px ${0.09 * EM}px ${1.4 * EM}px ${1.4 * EM}px / ${0.09 * EM}px ${0.09 * EM}px ${0.75 * EM}px ${0.75 * EM}px`,
-      boxShadow: `inset 0 -${0.15 * EM}px ${0.25 * EM}px rgba(0,0,0,0.35), inset 0 ${0.05 * EM}px 0 ${C.plankHi}`,
+  const svg = renderTransom({ letters: WORD, nails, idPrefix: 'og-', standalone: { palette: T } });
+  const em = BOARD_BOX / boardWidthEm(WORD);
+  return {
+    type: 'img',
+    props: {
+      src: `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`,
+      width: Math.round(BOARD_BOX),
+      height: Math.round(BOARD_HEIGHT_EM * em),
+      style: {},
     },
-    slots,
-  );
-  const shelf = h('div', {
-    display: 'flex',
-    width: Math.min(7 * EM, BOARD_W + 60),
-    height: 0.55 * EM,
-    marginTop: SHELF_GAP,
-    borderTop: `${0.09 * EM}px solid ${C.shelf}`,
-    backgroundColor: C.hull,
-  });
-  return h('div', { display: 'flex', flexDirection: 'column', alignItems: 'center' }, [
-    board,
-    shelf,
-  ]);
+  };
 }
 
 function card(nails: number[], kicker: string, title: string, line: string): Node {
@@ -228,21 +114,21 @@ function card(nails: number[], kicker: string, title: string, line: string): Nod
       alignItems: 'center',
       gap: 48,
       padding: '48px 64px',
-      backgroundColor: C.tar,
-      color: C.text,
+      backgroundColor: T.tar,
+      color: T.text,
       fontFamily: SANS,
     },
     [
-      h('div', { display: 'flex', width: 580, justifyContent: 'center' }, [transom(nails)]),
+      h('div', { display: 'flex', width: BOARD_BOX, justifyContent: 'center' }, [transom(nails)]),
       h('div', { display: 'flex', flexDirection: 'column', flexGrow: 1, flexShrink: 1, gap: 20 }, [
         h(
           'div',
-          { fontFamily: MONO, fontSize: 16, letterSpacing: '0.12em', color: C.muted },
+          { fontFamily: MONO, fontSize: 16, letterSpacing: '0.12em', color: T.muted },
           kicker,
         ),
         h('div', { fontFamily: DISPLAY, fontWeight: 900, fontSize: 56, lineHeight: 1.04 }, title),
-        h('div', { fontSize: 24, lineHeight: 1.4, color: C.text2 }, line),
-        h('div', { marginTop: 20, fontFamily: MONO, fontSize: 22, color: C.brass }, SITE),
+        h('div', { fontSize: 24, lineHeight: 1.4, color: T['text-2'] }, line),
+        h('div', { marginTop: 20, fontFamily: MONO, fontSize: 22, color: T.brass }, SITE),
       ]),
     ],
   );
@@ -297,7 +183,7 @@ async function main() {
   if (!values.codes) {
     const home = await render(
       card(
-        [1, 0, 4, 4, 4, 4],
+        [...(HERO_STEPS.at(-1) ?? [])],
         'ЯХТА «БЕДА»',
         'ПО у тебя есть. Победы нет.',
         'Рубрика о пет-проектах, которые плывут без маркетинга.',

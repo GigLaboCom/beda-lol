@@ -26,6 +26,7 @@
     "@beda/core": "workspace:*"
   },
   "devDependencies": {
+    "@beda/tokens": "workspace:*",
     "@fontsource/playfair-display": "5.3.0",
     "@types/node": "22.20.4",
     "fontkitten": "1.0.3",

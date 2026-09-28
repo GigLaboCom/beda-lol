@@ -39,7 +39,9 @@
           "{projectRoot}/scripts/og.ts",
           "{projectRoot}/src/content/pillars/**/*",
           "{workspaceRoot}/packages/core/src/**/*",
-          "{workspaceRoot}/packages/transom/src/mounts.ts",
+          "{workspaceRoot}/packages/transom/src/**/*",
+          "{workspaceRoot}/packages/tokens/src/tokens.css",
+          "{workspaceRoot}/packages/tokens/src/read.ts",
           "{workspaceRoot}/packages/tokens/package.json",
           "{workspaceRoot}/pnpm-lock.yaml"
         ],

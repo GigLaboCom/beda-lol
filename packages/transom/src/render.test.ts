@@ -1,5 +1,9 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { readTokens } from '@beda/tokens/read';
 import { describe, expect, it } from 'vitest';
-import { boardWidthEm, fitSize, renderTransom } from './render';
+import { boardWidthEm, CLASS_TOKENS, fitSize, renderTransom } from './render';
 
 const WORD = ['П', 'О', 'Б', 'Е', 'Д', 'А'];
 
@@ -144,5 +148,32 @@ describe('fitSize', () => {
   it('gives a long name a smaller size', () => {
     const long = Array.from('BUG TRACKER PRO');
     expect(fitSize(long, 360)).toBeLessThan(fitSize(WORD, 360));
+  });
+});
+
+describe('standalone SVG', () => {
+  const palette = readTokens();
+
+  it('is a self-contained svg with the palette in a style block', () => {
+    const svg = renderTransom({ letters: WORD, standalone: { palette } });
+    expect(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg"')).toBe(true);
+    expect(svg).toContain(`.t-brass{fill:${palette.brass}}`);
+    expect(svg).not.toContain('var(--');
+    expect(svg).not.toContain('transom-wrap');
+  });
+
+  it('fails loudly on a missing colour', () => {
+    expect(() => renderTransom({ letters: WORD, standalone: { palette: {} } })).toThrow(/--plank/);
+  });
+
+  it('maps the same classes to the same tokens as transom.css', () => {
+    const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'transom.css'), 'utf8');
+    for (const [cls, token] of Object.entries(CLASS_TOKENS)) {
+      const rule = new RegExp(`\\.transom \\.${cls}(,[^{]*)?\\s*\\{\\s*fill: var\\(--${token}\\);`);
+      const shared = new RegExp(
+        `\\.transom \\.${cls},\\s*\\n\\.transom \\.[a-z-]+ \\{\\s*fill: var\\(--${token}\\);`,
+      );
+      expect(rule.test(css) || shared.test(css), `${cls} → --${token}`).toBe(true);
+    }
   });
 });

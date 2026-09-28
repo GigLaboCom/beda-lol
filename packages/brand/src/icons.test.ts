@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { readTokens } from '@beda/tokens/read';
 import { describe, expect, it } from 'vitest';
 import {
   aliases,
@@ -24,8 +25,6 @@ import { iconSvg, loadTile } from './render';
  */
 const PUBLIC_DIR = new URL('../../../apps/web/public/', import.meta.url);
 const publicFile = (url: string) => new URL(url.replace(/^\//, ''), PUBLIC_DIR);
-
-const tokensCss = readFileSync(new URL('../../tokens/src/tokens.css', import.meta.url), 'utf8');
 
 /** Width and height from a PNG's IHDR chunk. */
 function pngSize(file: URL): [number, number] {
@@ -94,15 +93,10 @@ describe('brand icons', () => {
 });
 
 describe('brand colours', () => {
-  /** Value of a custom property in the first block of tokens.css that declares it. */
-  const token = (css: string, name: string) =>
-    new RegExp(`${name}\\s*:\\s*(#[0-9a-f]{3,8})`, 'i').exec(css)?.[1]?.toLowerCase();
-  const darkBlock = tokensCss.slice(tokensCss.indexOf(':root[data-theme="dark"]'));
-
   it('match the design tokens', () => {
-    expect(token(tokensCss, '--tar')).toBe(BRAND_BACKGROUND);
-    expect(token(darkBlock, '--tar')).toBe(BRAND_BACKGROUND_DARK);
-    expect(token(tokensCss, '--brass')).toBe(BRAND_COLOR);
+    expect(readTokens().tar).toBe(BRAND_BACKGROUND);
+    expect(readTokens('dark').tar).toBe(BRAND_BACKGROUND_DARK);
+    expect(readTokens().brass).toBe(BRAND_COLOR);
   });
 
   it('match the tile artwork', () => {

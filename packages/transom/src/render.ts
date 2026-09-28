@@ -63,6 +63,45 @@ export interface RenderOptions {
   highlight?: number;
   /** Dev only: hinge, plumb line, centroid and piece outlines (shown with `.debug`). */
   debug?: boolean;
+  /**
+   * A self-contained `<svg>` (no wrapper, `xmlns`, colours in an embedded
+   * `<style>` from `palette`, token name → colour) for resvg / share images.
+   * The site uses `transom.css` instead; the class names are the same.
+   */
+  standalone?: { palette: Readonly<Record<string, string>> };
+}
+
+/** Colour of each board class, by token name (`transom.css` has the same rules). */
+export const CLASS_TOKENS: Readonly<Record<string, string>> = {
+  't-plank': 'plank',
+  't-seam': 'seam',
+  't-plank-hi': 'plank-hi',
+  't-ghost': 'plank-hi',
+  't-hull': 'hull',
+  't-shelf': 'shelf',
+  't-brass': 'brass',
+  't-shadow': 'glyph-shadow',
+  hole: 'hole',
+  nail: 'brass-hi',
+};
+
+/** The embedded stylesheet of a standalone board: the static rules of `transom.css`. */
+function standaloneStyle(palette: Readonly<Record<string, string>>): string {
+  const colour = (token: string) => {
+    const c = palette[token];
+    if (!c) throw new Error(`renderTransom: no colour for token --${token}`);
+    return c;
+  };
+  const rules = Object.entries(CLASS_TOKENS).map(
+    ([cls, token]) => `.${cls}{fill:${colour(token)}}`,
+  );
+  rules.push(
+    `.dim .t-brass{fill:${colour('plank-hi')}}`,
+    '.dim .t-shadow{fill:none}',
+    '.dim .nail{opacity:.35}',
+    '.layer-dbg,.d-cen,.d-poly{display:none}',
+  );
+  return `<style>${rules.join('')}</style>`;
 }
 
 const ESCAPES: Record<string, string> = {
@@ -277,14 +316,17 @@ export function renderTransom(options: RenderOptions): string {
     empty: labelText?.empty ?? RU_LABEL_TEXT.empty,
   };
   const idAttr = options.id ? ` id="${escapeHtml(options.id)}"` : '';
+  const xmlns = options.standalone ? ' xmlns="http://www.w3.org/2000/svg"' : '';
+  const style = options.standalone ? standaloneStyle(options.standalone.palette) : '';
   const svg =
-    `<svg class="transom still" role="img" aria-label="${aria}" viewBox="0 0 ${width} ${height}" width="${num(width / U)}em" height="${num(height / U)}em"` +
+    `<svg${xmlns} class="transom still" role="img" aria-label="${aria}" viewBox="0 0 ${width} ${height}" width="${num(width / U)}em" height="${num(height / U)}em"` +
     ` data-text="${escapeHtml(letters.join(''))}" data-label-prefix="${escapeHtml(words.prefix)}" data-label-empty="${escapeHtml(words.empty)}">` +
-    `<defs>${[...defs.values()].join('')}</defs>${background}` +
+    `${style}<defs>${[...defs.values()].join('')}</defs>${background}` +
     Object.entries(layers)
       .filter(([, html]) => html)
       .map(([name, html]) => `<g class="layer layer-${name}">${html}</g>`)
       .join('') +
     '</svg>';
+  if (options.standalone) return svg;
   return `<div class="transom-wrap"${idAttr} data-transom>${svg}</div>`;
 }
