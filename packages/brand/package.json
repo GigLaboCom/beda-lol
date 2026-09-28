@@ -1,0 +1,27 @@
+{
+  "name": "@beda/brand",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Brand sources for beda.lol (the tile mark) and the favicon / app-icon set generated from them",
+  "exports": {
+    "./icons": "./src/icons.ts",
+    "./tile.svg": "./src/tile.svg"
+  },
+  "files": [
+    "src"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "icons": "tsx scripts/generate-icons.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.4",
+    "sharp": "^0.35.4",
+    "tsx": "^4.23.15",
+    "typescript": "6.0.3",
+    "vitest": "5.0.2"
+  }
+}

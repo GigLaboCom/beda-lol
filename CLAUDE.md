@@ -30,6 +30,7 @@ Two repo-wide deviations from the spec apply everywhere: the TypeScript side is 
 - `packages/core` — pure TS logic (quiz, name search, result codec, later the storm game). No DOM, no framework.
 - `packages/transom` — the transom (name board) component: CSS, per-letter mounts, SSR markup + client controller.
 - `packages/tokens` — design tokens (CSS custom properties) and fonts.
+- `packages/brand` — brand sources (`src/tile.svg`) and the favicon / app-icon / manifest-icon set generated from them into `apps/web/public/` (committed). `task brand:icons` regenerates.
 - `packages/api-contract` — OpenAPI spec and generated TS client (added in stage 2).
 - `supabase/` — CLI config and migrations (the only source of schema). SQL for the API lives next to the Rust code in `sqlx::query!` macros.
 - `deploy/` — compose files, Caddyfile, scripts. One VPS, Docker Compose, Caddy with automatic TLS.
@@ -48,6 +49,7 @@ All common commands go through Task (`Taskfile.yml`). Prefer them over ad-hoc co
 | `task fmt` | format everything (Biome + `cargo +nightly fmt`) |
 | `pnpm nx run-many -t build` | Nx directly: build every TS project (also `test`, `lint`, `typecheck`); `pnpm nx graph` shows the project graph |
 | `task test` | unit tests only |
+| `task brand:icons` | regenerate favicons, app and manifest icons from `packages/brand/src/tile.svg` (commit the output) |
 | `task gen` | `cargo sqlx prepare --workspace` (+ OpenAPI codegen from stage 2) |
 | `task migrate:new -- <name>` | `supabase migration new <name>` |
 | `task db:reset` | `supabase db reset` (re-applies migrations and seed) |

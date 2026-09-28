@@ -161,3 +161,12 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
 - Deviations: English pillar **article bodies** are stubs (link back to the Russian article), per the chosen scope. OG images not translated (on hold). The ПОБЕДА pun is explained in English rather than re-punned ("PO + BEDA = POBEDA…").
 - Follow-ups: translate the six pillar articles to English and drop the stub; decide the English share-image story (`apps/web/scripts/og.ts`) when images come off hold; consider a locale cookie / `Accept-Language` redirect if desired.
 - [HUMAN] open: review the English UI copy in `apps/web/src/i18n/ui.ts` (and the English product copy in `packages/core`) for voice; decide whether `/en` should be linked/announced now.
+
+### Brand icons — favicon / app icons / manifest (out of step) — 2026-09-28
+- Ask: new icon (`4c-rivets-rust.svg`), full icon set with a web app manifest as in mnemoria-web, generator runnable from the repo root (future branding work lives there too); drop the old favicon.
+- Done: new package `packages/brand` (`@beda/brand`): `src/tile.svg` (the source), `src/tile.ts` (parses it and derives rounded / square / maskable / bare / mono variants), `src/icons.ts` (what is generated and linked; brand colours = `--tar` / `--brass`), `scripts/generate-icons.ts` (sharp → `apps/web/public/`: `favicon.svg`, `favicon.ico` 16/32/48, `favicon-*` 16–512, `android-chrome-*` 36–512, `maskable-icon-*` 192/512, `apple-touch-icon*` 152/167/180, `mstile-*` + `browserconfig.xml`, `safari-pinned-tab.svg`, `logo.svg`). Output committed. `Base.astro` renders `headLinks` / `headMeta` (icons, apple-touch, mask-icon, manifest, `theme-color` per scheme, msapplication). `/manifest.webmanifest` is a prerendered endpoint (name/description from the ru dictionary). Commands: `task brand:icons`, `pnpm brand:icons`.
+- Tests: `@beda/brand` — every linked file exists, PNG sizes match, SVG outputs and browserconfig are up to date with the source, brand colours match `tokens.css` and the artwork; parser/variant unit tests.
+- Deviations: the served SVGs drop the source's `<metadata>` (a C2PA provenance manifest, ≈ 7 KB); `src/tile.svg` keeps it. `packages/brand/src/*.svg` is excluded from Biome (the a11y rule misreads the title after `<metadata>`).
+- New deps: none new to the repo — `sharp`, `tsx` (same versions as in `web`) as dev deps of `@beda/brand`.
+- Follow-ups: OG/share art from the same package when branding continues.
+

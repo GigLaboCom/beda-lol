@@ -77,6 +77,11 @@ tasks:
     cmds:
       - DATABASE_URL='{{.LOCAL_DB_URL}}' cargo sqlx prepare --workspace --check
 
+  brand:icons:
+    desc: 'Favicons, app icons, manifest icons from packages/brand/src/tile.svg → apps/web/public (commit the result); -- --out <dir> to preview elsewhere'
+    cmds:
+      - pnpm --filter @beda/brand icons {{.CLI_ARGS}}
+
   fmt:
     desc: Format everything (Biome; nightly rustfmt — rustfmt.toml uses nightly-only options)
     cmds:

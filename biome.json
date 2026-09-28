@@ -17,6 +17,7 @@
       "!.sqlx",
       "!**/generated",
       "!**/public/og",
+      "!packages/brand/src/*.svg",
       "!pnpm-lock.yaml"
     ]
   },

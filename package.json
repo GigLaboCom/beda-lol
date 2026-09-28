@@ -12,7 +12,8 @@
     "lint": "biome check .",
     "typecheck": "nx run-many -t typecheck",
     "format": "biome format --write .",
-    "graph": "nx graph"
+    "graph": "nx graph",
+    "brand:icons": "pnpm --filter @beda/brand icons"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",

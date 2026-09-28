@@ -1,4 +1,5 @@
 ---
+import { headLinks, headMeta } from '@beda/brand/icons';
 import '@beda/tokens/tokens.css';
 import '@beda/tokens/fonts.css';
 import { displayFontUrl } from '@beda/tokens/preload';
@@ -80,7 +81,8 @@ const xDefaultHref = new URL(getLocalizedPath(basePath, 'ru'), Astro.site).href;
         </>
       )
     }
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    {headLinks.map((l) => <link rel={l.rel} href={l.href} type={l.type} sizes={l.sizes} color={l.color} />)}
+    {headMeta.map((m) => <meta name={m.name} content={m.content} media={m.media} />)}
     {robots && <meta name="robots" content={robots} />}
     <meta name="color-scheme" content="dark light" />
     <meta property="og:type" content={ogType} />
