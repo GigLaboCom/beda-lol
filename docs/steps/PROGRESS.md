@@ -20,13 +20,18 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [x] S12 Six pillar articles
 - [x] S13 Share images
 - [ ] S14 SEO baseline and stage 1 launch
-- [x] S00a Import the falls / puns / gamification bundle (stage 1 follow-up)
-- [x] S08b Glyph data and break table (stage 1 follow-up)
-- [ ] S08c Transom v2: SVG renderer and controller with falls and breaks (stage 1 follow-up; parity sheet awaits the human)
-- [ ] S13a Share images on the shared transom renderer (stage 1 follow-up; image sheet awaits the human)
-- [ ] S08d Pun catalogue in core and the /dev/falls bench (stage 1 follow-up; contact sheet and English copy await the human)
-- [ ] S11a Name game with letter breaks (stage 1 follow-up; English word list awaits the human)
-- [ ] S14a Pun plaques and easter eggs (stage 1 follow-up; the breaking logo waits for a design decision)
+
+## Stage 1b — Falls and puns
+- [x] S00a Import the falls / puns / gamification bundle
+- [x] S08a Spike: SVG glyph pipeline (no commit; findings in the plan pack)
+- [x] S08b Glyph data and break table
+- [ ] S08c Transom v2: SVG renderer and controller with falls and breaks (parity sheet awaits the human)
+- [ ] S13a Share images on the shared transom renderer (image sheet awaits the human)
+- [ ] S08d Pun catalogue in core and the /dev/falls bench (contact sheet and English copy await the human)
+- [ ] S11a Name game with letter breaks (English word list awaits the human)
+- [ ] S14a Pun plaques and easter eggs (the breaking logo waits for a design decision)
+- [ ] S09a English word on the transom (waits for D2)
+- [x] R1 ROADMAP: gamification and falls mapped into stages 2–6
 
 ## Stages 2–6
 See `ROADMAP.md`. Expand each into a step file before starting it.
@@ -361,4 +366,18 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
   - which gags may appear on public pages (ДОХОД → ЛОХ is off for now);
   - the footer pun's link target (none now, or the quiz);
   - the breaking logo. Options: redraw the fallen piece so it matches the gap, which changes the favicons; derive a separate intact drawing, which is a second drawing; or keep the logo static.
+
+### R1 — ROADMAP: gamification and falls mapped into stages 2–6 — 2026-09-28
+- Done:
+  - `docs/steps/ROADMAP.md` has a section "Gamification (tactic 09) — where it lands", with all 20 mechanics mapped to steps.
+  - One sentence was added to each named step (S18, S20, S26, S29, S30, S31, S32, S35, S36, S37), and the new steps S20a, S20b, S28a, S30a and S30b are listed.
+  - The binding "no shame" constraint is recorded: a pause without loss, everything can be switched off, no "you let everyone down" copy, public breaks only by choice. Steps S20–S35 must restate it.
+  - Single-source notes:
+    - S37 animates the generated glyph data in 3D;
+    - S36 takes the transom text from `@beda/transom`;
+    - S18 sends from a verified domain;
+    - S28a adds no break key without a render check.
+  - The "Learned in stage 1" CSP note now describes the v2 transom (`data-v` + CSSOM, no `mounts.css`).
+  - `docs/steps/README.md` order table and this file list stage 1b (S00a, S08a–S08d, S13a, S11a, S14a, S09a). Their step files stay in the plan pack, uncommitted, by the human's choice.
+- Deviations: none (docs only).
 

@@ -21,6 +21,15 @@ Each step is one Claude Code session that leaves the repo green (`task check` pa
 | S12 | Six pillar articles | 1 | S09 |
 | S13 | Share images (729 prebuilt) | 1 | S10 |
 | S14 | SEO baseline and launch of stage 1 | 1 | S10–S13, S06 |
+| S00a | Import the falls / puns / gamification bundle | 1b Falls and puns | — |
+| S08a | Spike: SVG glyph pipeline (no commit) | 1b | S00a |
+| S08b | Glyph data and break table | 1b | S08a |
+| S08c | Transom v2: SVG renderer and controller | 1b | S08b |
+| S13a | Share images on the shared renderer | 1b | S08c |
+| S08d | Pun catalogue in core, `/dev/falls` | 1b | S08c |
+| S11a | Name game with letter breaks | 1b | S08d |
+| S14a | Pun plaques and easter eggs | 1b | S08d |
+| S09a | English word on the transom (waits for D2) | 1b | S08c |
 | S15+ | Stages 2–6 | see `ROADMAP.md` | — |
 
 S01–S03 can run in parallel sessions if you want; S07 and S08 too.
