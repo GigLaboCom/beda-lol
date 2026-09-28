@@ -83,7 +83,7 @@
 }
 /* The swing plays only when a letter starts hanging (the client adds .swinging). */
 .slot.hang.swinging .g {
-  animation: transom-swing 2.8s ease-out;
+  animation: transom-swing 2.6s ease-out;
 }
 .slot.fall .g {
   transform: translate(var(--fx), var(--drop)) rotate(var(--fr));

@@ -5,6 +5,8 @@
  * Hand-tuned for Playfair Display Black; shared by the 2D board and, later, 3D.
  */
 
+import { fallRotation, fallX } from './geometry';
+
 export type Point = readonly [x: number, y: number];
 
 export interface Mount {
@@ -131,14 +133,4 @@ export function mountsCss(): string {
     lines.push(`.slot.i${i} {\n  --fx: ${num(fallX(i))}em;\n  --fr: ${fallRotation(i)}deg;\n}`);
   }
   return `${lines.join('\n')}\n`;
-}
-
-/** Deterministic horizontal drift of a fallen letter, in em (as in the prototype). */
-export function fallX(i: number): number {
-  return (i % 2 ? 1 : -1) * (0.04 + ((i * 37) % 10) / 70);
-}
-
-/** Deterministic tilt of a fallen letter, in degrees (as in the prototype). */
-export function fallRotation(i: number): number {
-  return (i % 2 ? 1 : -1) * (6 + ((i * 53) % 12));
 }

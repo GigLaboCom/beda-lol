@@ -51,7 +51,8 @@ All common commands go through Task (`Taskfile.yml`). Prefer them over ad-hoc co
 | `pnpm nx run-many -t build` | Nx directly: build every TS project (also `test`, `lint`, `typecheck`); `pnpm nx graph` shows the project graph |
 | `task test` | unit tests only |
 | `task brand:icons` | regenerate favicons, app and manifest icons from `packages/brand/src/tile.svg` (commit the output) |
-| `task gen` | `cargo sqlx prepare --workspace` (+ OpenAPI codegen from stage 2) |
+| `task transom:glyphs` | regenerate the transom glyph tables and the board charset from `packages/transom/glyphs.config.ts` (commit the output) |
+| `task gen` | `task transom:glyphs` + `cargo sqlx prepare --workspace` (+ OpenAPI codegen from stage 2) |
 | `task migrate:new -- <name>` | `supabase migration new <name>` |
 | `task db:reset` | `supabase db reset` (re-applies migrations and seed) |
 

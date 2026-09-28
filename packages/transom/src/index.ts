@@ -1,5 +1,15 @@
 export { attachTransom, type SetOptions, type TransomController } from './client';
-export { DEFAULT_MOUNT, fallRotation, fallX, MOUNTS, type Mount, mountFor } from './mounts';
+export * from './geometry';
+export {
+  type Glyph,
+  type GlyphBreak,
+  type GlyphTable,
+  glyphFor,
+  loadExt,
+  needsExt,
+} from './glyphs';
+export { DEFAULT_MOUNT, MOUNTS, type Mount, mountFor } from './mounts';
+export { PIECES, type Polygon } from './pieces';
 export { escapeHtml, type RenderOptions, renderTransom } from './render';
 export {
   EN_LABEL_TEXT,
@@ -9,3 +19,4 @@ export {
   type TransomLabelText,
   transomLabel,
 } from './state';
+export { opDuration, SWING_KEYFRAMES, TIMELINE } from './timeline';

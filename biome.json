@@ -16,6 +16,7 @@
       "!**/target",
       "!.sqlx",
       "!**/generated",
+      "!**/*.gen.ts",
       "!**/public/og",
       "!packages/brand/src/*.svg",
       "!pnpm-lock.yaml"

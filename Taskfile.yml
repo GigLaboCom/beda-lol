@@ -68,14 +68,22 @@ tasks:
       - supabase migration new {{.CLI_ARGS}}
 
   gen:
-    desc: Regenerate committed artefacts (sqlx offline data; needs the local database)
+    desc: Regenerate committed artefacts (transom glyphs; sqlx offline data, needs the local database)
     cmds:
+      - task: transom:glyphs
       - DATABASE_URL='{{.LOCAL_DB_URL}}' cargo sqlx prepare --workspace
 
   gen:check:
     desc: Fail if committed generated artefacts are stale (needs the local database)
     cmds:
+      - task: transom:glyphs
+      - git diff --exit-code -- packages/transom/src packages/core/src/charset.gen.ts
       - DATABASE_URL='{{.LOCAL_DB_URL}}' cargo sqlx prepare --workspace --check
+
+  transom:glyphs:
+    desc: 'Transom glyph tables (core + ext) and the board charset from packages/transom/glyphs.config.ts (commit the output)'
+    cmds:
+      - pnpm exec nx run @beda/transom:gen --outputStyle=static
 
   brand:icons:
     desc: 'Favicons, app icons, manifest icons from packages/brand/src/tile.svg → apps/web/public (commit the result); -- --out <dir> to preview elsewhere'

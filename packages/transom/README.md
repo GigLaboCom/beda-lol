@@ -27,3 +27,28 @@ import Transom from '@beda/transom/Transom.astro';
 Nails per slot: ≥ 2 on the board, 1 hanging (`.hang`), 0 fallen (`.fall`). The swing plays
 only when a letter starts hanging (`.swinging`, removed on `animationend`), so server-rendered
 hanging letters stay still. Reduced motion disables transitions and the swing.
+
+## Glyph data (S08b)
+
+Letter geometry is generated from the font, not tuned by hand. `renderTransom` still uses
+`MOUNTS` until S08c switches it over.
+
+| File | What |
+| --- | --- |
+| `glyphs.config.ts` | **Every generator input**: font files, family and weight, charset rules, core set, raster size, alpha thresholds, rivet letters, hinge overrides, fixed-glyph nails |
+| `src/glyphs.core.gen.ts`, `src/glyphs.ext.gen.ts` | generated tables: path, advance, ink box, nails (hinge first), centroid, hang, drop, and per break the piece polygon, its centroid and drop, the remainder's nails and hang. Glyph units, 1000 per em, y down, baseline at 0 |
+| `src/glyphs.ts` | `glyphFor(char)`, `needsExt(text)`, `loadExt()` (ext is a dynamic import) and the types |
+| `src/pieces.ts` | break pieces as fractions (x of the advance, y of the ink box), keyed by `BreakKey` from `@beda/core` |
+| `src/geometry.ts` | board sizes in em, drop formulas, deterministic fall drift and tilt |
+| `src/timeline.ts` | animation timeline in ms (doc 09 §4) |
+| `src/glyph-analysis.ts` | pure analysis for the generator: raster, ink box, nail snapping, centroids, hang angle |
+| `scripts/gen-glyphs.ts` | writes the tables and `packages/core/src/charset.gen.ts` (`BOARD_CHARSET`, `FALLING`) |
+
+Regenerate with `task transom:glyphs` (or `pnpm --filter @beda/transom gen`) and commit the
+output. `glyphs.test.ts` fails when the committed files differ from a fresh run, and pins the
+hang angles and the font-swap guards: every piece cuts ink, every remainder stays one piece of
+metal, every nail sits outside its piece.
+
+**Change the font:** edit `glyphs.config.ts` (and `packages/tokens`, a test checks they match),
+run `task transom:glyphs`, then check the breaks by rendering on `/dev/animacii`: the pieces
+are tuned to the letter shapes.
