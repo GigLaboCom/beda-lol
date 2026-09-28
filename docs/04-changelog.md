@@ -67,3 +67,17 @@ Template tells from the mockup (all-caps eyebrows, middle-dot joins, trailing ar
 ## Amendment П-2
 
 **p3 — API in Rust.** The backend moves from Go to Rust: axum + tower-http, tokio, sqlx with compile-time checked queries and committed offline data, jsonwebtoken + reqwest (rustls) for Supabase JWKS, tracing, governor, clap; cargo fmt/clippy/deny as the quality gate; cargo-chef + static musl build into distroless. Recorded in `docs/08-amendments.md` and the live spec. Claude Code kit: CLAUDE.md, BOOTSTRAP, S00–S05, S10, S11 and roadmap S15, S16, S19, S35 updated; S01 and S02 rewritten. OpenAPI now generated from Rust with utoipa (S15).
+
+## Falls, puns, gamification, icon
+
+**f1 — transom falls component (`src/transom-falls.html`).** One engine for whole-letter falls and partial letter breaks. Glyphs are measured at runtime from the rendered font: nails snap to ink outside the piece, centroid of the remainder gives the hang angle `atan2(dx, dy)`, remainder and piece are separate canvases cut by a per-break polygon. 31 gags (15 RU, 16 EN), language filter, stage with slow motion and debug overlay, gallery in final state. Documented in `docs/09-transom-falls-component.md`.
+
+**f2 — pun catalogue.** English and Russian brute-force searches with `wordfreq` (whole-letter drops, letter breaks, themed phrases, meaningful pairs PR/AD/ПО/ИТ), manual selection, every break rendered in Playfair Display Black. M → N rejected. Catalogue in `tactics/10-otval-katalog.md`, scripts in `tools/pun-search/`, renders in `design/puns/`.
+
+**f3 — gamification.** 20 mechanics with constraints and rollout order: `tactics/09-gamification.md`.
+
+**f4 — languages.** RU root + `/en`, English pun instead of translation, domain considerations: `tactics/11-yazyki.md`.
+
+**f5 — icon.** The uploaded ship's-wheel favicon reworked: five break variants and three rivet shades previewed at 16–360 px; chosen variant — rim opened into «C» with dark-brass rivets only at the break and on the fallen piece: `design/icon/`.
+
+Shipped instead of the chosen shade: `4c-rivets-rust.svg` (human's choice, 2026-09-28), source in `packages/brand/src/tile.svg`.

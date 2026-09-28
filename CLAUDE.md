@@ -11,8 +11,9 @@ Website for the personal-branding rubric «Яхта Беда» at https://beda.l
 | Current step and history | `docs/steps/PROGRESS.md` |
 | Step files | `docs/steps/SNN-*.md` |
 | Tactics (product behaviour, copy ideas; Russian) | `docs/tactics/` |
-| Working prototypes to port from | `archive/site/yacht-beda-site.html` (site, quiz, name game, tracker), `archive/src/` (three.js yacht, letter animation bench), `archive/design/canvas/` (mockup) |
-| Prototype tech docs | `docs/01-*.md` … `docs/06-*.md` |
+| Working prototypes to port from | `archive/site/yacht-beda-site.html` (site, quiz, name game, tracker), `archive/src/` (three.js yacht, letter animation bench, `transom-falls.html` — falls and letter breaks), `archive/design/canvas/` (mockup) |
+| Puns: break map, catalogue, rejected | `docs/tactics/10-otval-katalog.md` (renders in `archive/design/puns/`) |
+| Prototype tech docs | `docs/01-*.md` … `docs/06-*.md`, `docs/09-transom-falls-component.md` (falls engine) |
 
 `archive/` is read-only reference. Port from it; never edit it.
 

@@ -20,6 +20,7 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [x] S12 Six pillar articles
 - [x] S13 Share images
 - [ ] S14 SEO baseline and stage 1 launch
+- [x] S00a Import the falls / puns / gamification bundle (stage 1 follow-up)
 
 ## Stages 2–6
 See `ROADMAP.md`. Expand each into a step file before starting it.
@@ -170,3 +171,9 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
 - New deps: none new to the repo — `sharp`, `tsx` (same versions as in `web`) as dev deps of `@beda/brand`.
 - Follow-ups: OG/share art from the same package when branding continues.
 
+### S00a — Import the falls / puns / gamification bundle — 2026-09-28
+- Done: new reference material from the `yacht-beda` bundle moved to its permanent place. `docs/09-transom-falls-component.md`; `docs/tactics/09-gamification.md`, `10-otval-katalog.md`, `11-yazyki.md`; `archive/src/transom-falls.html`; `archive/design/icon/`, `archive/design/puns/`, `archive/tools/pun-search/`. Existing files merged: `docs/04-changelog.md` (f1–f5), `docs/tactics/00-concept.md` («См. также»), `archive/README.md` (tree and status rows, artifact link). Imported texts point at repo paths (`archive/src/…`, `docs/tactics/…`, `archive/design/…`, `archive/tools/…`). `CLAUDE.md` "Sources of truth" lists the falls prototype, doc 09 and the pun catalogue.
+- Deviations: step file lives in `docs/scratch/1111/steps/` (plan pack 1111, not committed by the human's choice). Superseded facts are marked, not rewritten: the domain is decided (`beda.lol`), `/en` is done, and the shipped icon is `4c` (the bundle recommended `4a`). Doc 09 §8 says the repo keeps one engine: no CSS-only transom next to it, and geometry is generated from the font. BEST LAUNCH → PEST LUNCH moved to «Отбраковано» because it rests on LAUNCH → LUNCH, which the author rejected (D2 recommendation). One location hint in `11-yazyki.md` was reworded. The bundle's own `HANDOFF.md` is not imported (personal info, private links), and neither is its `claude-code/` kit (older than the repo). `archive/tools/pun-search/*.py` are kept verbatim, bundle paths included; the README says so.
+- New deps: none.
+- Follow-ups: S08a spike (SVG glyph pipeline), then S08b–S08d, S13a, S11a, S14a; R1 (gamification into ROADMAP) any time.
+- [HUMAN] open: D2 (English board word, native-speaker check), D6 (namer charset), D7 (English gag copy) — see the plan pack.

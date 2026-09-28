@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Транец: компонент падений — ПОБЕДА и английские варианты</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Playfair+Display:wght@700;900&display=swap">
+<style>
+:root{
+  --tar:#1C140E; --hull:#2A1E15; --line:#3A2A1D;
+  --plank:#6E4B2D; --seam:#4B321E; --plank-hi:#8A6038; --shelf:#A9834F;
+  --text:#EDE4CF; --text-2:#D9CDB4; --muted:#B8A385; --brass:#D6A93E; --brass-hi:#EBC565; --rust-hi:#E88A62;
+  --display:'Playfair Display', Georgia, 'Times New Roman', serif;
+  --sans:'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --tar:#17100A; --hull:#261B13; } }
+:root[data-theme="dark"]{ --tar:#17100A; --hull:#261B13; }
+*,*::before,*::after{box-sizing:border-box}
+html{background:var(--tar)}
+body{margin:0; background:var(--tar); color:var(--text); font-family:var(--sans); font-size:16px; line-height:1.5}
+.wrap{max-width:1180px; margin:0 auto; padding:0 clamp(16px,4vw,48px)}
+header.top{padding:28px 0 8px}
+h1{font-family:var(--display); font-weight:900; font-size:clamp(30px,4.2vw,48px); line-height:1.05; margin:0 0 10px}
+.lead{color:var(--text-2); max-width:44em; margin:0}
+:focus-visible{outline:2px solid var(--brass-hi); outline-offset:3px; border-radius:3px}
+button{font:inherit; cursor:pointer}
+.btn{min-height:44px; padding:0 18px; border-radius:4px; border:1.5px solid var(--text); background:transparent; color:var(--text); font-weight:500}
+.btn:hover{background:rgba(237,228,207,.08)}
+.btn-brass{background:var(--brass); border-color:var(--brass); color:#1C140E; font-weight:600}
+.btn-brass:hover{background:var(--brass-hi)}
+.btn:disabled{opacity:.4; cursor:default}
+
+/* ---------- stage ---------- */
+.stage{margin:28px 0 12px; padding:clamp(18px,3vw,32px); background:var(--hull); border:1px solid var(--line); border-radius:8px}
+.stage-head{display:flex; justify-content:space-between; align-items:flex-start; gap:16px 24px; flex-wrap:wrap; margin-bottom:18px}
+.stage-title{font-family:var(--display); font-weight:900; font-size:clamp(24px,3vw,34px); line-height:1.1; margin:0}
+.stage-title .arrow{color:var(--muted); font-weight:700; padding:0 .25em}
+.stage-meta{font-family:var(--mono); font-size:13px; color:var(--muted); margin-top:6px}
+.stage-joke{color:var(--text-2); margin:6px 0 0; max-width:40em}
+.controls{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.controls label{display:flex; align-items:center; gap:8px; font-size:14px; color:var(--muted); cursor:pointer; min-height:44px}
+.stage-body{min-height:200px; display:flex; justify-content:center; align-items:flex-start; padding-top:8px}
+.status{font-family:var(--mono); font-size:13px; color:var(--brass); min-height:1.5em; margin-top:10px; text-align:center}
+
+/* ---------- gallery ---------- */
+.gallery{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:18px 0 40px}
+@media (max-width:980px){ .gallery{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:620px){ .gallery{grid-template-columns:minmax(0,1fr)} }
+.card{display:flex; flex-direction:column; gap:10px; padding:16px; background:var(--hull); border:1.5px solid var(--line); border-radius:6px; text-align:left; color:var(--text); min-height:180px}
+.card:hover{border-color:var(--muted)}
+.card[aria-pressed="true"]{border-color:var(--brass)}
+.card .t{font-family:var(--display); font-weight:700; font-size:17px; line-height:1.2}
+.card .t span{color:var(--muted); font-weight:400}
+.card .m{font-family:var(--mono); font-size:12px; color:var(--muted)}
+.card .mini{display:flex; justify-content:center; align-items:flex-start; min-height:74px}
+.sect{font-family:var(--mono); font-size:13px; color:var(--muted); margin:12px 0 0}
+.filter{display:flex; gap:8px; flex-wrap:wrap; margin-top:26px}
+.filter .btn[aria-pressed="true"]{border-color:var(--brass); color:var(--brass)}
+.card[hidden]{display:none}
+
+/* ---------- transom component ---------- */
+.tw{--k:1; display:inline-flex; flex-direction:column; align-items:center; max-width:100%}
+.transom{position:relative; display:flex; justify-content:center; gap:.08em; padding:.34em .36em .42em;
+  background:repeating-linear-gradient(180deg,var(--plank) 0,var(--plank) .4em,var(--seam) .4em,var(--seam) .42em);
+  border-radius:.09em .09em 1.4em 1.4em / .09em .09em .7em .7em;
+  box-shadow:inset 0 -.15em .25em rgba(0,0,0,.35), inset 0 .05em 0 var(--plank-hi)}
+.shelf{align-self:stretch; height:.5em; margin-top:.5em; border-top:.08em solid var(--shelf); background:rgba(0,0,0,.18)}
+.slot{position:relative; flex:none}
+.slot canvas{position:absolute; top:0; pointer-events:none}
+.slot .ghost,.slot .gpiece{opacity:0; transition:opacity .2s}
+.slot.moved .ghost,.slot.pmoved .gpiece{opacity:1}
+.slot .main{z-index:2; transition:transform calc(.8s * var(--k)) cubic-bezier(.25,.8,.35,1)}
+.slot .piece{z-index:3; transition:transform calc(.8s * var(--k)) cubic-bezier(.55,0,1,.45)}
+.slot.hang .main{transform:rotate(var(--hang)); animation:swing calc(2.6s * var(--k)) ease-out}
+.slot.fall .main{transform:translate(var(--fx), var(--drop)) rotate(var(--fr)); transition:transform calc(.75s * var(--k)) cubic-bezier(.55,0,1,.45)}
+.slot.crack .piece{animation:crack calc(.45s * var(--k)) linear}
+.slot.pdrop .piece{transform:translate(var(--pfx), var(--pdrop)) rotate(var(--pfr))}
+.tw.still .main,.tw.still .piece,.tw.still .nail{transition:none !important; animation:none !important}
+@keyframes swing{
+  0%{transform:rotate(0)} 16%{transform:rotate(calc(var(--hang) * 1.42))} 34%{transform:rotate(calc(var(--hang) * .7))}
+  52%{transform:rotate(calc(var(--hang) * 1.2))} 70%{transform:rotate(calc(var(--hang) * .88))}
+  86%{transform:rotate(calc(var(--hang) * 1.05))} 100%{transform:rotate(var(--hang))}
+}
+@keyframes crack{
+  0%,100%{transform:translate(0,0)} 20%{transform:translate(.012em,-.006em) rotate(1deg)}
+  40%{transform:translate(-.01em,.008em) rotate(-1.2deg)} 60%{transform:translate(.014em,.004em) rotate(1.4deg)}
+  80%{transform:translate(-.006em,-.01em) rotate(-.8deg)}
+}
+.hole,.nail{position:absolute; width:.07em; height:.07em; border-radius:50%; margin:-.035em 0 0 -.035em}
+.hole{background:#2A1D13; transform:scale(.72); z-index:1}
+.nail{background:var(--brass-hi); box-shadow:0 .01em 0 #2A1D13; z-index:4; transition:transform calc(.55s * var(--k)) cubic-bezier(.55,0,1,.45), opacity calc(.55s * var(--k))}
+.nail.off{transform:translateY(1.3em) translateX(-.06em); opacity:0}
+.slot .dbg{z-index:6; display:none}
+.tw.debug .dbg{display:block}
+@media (prefers-reduced-motion: reduce){
+  .slot .main,.slot .piece,.nail{transition:none !important; animation:none !important}
+}
+.err{padding:24px; text-align:center; color:var(--rust-hi)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Транец: общий компонент падений</h1>
+    <p class="lead">Один движок на оба вида поломок: буква срывается целиком — гвозди вылетают, она качается на последнем и падает на полку — или от неё откалывается кусок, и остаток читается как другая буква. Гвозди, центр тяжести, угол виса и линия разлома считаются по самому глифу.</p>
+  </header>
+
+  <section class="stage" aria-labelledby="stTitle">
+    <div class="stage-head">
+      <div>
+        <h2 class="stage-title" id="stTitle"></h2>
+        <div class="stage-meta" id="stMeta"></div>
+        <p class="stage-joke" id="stJoke"></p>
+      </div>
+      <div class="controls">
+        <button class="btn btn-brass" type="button" id="play">Отколоть</button>
+        <button class="btn" type="button" id="reset">Прибить обратно</button>
+        <label><input type="checkbox" id="slow"> Замедлить</label>
+        <label><input type="checkbox" id="dbg"> Линии разлома и гвозди</label>
+      </div>
+    </div>
+    <div class="stage-body" id="stage"></div>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <div class="filter" role="group" aria-label="Язык вариантов">
+    <button type="button" class="btn" data-lang="all" aria-pressed="true">Все</button>
+    <button type="button" class="btn" data-lang="ru" aria-pressed="false">Русские</button>
+    <button type="button" class="btn" data-lang="en" aria-pressed="false">English</button>
+  </div>
+  <p class="sect">Нажми на карточку, чтобы открыть её на сцене.</p>
+  <div class="gallery" id="gallery"></div>
+</div>
+
+<script>
+(function(){
+  /* =========================================================
+     Данные: шутки. ops — что происходит с буквой под индексом:
+       {i, fall:true}          — буква срывается целиком
+       {i, brk:'R>P'}          — откалывается кусок, остаётся другая буква
+     ========================================================= */
+  var GAGS = [
+    { lang:'ru', text:'ПОБЕДА', result:'БЕДА', ops:[{i:0,fall:true},{i:1,fall:true}], meta:'П и О срываются целиком', joke:'Оригинал: ПО есть, победы нет.' },
+    { lang:'ru', text:'ПОЛЁТ', result:'ЛЁГ', ops:[{i:0,fall:true},{i:1,fall:true},{i:4,brk:'Т>Г'}], meta:'снова ПО целиком, у Т — левая половина перекладины', joke:'Двойник ПОБЕДЫ: без ПО полёт превращается в «прод лёг».' },
+    { lang:'ru', text:'ПОЛНЫЙ ВПЕРЁД', result:'ПОЛНЫЙ ВРЕД', ops:[{i:8,fall:true},{i:9,fall:true},{i:11,brk:'Ё>Е'}], meta:'П и Е целиком, у Ё осыпаются точки', joke:'Морская команда стала диагнозом.' },
+    { lang:'ru', text:'СВОЙ ПРОЕКТ', result:'ОЙ ПРОЕКТ', ops:[{i:0,fall:true},{i:1,fall:true}], meta:'С и В', joke:'«Свой проект» — «ой, проект».' },
+    { lang:'ru', text:'ШТУРМАН', result:'ТУМАН', ops:[{i:0,fall:true},{i:3,fall:true}], meta:'Ш и Р', joke:'Штурмана нет — есть туман.' },
+    { lang:'ru', text:'МЕДАЛЬ', result:'МЕЛЬ', ops:[{i:2,fall:true},{i:3,fall:true}], meta:'Д и А', joke:'Шли за медалью, сели на мель.' },
+    { lang:'ru', text:'ДЕНЬГИ', result:'ЛЕНЬ', ops:[{i:0,brk:'Д>Л'},{i:4,fall:true},{i:5,fall:true}], meta:'основание Д, Г и И целиком', joke:'От денег осталась лень.' },
+    { lang:'ru', text:'ДОХОДНЫЙ', result:'ДОХЛЫЙ', ops:[{i:3,fall:true},{i:4,brk:'Д>Л'},{i:5,fall:true}], meta:'О и Н целиком, основание Д', joke:'Доходный проект оказался дохлым.' },
+    { lang:'ru', text:'ДОХОД', result:'ЛОХ', ops:[{i:0,brk:'Д>Л'},{i:3,fall:true},{i:4,fall:true}], meta:'основание Д, О и Д целиком', joke:'Грубовато, но честно.' },
+    { lang:'ru', text:'ОГОНЬ', result:'СОН', ops:[{i:0,brk:'О>С'},{i:1,fall:true},{i:4,fall:true}], meta:'кусок О, Г и Ь целиком', joke:'Было «огонь», стало «сон».' },
+    { lang:'ru', text:'ВЗЛЁТ', result:'ЛЁГ', ops:[{i:0,fall:true},{i:1,fall:true},{i:4,brk:'Т>Г'}], meta:'В и З целиком, половина перекладины Т', joke:'Взлёт закончился тем, что всё легло.' },
+    { lang:'ru', text:'ТРИУМФ', result:'РИФ', ops:[{i:0,fall:true},{i:3,fall:true},{i:4,fall:true}], meta:'Т, У, М — три буквы', joke:'Триумф налетел на риф.' },
+    { lang:'ru', text:'ПРИБЫЛЬ', result:'ПЫЛЬ', ops:[{i:1,fall:true},{i:2,fall:true},{i:3,fall:true}], meta:'Р, И, Б — три буквы', joke:'От прибыли осталась пыль.' },
+    { lang:'ru', text:'УДАЧНО', result:'ДНО', ops:[{i:0,fall:true},{i:2,fall:true},{i:3,fall:true}], meta:'У, А, Ч — три буквы', joke:'«Удачно» — это дно.' },
+    { lang:'ru', text:'ОХВАТ', result:'ОХ', ops:[{i:2,fall:true},{i:3,fall:true},{i:4,fall:true}], meta:'В, А, Т — три буквы', joke:'Охват в маркетинге: ох.' },
+    { lang:'en', text:'GOLD RUSH', result:'COLD PUSH', ops:[{i:0,brk:'G>C'},{i:5,brk:'R>P'}], meta:'шпора G, ножка R', joke:'Бум, на который все бежали, превратился в холодное навязчивое продвижение.' },
+    { lang:'en', text:'BEST BET', result:'PEST PET', ops:[{i:0,brk:'B>P'},{i:5,brk:'B>P'}], meta:'нижние чаши двух B', joke:'Верная ставка стала пет-проектом-вредителем.' },
+    { lang:'en', text:'BETA', result:'PET', ops:[{i:0,brk:'B>P'},{i:3,fall:true}], meta:'чаша B, буква A целиком', joke:'Твоя бета — просто пет-проект.' },
+    { lang:'en', text:'BIG BOOST', result:'BIG COST', ops:[{i:4,fall:true},{i:5,brk:'O>C'}], meta:'B целиком, кусок O', joke:'Ждал рывка роста, получил большие расходы.' },
+    { lang:'en', text:'STABLE', result:'STALL', ops:[{i:3,fall:true},{i:5,brk:'E>L'}], meta:'B целиком, перекладины E', joke:'Стабильный релиз заглох.' },
+    { lang:'en', text:'BEST LAUNCH', result:'PEST LUNCH', ops:[{i:0,brk:'B>P'},{i:6,fall:true}], meta:'чаша B, буква A целиком', joke:'Лучший запуск стал противным обедом.' },
+    { lang:'en', text:'GOALS', result:'COAL', ops:[{i:0,brk:'G>C'},{i:4,fall:true}], meta:'шпора G, буква S целиком', joke:'Цели превратились в уголь.' },
+    { lang:'en', text:'PROOF', result:'OOF', ops:[{i:0,fall:true},{i:1,fall:true}], meta:'P и R — то есть PR', joke:'Без пиара доказательство превращается в «уф».' },
+    { lang:'en', text:'POWER', result:'OWE', ops:[{i:0,fall:true},{i:4,fall:true}], meta:'P и R с краёв', joke:'Без пиара сила превращается в долг.' },
+    { lang:'en', text:'PITCH DECK', result:'PIT DECK', ops:[{i:3,fall:true},{i:4,fall:true}], meta:'C и H', joke:'Презентация для инвесторов стала ямой.' },
+    { lang:'en', text:'DEMAND', result:'DEAD', ops:[{i:2,fall:true},{i:4,fall:true}], meta:'M и N', joke:'Спрос мёртв.' },
+    { lang:'en', text:'BRAND', result:'BAD', ops:[{i:1,fall:true},{i:3,fall:true}], meta:'R и N', joke:'Про личный бренд.' },
+    { lang:'en', text:'ROBUST', result:'BUST', ops:[{i:0,fall:true},{i:1,fall:true}], meta:'R и O', joke:'«Надёжный» стал провалом.' },
+    { lang:'en', text:'HOCKEY STICK', result:'HOKEY SICK', ops:[{i:2,fall:true},{i:8,fall:true}], meta:'C и T', joke:'Рост «хоккейной клюшкой» оказался фальшивым и больным.' },
+    { lang:'en', text:'GROWTH', result:'ROT', ops:[{i:0,fall:true},{i:3,fall:true},{i:5,fall:true}], meta:'G, W, H — три буквы', joke:'Рост сгнил.' },
+    { lang:'en', text:'UNICORN', result:'CORN', ops:[{i:0,fall:true},{i:1,fall:true},{i:2,fall:true}], meta:'U, N, I — три буквы', joke:'Единорог стал кукурузой.' }
+  ];
+
+  /* Куски, которые откалываются: x — доля ширины буквы, y — доля высоты «чернил» (от верха до низа глифа). */
+  var PIECES = {
+    'R>P': [[0.42,0.53],[1.08,0.53],[1.08,1.03],[0.42,1.03]],
+    'B>P': [[0.40,0.53],[1.08,0.53],[1.08,1.03],[0.40,1.03]],
+    'G>C': [[0.50,0.46],[1.08,0.46],[1.08,0.95],[0.50,0.95]],
+    'O>C': [[0.60,0.30],[1.08,0.24],[1.08,0.76],[0.60,0.70]],
+    'E>L': [[0.33,-0.06],[1.08,-0.06],[1.08,0.62],[0.33,0.62]],
+    'E>F': [[0.33,0.80],[1.08,0.80],[1.08,1.03],[0.33,1.03]],
+    'W>V': [[-0.06,-0.06],[0.43,-0.06],[0.43,1.03],[-0.06,1.03]],
+    // кириллица (проверено на Playfair Display Black)
+    'Т>Г': [[-0.06,-0.06],[0.42,-0.06],[0.42,0.30],[-0.06,0.30]],
+    'Д>Л': [[-0.08,0.70],[1.08,0.70],[1.08,1.04],[-0.08,1.04]],
+    'Ё>Е': [[-0.06,-0.06],[1.08,-0.06],[1.08,0.19],[-0.06,0.19]],
+    'Й>И': [[-0.06,-0.06],[1.08,-0.06],[1.08,0.19],[-0.06,0.19]],
+    'Б>Ь': [[0.34,-0.06],[1.08,-0.06],[1.08,0.30],[0.34,0.30]],
+    'Б>Г': [[0.36,0.38],[1.08,0.38],[1.08,1.04],[0.36,1.04]],
+    'В>Р': [[0.40,0.53],[1.08,0.53],[1.08,1.04],[0.40,1.04]],
+    'П>Г': [[0.62,0.20],[1.08,0.20],[1.08,1.04],[0.62,1.04]],
+    'Щ>Ш': [[0.72,0.80],[1.08,0.80],[1.08,1.04],[0.72,1.04]],
+    'Ы>Ь': [[0.70,-0.06],[1.08,-0.06],[1.08,1.04],[0.70,1.04]],
+    'Ж>К': [[-0.08,-0.06],[0.38,-0.06],[0.38,1.04],[-0.08,1.04]],
+    'О>С': [[0.60,0.30],[1.08,0.24],[1.08,0.76],[0.60,0.70]]
+  };
+  var RIVETS = 'OQCGSОСЭЮФ';           // круглые буквы крепятся клёпками по овалу
+
+  /* ---------- глиф: измерение по отрисовке ---------- */
+  var BASE = 0.95, LINE = 1.25, PAD = 0.1;   // в em: базовая линия, высота ячейки, поля по бокам холста
+  var INK = '#D6A93E', SHADOW = '#3A2412', GHOST = '#8A6038';
+  var engines = {};
+  function engine(S){ return engines[S] || (engines[S] = makeEngine(S)); }
+  // S — разрешение растра буквы (px на 1em): на сцене крупнее, в карточках меньше, чтобы не есть память
+  function makeEngine(S){
+  var FONT = '900 ' + S + 'px "Playfair Display", Georgia, serif';
+  var cache = {};
+
+  function glyph(ch){
+    if (cache[ch]) return cache[ch];
+    var m = document.createElement('canvas').getContext('2d'); m.font = FONT;
+    var adv = m.measureText(ch).width;
+    var W = Math.ceil(adv + 2 * PAD * S), H = Math.ceil(LINE * S);
+    var c = document.createElement('canvas'); c.width = W; c.height = H;
+    var x = c.getContext('2d'); x.font = FONT; x.textBaseline = 'alphabetic'; x.fillStyle = '#000';
+    x.fillText(ch, PAD * S, BASE * S);
+    var a = x.getImageData(0, 0, W, H).data;
+    var x0 = W, y0 = H, x1 = -1, y1 = -1;
+    for (var yy = 0; yy < H; yy++) for (var xx = 0; xx < W; xx++) if (a[(yy * W + xx) * 4 + 3] > 128){
+      if (xx < x0) x0 = xx; if (xx > x1) x1 = xx; if (yy < y0) y0 = yy; if (yy > y1) y1 = yy;
+    }
+    cache[ch] = { ch:ch, adv:adv, W:W, H:H, alpha:a, ink:{x0:x0, y0:y0, x1:x1, y1:y1} };
+    return cache[ch];
+  }
+  // многоугольник куска в пикселях холста буквы
+  function piecePoly(g, key){
+    var P = PIECES[key]; if (!P) return null;
+    var left = PAD * S, top = g.ink.y0, h = g.ink.y1 - g.ink.y0;
+    return P.map(function(p){ return [left + p[0] * g.adv, top + p[1] * h]; });
+  }
+  function inPoly(px, py, poly){
+    var inside = false;
+    for (var i = 0, j = poly.length - 1; i < poly.length; j = i++){
+      var xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+      if (((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi)) inside = !inside;
+    }
+    return inside;
+  }
+  // точки крепления: цели в долях «чернил», притянутые к ближайшему пикселю металла (не на отлетающем куске)
+  function nails(g, poly){
+    var I = g.ink, w = I.x1 - I.x0, h = I.y1 - I.y0, T;
+    if (RIVETS.indexOf(g.ch) >= 0){
+      var cx = (I.x0 + I.x1) / 2, cy = (I.y0 + I.y1) / 2;
+      T = [[cx - .40*w, cy + .26*h],[cx - .40*w, cy - .26*h],[cx + .40*w, cy - .26*h],[cx + .40*w, cy + .26*h]];
+    } else {
+      T = [[I.x0 + .12*w, I.y0 + .12*h],[I.x1 - .12*w, I.y0 + .12*h],[I.x0 + .12*w, I.y1 - .12*h],[I.x1 - .12*w, I.y1 - .12*h]];
+    }
+    return T.map(function(t){
+      var best = null, bd = Infinity;
+      for (var y = I.y0; y <= I.y1; y += 2) for (var x = I.x0; x <= I.x1; x += 2){
+        if (g.alpha[(y * g.W + x) * 4 + 3] <= 160) continue;
+        if (poly && inPoly(x, y, poly)) continue;
+        var d = (x - t[0]) * (x - t[0]) + (y - t[1]) * (y - t[1]);
+        if (d < bd){ bd = d; best = [x, y]; }
+      }
+      return best || t;
+    });
+  }
+  function centroid(g, poly, invert){
+    var sx = 0, sy = 0, n = 0, I = g.ink;
+    for (var y = I.y0; y <= I.y1; y += 2) for (var x = I.x0; x <= I.x1; x += 2){
+      if (g.alpha[(y * g.W + x) * 4 + 3] <= 128) continue;
+      var inside = poly ? inPoly(x, y, poly) : false;
+      if (invert ? !inside : inside) continue;
+      sx += x; sy += y; n++;
+    }
+    return n ? [sx / n, sy / n] : [g.W / 2, g.H / 2];
+  }
+  // холст: вся буква / без куска / только кусок; цвет — латунь с тенью или «след» на доске
+  function paint(g, mode, poly, ghost){
+    var c = document.createElement('canvas'); c.width = g.W; c.height = g.H;
+    var x = c.getContext('2d'); x.font = FONT; x.textBaseline = 'alphabetic';
+    x.save();
+    if (mode === 'piece' && poly){ x.beginPath(); poly.forEach(function(p, i){ i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1]); }); x.closePath(); x.clip(); }
+    if (!ghost){ x.fillStyle = SHADOW; x.fillText(g.ch, PAD * S, BASE * S + 0.025 * S); }
+    x.fillStyle = ghost ? GHOST : INK; x.fillText(g.ch, PAD * S, BASE * S);
+    x.restore();
+    if (mode === 'keep' && poly){
+      x.globalCompositeOperation = 'destination-out';
+      x.beginPath(); poly.forEach(function(p, i){ i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1]); }); x.closePath(); x.fill();
+    }
+    return c;
+  }
+  function debugLayer(g, poly, pts, cen){
+    var c = document.createElement('canvas'); c.width = g.W; c.height = g.H;
+    var x = c.getContext('2d'); x.lineWidth = S * 0.012;
+    if (poly){ x.strokeStyle = '#ff5a36'; x.beginPath(); poly.forEach(function(p, i){ i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1]); }); x.closePath(); x.stroke(); }
+    x.fillStyle = '#66ccff'; pts.forEach(function(p){ x.beginPath(); x.arc(p[0], p[1], S * 0.02, 0, 7); x.fill(); });
+    x.fillStyle = '#7CFC9A'; x.beginPath(); x.arc(cen[0], cen[1], S * 0.022, 0, 7); x.fill();
+    x.strokeStyle = 'rgba(255,255,255,.35)'; x.lineWidth = S * 0.006; x.strokeRect(PAD * S, 0, g.adv, g.H);
+    return c;
+  }
+  return { S: S, glyph: glyph, piecePoly: piecePoly, nails: nails, centroid: centroid, paint: paint, debugLayer: debugLayer };
+  }
+
+  /* ---------- компонент ---------- */
+  function Transom(host, gag, opts){
+    opts = opts || {};
+    var E = engine(opts.res || 200), S = E.S;
+    var glyph = E.glyph, piecePoly = E.piecePoly, nails = E.nails, centroid = E.centroid, paint = E.paint, debugLayer = E.debugLayer;
+    var chars = Array.from(gag.text);
+    var opsAt = {}; gag.ops.forEach(function(o){ opsAt[o.i] = o; });
+    var tw = document.createElement('div'); tw.className = 'tw still';
+    var tr = document.createElement('div'); tr.className = 'transom';
+    tr.setAttribute('role', 'img');
+    tw.appendChild(tr);
+    var shelf = document.createElement('div'); shelf.className = 'shelf'; tw.appendChild(shelf);
+    var slots = [], totalEm = 0.72;
+    chars.forEach(function(ch, i){
+      var s = document.createElement('div'); s.className = 'slot';
+      if (ch === ' '){ s.style.width = '.3em'; s.style.height = LINE + 'em'; tr.appendChild(s); slots.push(null); totalEm += .38; return; }
+      var g = glyph(ch), op = opsAt[i];
+      var poly = op && op.brk ? piecePoly(g, op.brk) : null;
+      var pts = nails(g, poly);
+      var cen = centroid(g, poly, false);           // центр тяжести того, что остаётся (или всей буквы)
+      var wEm = g.adv / S; totalEm += wEm + .08;
+      s.style.width = wEm + 'em'; s.style.height = LINE + 'em';
+      function place(cv, cls){ cv.className = cls; cv.style.left = -PAD + 'em'; cv.style.width = (g.W / S) + 'em'; cv.style.height = (g.H / S) + 'em'; s.appendChild(cv); return cv; }
+      place(paint(g, 'full', null, true), 'ghost');
+      var main = place(paint(g, poly ? 'keep' : 'full', poly, false), 'main');
+      var piece = null;
+      if (poly){
+        place(paint(g, 'piece', poly, true), 'gpiece');
+        piece = place(paint(g, 'piece', poly, false), 'piece');
+        var pc = centroid(g, poly, true);
+        piece.style.transformOrigin = (pc[0] / S) + 'em ' + (pc[1] / S) + 'em';
+        s.style.setProperty('--pfx', ((i % 2 ? 1 : -1) * (.06 + (i % 3) * .05)).toFixed(3) + 'em');
+        s.style.setProperty('--pfr', ((i % 2 ? 1 : -1) * (25 + (i * 17) % 40)) + 'deg');
+        // кусок падает на полку: от его низа до верха полки
+        s.style.setProperty('--pdrop', (LINE - (g.ink.y1 / S) + .42 + .5 + (g.ink.y1 - pc[1]) / S * .2).toFixed(3) + 'em');
+      }
+      // гвозди
+      var nailEls = pts.map(function(p){
+        var ex = (p[0] / S - PAD), ey = p[1] / S;
+        var hole = document.createElement('i'); hole.className = 'hole'; hole.style.left = ex + 'em'; hole.style.top = ey + 'em'; s.appendChild(hole);
+        var n = document.createElement('i'); n.className = 'nail'; n.style.left = ex + 'em'; n.style.top = ey + 'em'; s.appendChild(n);
+        return n;
+      });
+      // вис на последнем гвозде: угол, при котором центр тяжести уходит точно под него
+      var hinge = pts[0], dx = cen[0] - hinge[0], dy = cen[1] - hinge[1];
+      var hangDeg = Math.atan2(dx, dy) * 180 / Math.PI;
+      main.style.transformOrigin = (hinge[0] / S) + 'em ' + (hinge[1] / S) + 'em';
+      s.style.setProperty('--hang', hangDeg.toFixed(1) + 'deg');
+      s.style.setProperty('--fx', ((i % 2 ? 1 : -1) * (.05 + (i * 37 % 10) / 80)).toFixed(3) + 'em');
+      s.style.setProperty('--fr', ((i % 2 ? 1 : -1) * (7 + (i * 53) % 12)) + 'deg');
+      s.style.setProperty('--drop', (LINE - (g.ink.y1 / S) + .42 + .5).toFixed(3) + 'em');
+      tr.appendChild(s);
+      slots.push({ el:s, main:main, piece:piece, nails:nailEls, op:op, g:g, poly:poly, pts:pts, cen:cen, place:place, dbg:null });
+    });
+    host.innerHTML = ''; host.appendChild(tw);
+
+    function fit(){
+      var avail = host.clientWidth || 300;
+      var px = Math.max(opts.min || 18, Math.min(opts.max || 110, avail / totalEm));
+      tw.style.fontSize = px.toFixed(1) + 'px';
+    }
+    fit();
+    var timers = [];
+    function later(fn, ms){ timers.push(setTimeout(fn, ms)); }
+    function label(done){
+      tr.setAttribute('aria-label', 'Надпись на транце: ' + (done ? gag.result : gag.text));
+    }
+    label(false);
+    function unstill(){ requestAnimationFrame(function(){ requestAnimationFrame(function(){ tw.classList.remove('still'); }); }); }
+    unstill();
+
+    var api = {
+      el: tw,
+      playing: false,
+      reset: function(){
+        timers.forEach(clearTimeout); timers = []; api.playing = false;
+        tw.classList.add('still');
+        slots.forEach(function(sl){
+          if (!sl) return;
+          sl.el.classList.remove('hang', 'fall', 'crack', 'pdrop', 'moved', 'pmoved');
+          sl.nails.forEach(function(n){ n.classList.remove('off'); });
+        });
+        label(false); unstill();
+      },
+      finalState: function(){
+        api.reset(); tw.classList.add('still');
+        slots.forEach(function(sl){
+          if (!sl || !sl.op) return;
+          if (sl.op.fall){ sl.nails.forEach(function(n){ n.classList.add('off'); }); sl.el.classList.add('moved', 'fall'); }
+          if (sl.op.brk){ sl.el.classList.add('pmoved', 'pdrop'); }
+        });
+        label(true); unstill();
+      },
+      play: function(k, onDone){
+        api.reset(); api.playing = true;
+        k = k || 1; tw.style.setProperty('--k', k);
+        var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduce){ api.finalState(); api.playing = false; if (onDone) onDone(); return; }
+        var t = 150, end = 0;
+        gag.ops.forEach(function(op){
+          var sl = slots[op.i]; if (!sl) return;
+          if (op.fall){
+            var start = t;
+            [3, 2, 1].forEach(function(n, j){ later(function(){ sl.nails[n].classList.add('off'); }, (start + j * 120) * k); });
+            later(function(){ sl.el.classList.add('moved', 'hang'); }, (start + 420) * k);
+            later(function(){ sl.nails[0].classList.add('off'); sl.el.classList.remove('hang'); sl.el.classList.add('fall'); }, (start + 420 + 2600) * k);
+            end = Math.max(end, start + 420 + 2600 + 800);
+          } else if (op.brk){
+            var s2 = t;
+            later(function(){ sl.el.classList.add('crack'); }, s2 * k);
+            later(function(){ sl.el.classList.remove('crack'); sl.el.classList.add('pmoved', 'pdrop'); }, (s2 + 470) * k);
+            end = Math.max(end, s2 + 470 + 850);
+          }
+          t += 520;
+        });
+        later(function(){ api.playing = false; label(true); if (onDone) onDone(); }, end * k);
+      },
+      debug: function(on){
+        if (on) slots.forEach(function(sl){ if (sl && !sl.dbg) sl.dbg = sl.place(debugLayer(sl.g, sl.poly, sl.pts, sl.cen), 'dbg'); });
+        tw.classList.toggle('debug', !!on);
+      },
+      fit: fit
+    };
+    return api;
+  }
+
+  /* ---------- страница ---------- */
+  var stageHost = document.getElementById('stage'), statusEl = document.getElementById('status');
+  var playBtn = document.getElementById('play'), resetBtn = document.getElementById('reset');
+  var slowBox = document.getElementById('slow'), dbgBox = document.getElementById('dbg');
+  var gallery = document.getElementById('gallery');
+  var stage = null, current = 0, minis = [];
+
+  function titleHTML(g){ return esc(g.text) + '<span class="arrow">→</span>' + esc(g.result); }
+  function esc(s){ return s.replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function select(i){
+    current = i; var g = GAGS[i];
+    document.getElementById('stTitle').innerHTML = titleHTML(g);
+    document.getElementById('stMeta').textContent = 'отваливается: ' + g.meta;
+    document.getElementById('stJoke').textContent = g.joke;
+    stage = Transom(stageHost, g, { min: 22, max: 104, res: 240 });
+    stage.debug(dbgBox.checked);
+    statusEl.textContent = '';
+    gallery.querySelectorAll('.card').forEach(function(c, j){ c.setAttribute('aria-pressed', String(j === i)); });
+  }
+  playBtn.addEventListener('click', function(){
+    if (!stage) return;
+    playBtn.disabled = true; statusEl.textContent = 'откалывается…';
+    stage.play(slowBox.checked ? 2.5 : 1, function(){ playBtn.disabled = false; statusEl.textContent = 'на транце: ' + GAGS[current].result; });
+  });
+  resetBtn.addEventListener('click', function(){ if (stage){ stage.reset(); playBtn.disabled = false; statusEl.textContent = ''; } });
+  dbgBox.addEventListener('change', function(){ if (stage) stage.debug(dbgBox.checked); minis.forEach(function(m){ m.debug(dbgBox.checked); }); });
+
+  function build(){
+    gallery.innerHTML = ''; minis = [];
+    GAGS.forEach(function(g, i){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'card'; b.setAttribute('aria-pressed', 'false');
+      b.innerHTML = '<div class="t">' + esc(g.text) + ' <span>→</span> ' + esc(g.result) + '</div><div class="m">' + esc(g.meta) + '</div><div class="mini"></div>';
+      b.addEventListener('click', function(){ select(i); window.scrollTo({ top: document.querySelector('.stage').offsetTop - 12, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); });
+      gallery.appendChild(b);
+      var m = Transom(b.querySelector('.mini'), g, { min: 14, max: 42, res: 96 });
+      m.finalState(); minis.push(m);
+    });
+    select(current);
+  }
+
+  document.querySelectorAll('.filter [data-lang]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var L = b.getAttribute('data-lang');
+      document.querySelectorAll('.filter [data-lang]').forEach(function(x){ x.setAttribute('aria-pressed', String(x === b)); });
+      gallery.querySelectorAll('.card').forEach(function(c, i){ c.hidden = !(L === 'all' || GAGS[i].lang === L); });
+      minis.forEach(function(m){ m.fit(); });
+    });
+  });
+
+  var resizeT;
+  window.addEventListener('resize', function(){
+    clearTimeout(resizeT);
+    resizeT = setTimeout(function(){ if (stage) stage.fit(); minis.forEach(function(m){ m.fit(); }); }, 120);
+  });
+
+  var sample = 'ПОБЕДАЛЁТНЫЙВРСКШУМЬГИХЧФЗЖЩЪЭЮЯGOLDRUSHBESTTALNCKWIYMPRU';
+  var ready = document.fonts && document.fonts.load ? document.fonts.load('900 64px "Playfair Display"', sample) : Promise.resolve();
+  Promise.race([ready, new Promise(function(r){ setTimeout(r, 2500); })]).then(function(){
+    try { build(); } catch (e){ stageHost.innerHTML = '<div class="err">Не удалось отрисовать транец: ' + esc(String(e.message || e)) + '</div>'; }
+  });
+})();
+</script>
+</body>
+</html>
