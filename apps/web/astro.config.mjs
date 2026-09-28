@@ -12,6 +12,11 @@ const site = process.env.BEDA_BASE_URL ?? 'https://beda.lol';
 // stack (default), or any running backend, e.g. BEDA_API_URL=https://beda.lol.
 const apiUrl = process.env.BEDA_API_URL ?? 'http://localhost:8080';
 
+// Interface for `astro dev`, `astro preview` and the standalone server: all of
+// them by default, like the API, so a dev container or a phone on the LAN can
+// reach it. BEDA_WEB_HOST=127.0.0.1 keeps it local. At runtime HOST still wins.
+const host = process.env.BEDA_WEB_HOST ?? '0.0.0.0';
+
 // Pillar articles still marked `draft: true` carry noindex and stay out of the sitemap.
 const pillarsDir = new URL('./src/content/pillars/', import.meta.url);
 const pillarFiles = readdirSync(pillarsDir).filter((f) => f.endsWith('.md'));
@@ -31,6 +36,7 @@ export default defineConfig({
   site,
   // One URL per page: no trailing slash (Caddy and the Node server redirect).
   trailingSlash: 'never',
+  server: { host },
   // Pages are prerendered by default; UGC, personal and service routes opt out
   // with `export const prerender = false` and are served by the Node server.
   output: 'static',
