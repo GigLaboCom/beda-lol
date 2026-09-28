@@ -1,4 +1,5 @@
 export * from './letters';
+export * from './locale';
 export * from './namer';
 export * from './quiz';
 export * from './quiz-session';

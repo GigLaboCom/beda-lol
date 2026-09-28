@@ -1,27 +1,5 @@
 ---
-import JsonLd from '../components/JsonLd.astro';
-import NamerIsland from '../components/namer/NamerIsland';
-import { t } from '../i18n/ru';
-import Base from '../layouts/Base.astro';
-import { breadcrumbList } from '../lib/jsonld';
-import '../styles/namer.css';
-import '@beda/transom/transom.css';
-
-const crumbs = breadcrumbList(Astro.site, [
-  { name: t('site.name'), path: '/' },
-  { name: t('nav.namer'), path: '/kak-nazovesh' },
-]);
+import NamerGame from '../components/pages/NamerGame.astro';
 ---
 
-<Base title={t('namerPage.title')} description={t('namerPage.description')}>
-  <JsonLd slot="head" data={crumbs} />
-  <section class="namer-page light">
-    <div class="wrap">
-      <p class="kicker">{t('namerPage.kicker')}</p>
-      <h1 class="display">{t('namer.title')}</h1>
-      <p class="lead">{t('namerPage.lead')}</p>
-      <NamerIsland client:visible />
-      <p class="more"><a class="btn btn-ink" href="/osmotr">{t('namerPage.again')}</a></p>
-    </div>
-  </section>
-</Base>
+<NamerGame />

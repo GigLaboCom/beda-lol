@@ -1,4 +1,4 @@
-import { slotState, transomLabel } from './state';
+import { slotState, type TransomLabelText, transomLabel } from './state';
 
 export interface SetOptions {
   /** Animate the change (default true). `false` jumps to the state instantly. */
@@ -22,9 +22,15 @@ interface Slot {
  * applies state changes with the prototype's motion: nails drop, a letter
  * swings when it starts hanging, falls onto the shelf at zero.
  */
-export function attachTransom(root: HTMLElement): TransomController {
+export function attachTransom(root: HTMLElement, labelText?: TransomLabelText): TransomController {
   const board = root.matches('.transom') ? root : root.querySelector<HTMLElement>('.transom');
   if (!board) throw new Error('attachTransom: no .transom element inside the root');
+
+  // Prefer an explicit override; otherwise read the wording rendered into the DOM.
+  const words: TransomLabelText = labelText ?? {
+    prefix: board.dataset.labelPrefix,
+    empty: board.dataset.labelEmpty,
+  };
 
   const letters: string[] = [];
   const slots: (Slot | null)[] = [];
@@ -72,7 +78,7 @@ export function attachTransom(root: HTMLElement): TransomController {
       }
     });
 
-    board?.setAttribute('aria-label', transomLabel(letters, current));
+    board?.setAttribute('aria-label', transomLabel(letters, current, words));
   }
 
   return {

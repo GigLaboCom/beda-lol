@@ -5,7 +5,16 @@ import { displayFontUrl } from '@beda/tokens/preload';
 import '../styles/global.css';
 import SiteFooter from '../components/SiteFooter.astro';
 import SiteHeader from '../components/SiteHeader.astro';
-import { t } from '../i18n/ru';
+import {
+  getLangFromUrl,
+  getLocalizedPath,
+  htmlLang,
+  type Locale,
+  locales,
+  ogLocale,
+  stripLocale,
+  useTranslations,
+} from '../i18n';
 
 interface Props {
   title?: string;
@@ -18,24 +27,42 @@ interface Props {
   ogImage?: string;
   ogImageAlt?: string;
   ogType?: 'website' | 'article';
+  /** Override the locale (defaults to the one in the URL). */
+  lang?: Locale;
+  /** Emit hreflang alternate links (default true). Turn off for one-locale pages. */
+  alternates?: boolean;
 }
+
+const lang = Astro.props.lang ?? getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
 
 const {
   title = t('site.title'),
   description = t('site.description'),
   canonical = Astro.url.pathname,
   robots,
+  // NOTE: OG/share images are Russian-only for now (translation on hold); both
+  // locales reuse the same cards until the image story is decided.
   ogImage = '/og/default.png',
   ogImageAlt = t('og.defaultAlt'),
   ogType = 'website',
+  alternates = true,
 } = Astro.props;
 const canonicalUrl = new URL(canonical, Astro.site).href;
 const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
 const ogImageUrl = new URL(ogImage, Astro.site).href;
+
+// hreflang alternates: the same page in every locale, plus x-default → the default locale.
+const basePath = stripLocale(Astro.url.pathname);
+const localeAlternates = locales.map((l) => ({
+  hreflang: htmlLang[l],
+  href: new URL(getLocalizedPath(basePath, l), Astro.site).href,
+}));
+const xDefaultHref = new URL(getLocalizedPath(basePath, 'ru'), Astro.site).href;
 ---
 
 <!doctype html>
-<html lang="ru">
+<html lang={htmlLang[lang]}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -43,11 +70,21 @@ const ogImageUrl = new URL(ogImage, Astro.site).href;
     <link rel="preload" href={displayFontUrl} as="font" type="font/woff2" crossorigin />
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalUrl} />
+    {
+      alternates && (
+        <>
+          {localeAlternates.map((a) => (
+            <link rel="alternate" hreflang={a.hreflang} href={a.href} />
+          ))}
+          <link rel="alternate" hreflang="x-default" href={xDefaultHref} />
+        </>
+      )
+    }
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     {robots && <meta name="robots" content={robots} />}
     <meta name="color-scheme" content="dark light" />
     <meta property="og:type" content={ogType} />
-    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:locale" content={ogLocale[lang]} />
     <meta property="og:site_name" content={t('site.name')} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />

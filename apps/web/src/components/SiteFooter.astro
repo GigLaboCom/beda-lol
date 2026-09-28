@@ -1,9 +1,12 @@
 ---
-import { isPlaceholder, t } from '../i18n/ru';
+import { getLangFromUrl, getLocalizedPath, isPlaceholder, useTranslations } from '../i18n';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
 
 const links = [
   { href: t('foot.channelHref'), label: t('foot.channel') },
-  { href: '/#journal', label: t('foot.journal') },
+  { href: `${getLocalizedPath('/', lang)}#journal`, label: t('foot.journal') },
   { href: t('foot.contactHref'), label: t('foot.write') },
 ];
 ---

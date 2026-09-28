@@ -1,8 +1,8 @@
 import { findRemoval, MAX_NAME_LENGTH, normalizeName, type Verdict, verdict } from '@beda/core';
-import { renderTransom } from '@beda/transom';
+import { EN_LABEL_TEXT, renderTransom } from '@beda/transom';
 import { attachTransom } from '@beda/transom/client';
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { t } from '../../i18n/ru';
+import { type Locale, useTranslations } from '../../i18n';
 import { recordNamerPlayed } from '../../lib/api';
 
 /** Letter size for a name of `n` slots in `avail` px, as in the prototype. */
@@ -14,7 +14,9 @@ function reducedMotion(): boolean {
   return matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-export default function NamerIsland() {
+export default function NamerIsland({ lang = 'ru' }: { lang?: Locale }) {
+  const t = useTranslations(lang);
+  const labelText = lang === 'en' ? EN_LABEL_TEXT : undefined;
   const [input, setInput] = useState('');
   const [result, setResult] = useState<Verdict | null>(null);
   const outRef = useRef<HTMLDivElement>(null);
@@ -40,7 +42,7 @@ export default function NamerIsland() {
     slots.current = letters.length;
 
     // The board is plain DOM owned by the transom controller, not by Preact.
-    board.innerHTML = renderTransom({ letters });
+    board.innerHTML = renderTransom({ letters, labelText });
     fit();
     const root = board.firstElementChild as HTMLElement;
     const tr = attachTransom(root);
@@ -49,7 +51,7 @@ export default function NamerIsland() {
     if (reducedMotion()) tr.set(fallen, { animate: false });
     else timer.current = window.setTimeout(() => tr.set(fallen), 450);
 
-    setResult(verdict(typed, removal));
+    setResult(verdict(typed, removal, lang));
     const url = new URL(location.href);
     url.searchParams.set('name', typed);
     history.replaceState(null, '', url);

@@ -1,5 +1,7 @@
 ---
-import { t } from '../../i18n/ru';
+import { getLangFromUrl, useTranslations } from '../../i18n';
+
+const t = useTranslations(getLangFromUrl(Astro.url));
 ---
 
 <section class="section sea" id="triangle">

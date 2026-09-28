@@ -1,0 +1,22 @@
+---
+import { getLangFromUrl, getLocalizedPath, useTranslations } from '../../i18n';
+import Base from '../../layouts/Base.astro';
+import { breadcrumbList } from '../../lib/jsonld';
+import JsonLd from '../JsonLd.astro';
+import QuizIsland from '../quiz/QuizIsland';
+import '../../styles/quiz.css';
+import '@beda/transom/transom.css';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const crumbs = breadcrumbList(Astro.site, [
+  { name: t('site.name'), path: getLocalizedPath('/', lang) },
+  { name: t('nav.osmotr'), path: getLocalizedPath('/osmotr', lang) },
+]);
+---
+
+<Base title={t('quiz.title')} description={t('quiz.description')}>
+  <JsonLd slot="head" data={crumbs} />
+  <QuizIsland client:load lang={lang} />
+</Base>

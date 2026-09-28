@@ -1,9 +1,11 @@
 /**
- * Russian UI copy. Every user-facing string goes through this dictionary,
- * even while Russian is the only language. Wording follows the prototype
- * (archive/site/yacht-beda-site.html); placeholders stay in square brackets.
+ * UI copy per locale. Every user-facing interface string goes through this
+ * dictionary. Russian is the source of truth; English mirrors every key.
+ * Long-form content (pillar articles) lives in content collections, not here.
  */
-export const ru = {
+import type { Locale } from './config';
+
+const ru = {
   'site.name': 'Яхта «Беда»',
   'site.title': 'Яхта «Беда» — рубрика о пет-проектах',
   'site.description':
@@ -18,6 +20,7 @@ export const ru = {
   'nav.letters': 'Буквы',
   'nav.harbor': 'Гавань',
   'nav.journal': 'Журнал',
+  'nav.language': 'Язык',
   'head.cta': 'Подписаться на рубрику',
 
   'foot.about':
@@ -26,7 +29,6 @@ export const ru = {
   'foot.channel': 'Канал рубрики',
   'foot.journal': 'Журнал',
   'foot.write': 'Написать',
-  /** Real URLs replace these placeholders; until then the links render as plain text. */
   'foot.channelHref': '[ссылка на канал]',
   'foot.contactHref': '[контакт]',
 
@@ -152,23 +154,179 @@ export const ru = {
   'letters.crumbs': 'Хлебные крошки',
   'letters.pager': 'Соседние буквы',
   'letters.cta': 'Посмотри, какие буквы держатся у твоего проекта.',
+  'pillar.stub': 'Полный текст этой главы пока только на русском.',
+  'pillar.stubLink': 'Читать по-русски',
+
+  'notFound.title': 'Здесь только вода',
+  'notFound.text': 'Такой страницы нет. Можно вернуться в гавань или осмотреть своё судно.',
+  'notFound.home': 'На главную',
+  'notFound.pageTitle': 'Не найдено — Яхта «Беда»',
 
   'og.defaultAlt': 'Транец яхты «Беда»: буквы П и О отвалились, осталось БЕДА',
 } as const;
 
 export type Key = keyof typeof ru;
 
-/** Looks up a string; keys are type-checked. */
-export function t(key: Key): string {
-  return ru[key];
-}
+const en: Record<Key, string> = {
+  'site.name': 'Yacht “Beda”',
+  'site.title': 'Yacht “Beda” — a rubric about pet projects',
+  'site.description':
+    'A rubric for those who build pet projects sailing on the yacht “Beda”: the code gets written, the marketing never happens. Come inspect your vessel and nail the letters back on.',
+  'common.soon': 'coming soon',
+  'a11y.skip': 'Skip to content',
 
-/** Placeholder values like `[ссылка на канал]` are not real URLs yet. */
-/** Fills `{name}` slots: `fmt(t('quiz.count'), { n: 3 })`. */
-export function fmt(template: string, values: Record<string, string | number>): string {
-  return template.replace(/\{(\w+)\}/g, (m, k: string) => (k in values ? String(values[k]) : m));
-}
+  'head.logoLabel': 'Yacht “Beda”, go to home',
+  'head.navLabel': 'Sections',
+  'nav.osmotr': 'Ship inspection',
+  'nav.namer': 'What’s in a name',
+  'nav.letters': 'Letters',
+  'nav.harbor': 'Harbour',
+  'nav.journal': 'Log',
+  'nav.language': 'Language',
+  'head.cta': 'Subscribe to the rubric',
 
-export function isPlaceholder(value: string): boolean {
-  return value.startsWith('[') && value.endsWith(']');
-}
+  'foot.about':
+    'The rubric is run by Denis — developer and solo founder. Sailing on “Beda” himself and keeping the log in public.',
+  'foot.navLabel': 'Contacts',
+  'foot.channel': 'Rubric channel',
+  'foot.journal': 'Log',
+  'foot.write': 'Write to us',
+  'foot.channelHref': '[channel link]',
+  'foot.contactHref': '[contact]',
+
+  'hero.kicker': 'A rubric about pet projects',
+  'hero.title1': 'You have the software.',
+  'hero.title2': 'No victory in sight.',
+  'hero.cta': 'Inspect your vessel',
+  'hero.ctaNote': '12 questions, a minute and a half',
+  'hero.caption':
+    'PO + BEDA = POBEDA (Russian for “victory”). Lose the PO — only BEDA, trouble, remains.',
+
+  'namer.title': 'What’s in a name',
+  'namer.lead': 'Type your project name — let’s see what’s left when a few letters fall off.',
+  'namer.label': 'Project name',
+  'namer.placeholder': 'e.g. Pobeda',
+  'namer.submit': 'Launch into water',
+
+  'pillars.title': 'Six letters — six things your project floats on',
+  'pillars.lead':
+    'P and O are the first to fall off. They’re exactly what developers skip most often — and exactly what turns victory into disaster when they’re gone.',
+  'pillars.firstTag': 'falls off first',
+
+  'harbor.kicker': 'Harbour',
+  'harbor.title': 'Pick a berth',
+  'harbor.kindEntry': 'entry point',
+  'harbor.kindWeekly': 'every week',
+  'harbor.kindCommunity': 'community',
+  'harbor.osmotr.title': 'Ship inspection',
+  'harbor.osmotr.text':
+    'Twelve honest questions — and you’ll see which letters have already fallen off.',
+  'harbor.osmotr.meta': 'a minute and a half',
+  'harbor.namer.title': 'What’s in a name',
+  'harbor.namer.text': 'What’s left of your project name when a few letters fall overboard.',
+  'harbor.namer.meta': 'ten seconds',
+  'harbor.leak.title': 'Leak calculator',
+  'harbor.leak.text':
+    'Five sliders about your week — and the water level in the hold. Formula is open.',
+  'harbor.leak.meta': 'a minute',
+  'harbor.storm.title': 'Storm',
+  'harbor.storm.text': 'Eight weeks, forty hours, one person aboard. Can you reach the first ten?',
+  'harbor.storm.meta': '3–5 min',
+  'harbor.tracker.title': 'Nail the letter back',
+  'harbor.tracker.text': 'Your yacht starts as “Beda”. Every small action is a nail back in place.',
+  'harbor.tracker.meta': '24 nails to victory',
+  'harbor.log.title': 'Ship’s log',
+  'harbor.log.text': 'Hours on code vs. hours on marketing. Tip the balance and the yacht heels.',
+  'harbor.log.meta': 'in public',
+  'harbor.registry.title': 'Ship registry',
+  'harbor.registry.text':
+    'Bring your project into harbour. Throw a lifeline to someone — get one back.',
+  'harbor.registry.meta': '[N] yachts at the dock',
+  'harbor.triangle.title': 'Bermuda Triangle',
+  'harbor.triangle.text':
+    'Leave an epitaph for an abandoned project. Anyone can try to raise it from the deep.',
+  'harbor.triangle.meta': '[N] vessels on the bottom',
+
+  'log.kicker': 'Author’s ship log',
+  'log.title': 'I’m on this yacht too',
+  'log.lead':
+    'Every week — hours on code, hours on promotion, and one honest line. Heel is calculated over the last two weeks.',
+  'log.svgLabel': 'Diagram: when skewed toward code the yacht heels to starboard',
+  'log.heel': 'heel [°]',
+  'log.entryDate': '[date], week [N]',
+  'log.entryStats': 'code [h], marketing [h], commits [N], posts [N]',
+  'log.entryQuote1': '“just one more feature — then I’ll write about it.”',
+  'log.entryQuote': '[line of the week]',
+  'log.all': 'Full log',
+
+  'triangle.kicker': 'Bermuda Triangle',
+  'triangle.title': 'Our projects rest here',
+  'triangle.cta': 'Leave an epitaph',
+  'triangle.years': '[years at sea]',
+  'triangle.firstO': 'O was the first to fall',
+  'triangle.firstAny': '[letter] was the first to fall',
+  'triangle.name': '[Project name]',
+  'triangle.epitaph1': 'Here lie [N] lines of code. Users — zero. Tests — green.',
+  'triangle.example': 'epitaph example',
+  'triangle.epitaph2': '[Epitaph up to 140 characters]',
+  'triangle.raisers': '[N] want to raise it',
+  'triangle.raise': 'Raise from the deep',
+  'triangle.emptyTitle': 'A berth for your vessel',
+  'triangle.emptyText':
+    'What you built, why you quit, which letter fell off first. Anonymous is fine.',
+
+  'quiz.title': 'Ship inspection — 12 questions about your pet project',
+  'quiz.description':
+    'Twelve honest questions about your pet project — and you’ll see which letters of POBEDA have already fallen off. A minute and a half, no sign-up required.',
+  'quiz.count': 'question {n} of 12',
+  'quiz.exit': 'Exit',
+  'quiz.caption': 'Every “no” knocks out a rivet.',
+  'quiz.pillarOf': '{pillar}, question {n} of 2',
+  'quiz.yes': 'Yes',
+  'quiz.partly': 'Partly',
+  'quiz.no': 'No',
+  'quiz.back': 'Back',
+  'quiz.privacy': 'answers are not sent — only the result, anonymously',
+  'quiz.progressLabel': 'Inspection progress',
+
+  'result.title': 'Ship inspection result',
+  'result.kicker': 'Vessel class',
+  'result.state.on': 'nailed on',
+  'result.state.hang': 'hanging',
+  'result.state.fall': 'fallen off',
+  'result.copy': 'Copy link',
+  'result.copied': 'Link copied',
+  'result.copyFailed': 'Couldn’t copy — select the address in the browser bar',
+  'result.retry': 'Take it again',
+  'result.checkYours': 'Inspect your own vessel',
+  'result.actionsTitle': 'Three nails for this week',
+  'result.toTracker': 'Nail the letters back',
+  'result.ogAlt': 'Transom reading POBEDA: which letters have fallen off',
+
+  'namerPage.title': 'What’s in a name — what’s left of your project’s name',
+  'namerPage.description':
+    'Type your pet project’s name and see what’s left when a few letters fall off. A game from the Yacht “Beda” rubric.',
+  'namerPage.kicker': 'Game',
+  'namerPage.lead':
+    'Your name is the first thing people see. Type yours and find out what’s left when a few letters fall off — like they do on Beda’s transom. The name never leaves your browser.',
+  'namerPage.again': 'Inspect your full vessel',
+
+  'letters.title': 'Letters',
+  'letters.indexTitle': 'The six letters of POBEDA',
+  'letters.indexDescription':
+    'Positioning, talking to people, free value, single entry point, distribution, analytics: six things your pet project floats on.',
+  'letters.crumbs': 'Breadcrumbs',
+  'letters.pager': 'Neighbouring letters',
+  'letters.cta': 'See which letters are holding on your project.',
+  'pillar.stub': 'The full text of this chapter is available in Russian only for now.',
+  'pillar.stubLink': 'Read in Russian',
+
+  'notFound.title': 'Nothing but water here',
+  'notFound.text': 'This page doesn’t exist. You can head back to harbour or inspect your vessel.',
+  'notFound.home': 'Go to home',
+  'notFound.pageTitle': 'Not found — Yacht “Beda”',
+
+  'og.defaultAlt': 'Transom of yacht “Beda”: letters P and O have fallen off, BEDA remains',
+};
+
+export const ui: Record<Locale, Record<Key, string>> = { ru, en };

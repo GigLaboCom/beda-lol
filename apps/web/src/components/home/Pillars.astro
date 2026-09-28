@@ -1,8 +1,11 @@
 ---
-import { PILLARS, WORD } from '@beda/core';
-import { t } from '../../i18n/ru';
+import { getPillars, WORD } from '@beda/core';
+import { getLangFromUrl, getLocalizedPath, useTranslations } from '../../i18n';
 import { pillarPath, pillarsInOrder } from '../../lib/pillars';
 
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const PILLARS = getPillars(lang);
 const slugs = new Map((await pillarsInOrder()).map((e) => [e.data.letter, e.data.slug]));
 ---
 
@@ -15,7 +18,10 @@ const slugs = new Map((await pillarsInOrder()).map((e) => [e.data.letter, e.data
     <div class="pillars">
       {
         WORD.map((letter, i) => (
-          <a class:list={['pillar', { first: i < 2 }]} href={pillarPath(slugs.get(letter) ?? '')}>
+          <a
+            class:list={['pillar', { first: i < 2 }]}
+            href={getLocalizedPath(pillarPath(slugs.get(letter) ?? ''), lang)}
+          >
             <span class="tag">{i < 2 ? t('pillars.firstTag') : ''}</span>
             <span class="L" aria-hidden="true">
               {letter}

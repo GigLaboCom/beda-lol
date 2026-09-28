@@ -1,0 +1,34 @@
+---
+import { getLangFromUrl, getLocalizedPath, htmlLang, useTranslations } from '../../i18n';
+import Base from '../../layouts/Base.astro';
+import Hero from '../home/Hero.astro';
+import LogTeaser from '../home/LogTeaser.astro';
+import Moorings from '../home/Moorings.astro';
+import NamerTeaser from '../home/NamerTeaser.astro';
+import Pillars from '../home/Pillars.astro';
+import TriangleTeaser from '../home/TriangleTeaser.astro';
+import JsonLd from '../JsonLd.astro';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const website = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: t('site.name'),
+  alternateName: 'beda.lol',
+  url: new URL(getLocalizedPath('/', lang), Astro.site).href,
+  description: t('site.description'),
+  inLanguage: htmlLang[lang],
+};
+---
+
+<Base title={t('site.title')} description={t('site.description')} canonical={getLocalizedPath('/', lang)}>
+  <JsonLd slot="head" data={website} />
+  <Hero />
+  <NamerTeaser />
+  <Pillars />
+  <Moorings />
+  <LogTeaser />
+  <TriangleTeaser />
+</Base>

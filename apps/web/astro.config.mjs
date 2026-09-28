@@ -28,20 +28,36 @@ if (draftPaths.length === pillarFiles.length) draftPaths.push('/bukvy');
 /** @param {string} page absolute URL */
 function inSitemap(page) {
   const path = new URL(page).pathname.replace(/\/$/, '') || '/';
-  if (path.startsWith('/dev') || path.startsWith('/osmotr/r/') || path === '/404') return false;
-  return !draftPaths.includes(path);
+  // Match rules against the locale-stripped path so both languages are covered.
+  const bare = path === '/en' ? '/' : path.startsWith('/en/') ? path.slice(3) : path;
+  if (bare.startsWith('/dev') || bare.startsWith('/osmotr/r/') || bare === '/404') return false;
+  // English pillar articles are untranslated stubs (noindex): keep them out.
+  if (path.startsWith('/en/bukvy/')) return false;
+  return !draftPaths.includes(bare);
 }
 
 export default defineConfig({
   site,
   // One URL per page: no trailing slash (Caddy and the Node server redirect).
   trailingSlash: 'never',
+  // Russian is the default and stays unprefixed; English lives under /en/.
+  i18n: {
+    defaultLocale: 'ru',
+    locales: ['ru', 'en'],
+    routing: { prefixDefaultLocale: false },
+  },
   server: { host },
   // Pages are prerendered by default; UGC, personal and service routes opt out
   // with `export const prerender = false` and are served by the Node server.
   output: 'static',
   adapter: node({ mode: 'standalone' }),
-  integrations: [preact(), sitemap({ filter: inSitemap })],
+  integrations: [
+    preact(),
+    sitemap({
+      i18n: { defaultLocale: 'ru', locales: { ru: 'ru-RU', en: 'en-US' } },
+      filter: inSitemap,
+    }),
+  ],
   security: {
     // Astro hashes its own scripts and styles; nothing else may run.
     csp: {

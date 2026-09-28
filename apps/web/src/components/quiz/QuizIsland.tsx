@@ -2,9 +2,9 @@ import {
   type Answer,
   currentIndex,
   EMPTY_SESSION,
+  getPillars,
+  getQuestions,
   isComplete,
-  PILLARS,
-  QUESTIONS,
   type QuizAction,
   type QuizSession,
   quizReducer,
@@ -13,18 +13,12 @@ import {
   sessionNails,
   WORD,
 } from '@beda/core';
-import { renderTransom } from '@beda/transom';
+import { EN_LABEL_TEXT, renderTransom } from '@beda/transom';
 import { attachTransom, type TransomController } from '@beda/transom/client';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { fmt, t } from '../../i18n/ru';
+import { fmt, getLocalizedPath, type Locale, useTranslations } from '../../i18n';
 import { recordQuizAttempt } from '../../lib/api';
 import { clearSession, loadSession, saveReveal, saveSession } from '../../lib/quiz-storage';
-
-const ANSWERS: { value: Answer; label: string; cls: string }[] = [
-  { value: 1, label: t('quiz.yes'), cls: 'btn' },
-  { value: 0.5, label: t('quiz.partly'), cls: 'btn' },
-  { value: 0, label: t('quiz.no'), cls: 'btn no' },
-];
 
 /** Where the quiz was started from, e.g. `?from=home` (short slug only). */
 function sourceParam(): string | undefined {
@@ -32,15 +26,25 @@ function sourceParam(): string | undefined {
   return /^[a-z0-9_-]{1,32}$/.test(from) ? from : undefined;
 }
 
-export default function QuizIsland() {
+export default function QuizIsland({ lang = 'ru' }: { lang?: Locale }) {
+  const t = useTranslations(lang);
+  const QUESTIONS = getQuestions(lang);
+  const PILLARS = getPillars(lang);
+  const labelText = lang === 'en' ? EN_LABEL_TEXT : undefined;
+  const answers: { value: Answer; label: string; cls: string }[] = [
+    { value: 1, label: t('quiz.yes'), cls: 'btn' },
+    { value: 0.5, label: t('quiz.partly'), cls: 'btn' },
+    { value: 0, label: t('quiz.no'), cls: 'btn no' },
+  ];
+
   // The server renders question 1; the stored session is applied after hydration.
   const [session, setSession] = useState<QuizSession>(EMPTY_SESSION);
   const transomRef = useRef<HTMLDivElement>(null);
   const controller = useRef<TransomController | null>(null);
   const firstApply = useRef(true);
   const transomHtml = useMemo(
-    () => renderTransom({ letters: WORD, nails: sessionNails(EMPTY_SESSION) }),
-    [],
+    () => renderTransom({ letters: WORD, nails: sessionNails(EMPTY_SESSION), labelText }),
+    [labelText],
   );
 
   useEffect(() => {
@@ -71,7 +75,7 @@ export default function QuizIsland() {
       saveReveal(code, sessionNails(next));
       controller.current?.set(sessionNails(next));
       recordQuizAttempt(code, sourceParam());
-      location.assign(`/osmotr/r/${code}`);
+      location.assign(getLocalizedPath(`/osmotr/r/${code}`, lang));
       return;
     }
     saveSession(next);
@@ -100,7 +104,7 @@ export default function QuizIsland() {
             <i style={n ? { width: `${(n / 12) * 100}%` } : undefined} />
           </div>
         </div>
-        <a class="exit" href="/">
+        <a class="exit" href={getLocalizedPath('/', lang)}>
           {t('quiz.exit')}
         </a>
       </div>
@@ -120,7 +124,7 @@ export default function QuizIsland() {
             <h1 class="q-text">{q.text}</h1>
             <p class="q-hint">{q.hint}</p>
             <div class="answers">
-              {ANSWERS.map((a) => (
+              {answers.map((a) => (
                 <button
                   key={a.value}
                   class={a.cls}

@@ -1,4 +1,5 @@
 import { type Letter, letterIndex, WORD } from './letters';
+import { DEFAULT_LOCALE, type Locale } from './locale';
 
 /** «Да» = 1, «Частично» = 0.5, «Нет» = 0. */
 export type Answer = 0 | 0.5 | 1;
@@ -9,8 +10,8 @@ export interface Question {
   hint: string;
 }
 
-/** Twelve questions, two per letter, in word order. Product copy from the prototype. */
-export const QUESTIONS: readonly Question[] = [
+/** Twelve questions, two per letter, in word order. Russian product copy from the prototype. */
+export const QUESTIONS_RU: readonly Question[] = [
   {
     letter: 'П',
     text: 'Можешь одной фразой сказать, для кого твой проект?',
@@ -69,6 +70,79 @@ export const QUESTIONS: readonly Question[] = [
   { letter: 'А', text: 'Знаешь, откуда они пришли?', hint: 'Хотя бы один источник.' },
 ];
 
+/** The same twelve questions in English, in the same order (letters unchanged). */
+export const QUESTIONS_EN: readonly Question[] = [
+  {
+    letter: 'П',
+    text: 'Can you say in one phrase who your project is for?',
+    hint: 'Not “everyone who finds it handy” — specific people with a specific job.',
+  },
+  {
+    letter: 'П',
+    text: 'Do you know why it beats what people use now?',
+    hint: '“Now” is often a spreadsheet, a chat, or nothing at all.',
+  },
+  {
+    letter: 'О',
+    text: 'In the last month, did you talk to at least five potential users?',
+    hint: 'Friends, colleagues and your mum don’t count.',
+  },
+  {
+    letter: 'О',
+    text: 'Has anyone besides friends used it and given feedback?',
+    hint: 'Even one stranger counts.',
+  },
+  {
+    letter: 'Б',
+    text: 'Is there something free that brings people in on its own — an article, tool, template?',
+    hint: 'Something people find without you.',
+  },
+  {
+    letter: 'Б',
+    text: 'Have you written about the project or its topic at least once this month?',
+    hint: 'Commit messages don’t count.',
+  },
+  {
+    letter: 'Е',
+    text: 'Is there a page where ten seconds is enough to get what it is?',
+    hint: 'A GitHub README counts if a non-developer would get it.',
+  },
+  {
+    letter: 'Е',
+    text: 'Can people leave an email or start using it right on that page?',
+    hint: 'One button already means yes.',
+  },
+  {
+    letter: 'Д',
+    text: 'Is there a channel you show up in with the project regularly?',
+    hint: 'Regularly means more often than once a month.',
+  },
+  {
+    letter: 'Д',
+    text: 'Do you know exactly where your audience gathers?',
+    hint: 'The name of the chat, community or newsletter.',
+  },
+  {
+    letter: 'А',
+    text: 'Do you know how many people came in the last week?',
+    hint: 'A ballpark figure is enough.',
+  },
+  { letter: 'А', text: 'Do you know where they came from?', hint: 'At least one source.' },
+];
+
+export const QUESTIONS_BY_LOCALE: Record<Locale, readonly Question[]> = {
+  ru: QUESTIONS_RU,
+  en: QUESTIONS_EN,
+};
+
+/** Russian questions, kept as the default export for backward compatibility. */
+export const QUESTIONS = QUESTIONS_RU;
+
+/** The twelve questions for a locale (defaults to Russian). */
+export function getQuestions(locale: Locale = DEFAULT_LOCALE): readonly Question[] {
+  return QUESTIONS_BY_LOCALE[locale] ?? QUESTIONS_RU;
+}
+
 export const QUESTION_COUNT = QUESTIONS.length;
 
 /** Nails per letter: 0 = fallen, 1 = hanging, 2–4 = on the board. */
@@ -78,7 +152,8 @@ export const ALL_NAILED: Nails = [4, 4, 4, 4, 4, 4];
 
 /**
  * Nails while the quiz is running: every «нет» knocks out two nails of its
- * letter, every «частично» one.
+ * letter, every «частично» one. Question letters are the same in every locale,
+ * so scoring is locale-independent.
  */
 export function liveNails(answers: readonly Answer[]): Nails {
   const pops = [0, 0, 0, 0, 0, 0];
@@ -116,7 +191,7 @@ export interface ShipClass {
   text: string;
 }
 
-export const CLASSES: Record<ClassId, ShipClass> = {
+export const CLASSES_RU: Record<ClassId, ShipClass> = {
   'beda-po': {
     id: 'beda-po',
     title: 'Классическая «Беда»',
@@ -140,15 +215,52 @@ export const CLASSES: Record<ClassId, ShipClass> = {
   },
 };
 
+export const CLASSES_EN: Record<ClassId, ShipClass> = {
+  'beda-po': {
+    id: 'beda-po',
+    title: 'Classic “Beda”',
+    text: 'Exactly P and O fell off — positioning and talking to people. The software (PO) sits in your repo. No victory yet.',
+  },
+  flagship: {
+    id: 'flagship',
+    title: 'Flagship',
+    text: 'A rarity. All six letters in place — show the rest how it’s done.',
+  },
+  schooner: {
+    id: 'schooner',
+    title: 'Schooner under way',
+    text: 'A rivet or two — and you’re out to sea.',
+  },
+  beda: {
+    id: 'beda',
+    title: 'Classic “Beda”',
+    text: 'You’ve got the software. No victory. Sound familiar?',
+  },
+  slipway: {
+    id: 'slipway',
+    title: 'Hull on the slipway',
+    text: 'You have a project. Not yet a ship. Good news: each letter goes back in an evening.',
+  },
+};
+
+export const CLASSES_BY_LOCALE: Record<Locale, Record<ClassId, ShipClass>> = {
+  ru: CLASSES_RU,
+  en: CLASSES_EN,
+};
+
+/** Russian ship classes, kept as the default export for backward compatibility. */
+export const CLASSES = CLASSES_RU;
+
 /** Ship class from final nails. The special П+О case is checked first, as in the prototype. */
-export function classify(nails: readonly number[]): ShipClass {
+export function classify(nails: readonly number[], locale: Locale = DEFAULT_LOCALE): ShipClass {
+  const classes = CLASSES_BY_LOCALE[locale] ?? CLASSES_RU;
   const mounted = nails.filter((c) => c >= 2).length;
   const poOnly = nails[0] === 0 && nails[1] === 0 && nails.slice(2).every((c) => c >= 1);
-  if (poOnly) return CLASSES['beda-po'];
-  if (mounted === 6) return CLASSES.flagship;
-  if (mounted >= 4) return CLASSES.schooner;
-  if (mounted >= 2) return CLASSES.beda;
-  return CLASSES.slipway;
+  if (poOnly) return classes['beda-po'];
+  if (mounted === 6) return classes.flagship;
+  if (mounted >= 4) return classes.schooner;
+  if (mounted >= 2) return classes.beda;
+  return classes.slipway;
 }
 
 export interface Action {
@@ -159,8 +271,8 @@ export interface Action {
   text: string;
 }
 
-/** One first action per letter. Product copy from the prototype. */
-export const ACTS: Record<Letter, Omit<Action, 'letter'>> = {
+/** One first action per letter, in Russian. Product copy from the prototype. */
+export const ACTS_RU: Record<Letter, Omit<Action, 'letter'>> = {
   П: {
     time: '15 минут',
     title: 'Напиши одну фразу',
@@ -189,17 +301,63 @@ export const ACTS: Record<Letter, Omit<Action, 'letter'>> = {
   },
 };
 
+/** One first action per letter, in English. */
+export const ACTS_EN: Record<Letter, Omit<Action, 'letter'>> = {
+  П: {
+    time: '15 min',
+    title: 'Write one sentence',
+    text: 'For [who] who [problem], my project is [what], unlike [alternative].',
+  },
+  О: {
+    time: '30 min',
+    title: 'Find three people',
+    text: 'Who have this problem. Ask how they solve it now. Sell nothing.',
+  },
+  Б: {
+    time: '1 hour',
+    title: 'Write one post',
+    text: 'About the single most useful thing you learned building the project.',
+  },
+  Е: {
+    time: '1 hour',
+    title: 'Make a three-block page',
+    text: 'What it is, who it’s for, a button.',
+  },
+  Д: {
+    time: '10 min',
+    title: 'Pick one channel',
+    text: 'And put a weekly appearance there in your calendar. One — not five.',
+  },
+  А: {
+    time: '20 min',
+    title: 'Add a counter',
+    text: 'Any simple analytics will do. Check the numbers in a week.',
+  },
+};
+
+export const ACTS_BY_LOCALE: Record<Locale, Record<Letter, Omit<Action, 'letter'>>> = {
+  ru: ACTS_RU,
+  en: ACTS_EN,
+};
+
+/** Russian actions, kept as the default export for backward compatibility. */
+export const ACTS = ACTS_RU;
+
 const FALLBACK_ACTIONS: readonly Letter[] = ['О', 'Д', 'Б'];
 
 /** Up to three actions for the weakest letters (score < 2); fallback О, Д, Б. */
-export function pickActions(letterScores: readonly number[]): Action[] {
+export function pickActions(
+  letterScores: readonly number[],
+  locale: Locale = DEFAULT_LOCALE,
+): Action[] {
+  const acts = ACTS_BY_LOCALE[locale] ?? ACTS_RU;
   const weakest = WORD.map((letter, i) => ({ letter, s: letterScores[i] ?? 0 }))
     .filter((x) => x.s < 2)
     .sort((a, b) => a.s - b.s)
     .slice(0, 3)
     .map((x) => x.letter);
   const letters = weakest.length ? weakest : FALLBACK_ACTIONS;
-  return letters.map((letter) => ({ letter, ...ACTS[letter] }));
+  return letters.map((letter) => ({ letter, ...acts[letter] }));
 }
 
 /**

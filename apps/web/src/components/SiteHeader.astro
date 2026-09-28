@@ -1,20 +1,40 @@
 ---
-import { t } from '../i18n/ru';
+import {
+  getLangFromUrl,
+  getLocalizedPath,
+  localeShort,
+  locales,
+  stripLocale,
+  useTranslations,
+} from '../i18n';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
 
 const path = Astro.url.pathname;
+const home = getLocalizedPath('/', lang);
 // Only routes that exist; the harbour and the journal are sections of the home page for now.
 const nav = [
-  { href: '/osmotr', label: t('nav.osmotr') },
-  { href: '/kak-nazovesh', label: t('nav.namer') },
-  { href: '/bukvy', label: t('nav.letters') },
-  { href: '/#harbor', label: t('nav.harbor') },
-  { href: '/#journal', label: t('nav.journal') },
+  { href: getLocalizedPath('/osmotr', lang), label: t('nav.osmotr') },
+  { href: getLocalizedPath('/kak-nazovesh', lang), label: t('nav.namer') },
+  { href: getLocalizedPath('/bukvy', lang), label: t('nav.letters') },
+  { href: `${home}#harbor`, label: t('nav.harbor') },
+  { href: `${home}#journal`, label: t('nav.journal') },
 ];
+
+// Language switcher: the current page in each locale.
+const basePath = stripLocale(path);
+const languages = locales.map((l) => ({
+  code: l,
+  short: localeShort[l],
+  href: getLocalizedPath(basePath, l),
+  current: l === lang,
+}));
 ---
 
 <header class="site-head">
   <div class="wrap">
-    <a class="logo" href="/" aria-label={t('head.logoLabel')}>
+    <a class="logo" href={home} aria-label={t('head.logoLabel')}>
       <svg
         width="30"
         height="30"
@@ -40,7 +60,18 @@ const nav = [
         ))
       }
     </nav>
-    <a class="btn btn-line-brass head-cta" href="#subscribe">{t('head.cta')}</a>
+    <div class="head-end">
+      <nav class="lang-switch" aria-label={t('nav.language')}>
+        {
+          languages.map((l) => (
+            <a href={l.href} hreflang={l.code} lang={l.code} aria-current={l.current ? 'true' : undefined}>
+              {l.short}
+            </a>
+          ))
+        }
+      </nav>
+      <a class="btn btn-line-brass head-cta" href="#subscribe">{t('head.cta')}</a>
+    </div>
   </div>
 </header>
 
@@ -87,6 +118,33 @@ const nav = [
   .nav a:hover,
   .nav a[aria-current='page'] {
     color: var(--brass);
+  }
+  .head-end {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .lang-switch {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .lang-switch a {
+    color: var(--muted);
+    text-decoration: none;
+    padding: 6px 8px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 6px;
+  }
+  .lang-switch a:hover {
+    color: var(--brass);
+  }
+  .lang-switch a[aria-current='true'] {
+    color: var(--text);
   }
   .head-cta {
     min-height: 44px;

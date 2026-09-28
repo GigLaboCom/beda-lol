@@ -1,5 +1,5 @@
 import { MAX_SLOTS, mountFor, mountKey } from './mounts';
-import { slotState, transomLabel } from './state';
+import { RU_LABEL_TEXT, slotState, type TransomLabelText, transomLabel } from './state';
 
 export interface RenderOptions {
   /** One entry per slot; `' '` is a narrow empty slot. */
@@ -13,6 +13,8 @@ export interface RenderOptions {
   size?: string;
   /** Overrides the generated aria-label. */
   label?: string;
+  /** Wording for the generated aria-label (prefix and the “empty” word). */
+  labelText?: TransomLabelText;
   /** id on the wrapper, for the client controller. */
   id?: string;
   /** Slot index to highlight; the other letters are dimmed. */
@@ -41,6 +43,7 @@ export function renderTransom({
   nails = [],
   size,
   label,
+  labelText,
   id,
   highlight,
 }: RenderOptions): string {
@@ -64,8 +67,15 @@ export function renderTransom({
       .join('');
     return `<div class="${cls}" data-m="${mountKey(ch)}" data-letter="${safe}"><span class="ghost" aria-hidden="true">${safe}</span><span class="g" aria-hidden="true">${safe}</span>${fixings}</div>`;
   });
-  const aria = escapeHtml(label ?? transomLabel(letters, counts));
+  const aria = escapeHtml(label ?? transomLabel(letters, counts, labelText));
+  // Carry the label wording on the DOM so the client controller can keep the
+  // aria-label correct in the page's language when it re-renders after motion.
+  const words = {
+    prefix: labelText?.prefix ?? RU_LABEL_TEXT.prefix,
+    empty: labelText?.empty ?? RU_LABEL_TEXT.empty,
+  };
+  const labelData = ` data-label-prefix="${escapeHtml(words.prefix)}" data-label-empty="${escapeHtml(words.empty)}"`;
   const idAttr = id ? ` id="${escapeHtml(id)}"` : '';
   const sizeAttr = size ? ` style="--ts:${escapeHtml(size)}"` : '';
-  return `<div class="transom-wrap"${idAttr}${sizeAttr} data-transom><div class="transom still" role="img" aria-label="${aria}">${slots.join('')}</div><div class="shelf"></div></div>`;
+  return `<div class="transom-wrap"${idAttr}${sizeAttr} data-transom><div class="transom still" role="img" aria-label="${aria}"${labelData}>${slots.join('')}</div><div class="shelf"></div></div>`;
 }

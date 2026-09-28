@@ -1,0 +1,165 @@
+---
+/**
+ * Shareable quiz result body, rendered on request. noindex (thousands of
+ * near-duplicates), canonical to /osmotr, full OG tags. Locale from the URL.
+ */
+import {
+  classify,
+  decode,
+  pickActions,
+  scoresFromStates,
+  shareText,
+  statesToNails,
+  WORD,
+} from '@beda/core';
+import Transom from '@beda/transom/Transom.astro';
+import { getLangFromUrl, getLocalizedPath, useTranslations } from '../../i18n';
+import Base from '../../layouts/Base.astro';
+import NotFound from '../NotFound.astro';
+import CopyLink from '../quiz/CopyLink';
+import '../../styles/quiz.css';
+
+interface Props {
+  code: string;
+}
+
+/** The tracker (/moya-yahta) arrives in stage 2; until then its button stays hidden. */
+const TRACKER_ENABLED = false;
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const { code } = Astro.props;
+const decoded = decode(code);
+if (!decoded) Astro.response.status = 404;
+const states = decoded ?? [2, 2, 2, 2, 2, 2];
+
+const nails = statesToNails(states);
+const shipClass = classify(nails, lang);
+const actions = pickActions(scoresFromStates(states), lang);
+const text = shareText(states, lang);
+const pageUrl = new URL(getLocalizedPath(`/osmotr/r/${code}`, lang), Astro.site).href;
+const chips = WORD.map((letter, i) => {
+  const s = states[i] ?? 0;
+  return {
+    letter,
+    cls: s === 2 ? '' : s === 1 ? 'hang' : 'fall',
+    label: t(s === 2 ? 'result.state.on' : s === 1 ? 'result.state.hang' : 'result.state.fall'),
+  };
+});
+const title = `${shipClass.title} — ${t('result.title')}`;
+
+Astro.response.headers.set('Cache-Control', 'public, max-age=300, s-maxage=86400');
+---
+
+{
+  !decoded && (
+    <Base title={t('notFound.pageTitle')} robots="noindex" alternates={false}>
+      <NotFound />
+    </Base>
+  )
+}
+{
+  decoded && (
+    <Base
+      title={title}
+      description={text}
+      canonical={getLocalizedPath('/osmotr', lang)}
+      robots="noindex, follow"
+      ogImage={`/og/osmotr/${code}.png`}
+      ogImageAlt={t('result.ogAlt')}
+    >
+      <section class="result">
+        <div class="wrap">
+          <Transom letters={WORD} nails={nails} id="resultTransom" lang={lang} />
+          <div>
+            <p class="kicker">{t('result.kicker')}</p>
+            <h1 class="display">{shipClass.title}</h1>
+            <p class="lead">{shipClass.text}</p>
+            <ul class="chips">
+              {chips.map((c) => (
+                <li class:list={['chip', c.cls]}>
+                  <b>{c.letter}</b>
+                  <small>{c.label}</small>
+                </li>
+              ))}
+            </ul>
+            <div class="share">
+              <CopyLink client:idle url={pageUrl} lang={lang} />
+              <a class="btn" href={getLocalizedPath('/osmotr?restart=1', lang)} id="retry">
+                {t('result.retry')}
+              </a>
+            </div>
+            <p class="share-text">«{text}»</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="actions light">
+        <div class="wrap">
+          <div class="row">
+            <h2 class="display">{t('result.actionsTitle')}</h2>
+            {TRACKER_ENABLED && (
+              <button
+                class="btn btn-ink"
+                type="button"
+                id="toTracker"
+                data-nails={JSON.stringify(nails)}
+              >
+                {t('result.toTracker')}
+              </button>
+            )}
+          </div>
+          <div class="act-grid">
+            {actions.map((a) => (
+              <div class="act">
+                <div class="h">
+                  <span class="L">{a.letter}</span>
+                  <span class="t">{a.time}</span>
+                </div>
+                <b>{a.title}</b>
+                <p>{a.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </Base>
+  )
+}
+
+<script>
+  // Reveal: a visitor who just finished the quiz sees the board go from the
+  // live state to the final one, letter by letter. Shared links show the
+  // final state instantly (nothing in sessionStorage).
+  import { attachTransom } from '@beda/transom/client';
+  import { takeReveal } from '../../lib/quiz-storage';
+
+  const root = document.getElementById('resultTransom');
+  const code = location.pathname.split('/').pop() ?? '';
+  const live = takeReveal(code);
+  if (root && live) {
+    const tr = attachTransom(root);
+    const final = tr.nails;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduce) {
+      tr.set(live, { animate: false });
+      final.forEach((_, i) => {
+        setTimeout(() => tr.set(final.map((n, k) => (k <= i ? n : (live[k] ?? n)))), 500 + 520 * i);
+      });
+    }
+  }
+
+  // Stage 2: save the result to the tracker (same localStorage shape as the prototype).
+  document.getElementById('toTracker')?.addEventListener('click', (e) => {
+    const nails = (e.currentTarget as HTMLElement).dataset.nails;
+    try {
+      const store = JSON.parse(localStorage.getItem('yacht-beda-v1') ?? '{}');
+      store.nails = JSON.parse(nails ?? '[]');
+      localStorage.setItem('yacht-beda-v1', JSON.stringify(store));
+    } catch {
+      // storage unavailable
+    }
+    location.href = '/moya-yahta';
+  });
+</script>

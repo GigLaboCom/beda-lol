@@ -5,6 +5,7 @@
  */
 import './transom.css';
 import { renderTransom } from './render';
+import { EN_LABEL_TEXT, type TransomLabelText } from './state';
 
 interface Props {
   letters: readonly string[];
@@ -12,10 +13,18 @@ interface Props {
   size?: string;
   id?: string;
   label?: string;
+  /** Wording for the generated aria-label. */
+  labelText?: TransomLabelText;
+  /** Convenience: 'en' switches the aria-label wording to English. */
+  lang?: string;
   highlight?: number;
 }
 
-const html = renderTransom(Astro.props);
+const { lang, labelText, ...rest } = Astro.props;
+const html = renderTransom({
+  ...rest,
+  labelText: labelText ?? (lang === 'en' ? EN_LABEL_TEXT : undefined),
+});
 ---
 
 <Fragment set:html={html} />

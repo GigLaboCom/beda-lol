@@ -1,6 +1,9 @@
 ---
 import { MAX_NAME_LENGTH } from '@beda/core';
-import { t } from '../../i18n/ru';
+import { getLangFromUrl, getLocalizedPath, useTranslations } from '../../i18n';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
 ---
 
 <section class="namer light" aria-labelledby="namerTitle">
@@ -10,7 +13,7 @@ import { t } from '../../i18n/ru';
       <p>{t('namer.lead')}</p>
     </div>
     <!-- Plain GET form: the game itself lives on /kak-nazovesh and reads ?name=. -->
-    <form action="/kak-nazovesh" method="get" autocomplete="off">
+    <form action={getLocalizedPath('/kak-nazovesh', lang)} method="get" autocomplete="off">
       <div class="field">
         <label for="projName">{t('namer.label')}</label>
         <input

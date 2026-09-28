@@ -1,0 +1,32 @@
+---
+import { getLangFromUrl, getLocalizedPath, useTranslations } from '../../i18n';
+import Base from '../../layouts/Base.astro';
+import { breadcrumbList } from '../../lib/jsonld';
+import JsonLd from '../JsonLd.astro';
+import NamerIsland from '../namer/NamerIsland';
+import '../../styles/namer.css';
+import '@beda/transom/transom.css';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const crumbs = breadcrumbList(Astro.site, [
+  { name: t('site.name'), path: getLocalizedPath('/', lang) },
+  { name: t('nav.namer'), path: getLocalizedPath('/kak-nazovesh', lang) },
+]);
+---
+
+<Base title={t('namerPage.title')} description={t('namerPage.description')}>
+  <JsonLd slot="head" data={crumbs} />
+  <section class="namer-page light">
+    <div class="wrap">
+      <p class="kicker">{t('namerPage.kicker')}</p>
+      <h1 class="display">{t('namer.title')}</h1>
+      <p class="lead">{t('namerPage.lead')}</p>
+      <NamerIsland client:visible lang={lang} />
+      <p class="more">
+        <a class="btn btn-ink" href={getLocalizedPath('/osmotr', lang)}>{t('namerPage.again')}</a>
+      </p>
+    </div>
+  </section>
+</Base>

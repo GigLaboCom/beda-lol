@@ -1,0 +1,16 @@
+---
+import PillarArticle from '../../../components/pages/PillarArticle.astro';
+import { pillarsInOrder } from '../../../lib/pillars';
+
+export async function getStaticPaths() {
+  const all = await pillarsInOrder();
+  return all.map((entry, i) => ({
+    params: { slug: entry.data.slug },
+    props: { entry, prev: all[i - 1], next: all[i + 1] },
+  }));
+}
+
+const { entry, prev, next } = Astro.props;
+---
+
+<PillarArticle entry={entry} prev={prev} next={next} />

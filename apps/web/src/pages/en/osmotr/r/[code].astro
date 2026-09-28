@@ -1,0 +1,9 @@
+---
+import ResultView from '../../../../components/pages/ResultView.astro';
+
+export const prerender = false;
+
+const code = Astro.params.code ?? '';
+---
+
+<ResultView code={code} />

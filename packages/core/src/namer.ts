@@ -1,4 +1,5 @@
 /** «Как назовёшь»: which letters fall off a project name, and what is left. */
+import { DEFAULT_LOCALE, type Locale } from './locale';
 
 export const MAX_NAME_LENGTH = 14;
 
@@ -147,8 +148,9 @@ export function findRemoval(name: string): Removal {
   return { removed, word, found: false };
 }
 
-/** «Одна отвалившаяся буква», «2 отвалившиеся буквы», «5 отвалившихся букв». */
-export function fallenLetters(k: number): string {
+/** «Одна отвалившаяся буква», «2 отвалившиеся буквы», «5 отвалившихся букв» / «One fallen letter». */
+export function fallenLetters(k: number, locale: Locale = DEFAULT_LOCALE): string {
+  if (locale === 'en') return k === 1 ? 'One fallen letter' : `${k} fallen letters`;
   if (k === 1) return 'Одна отвалившаяся буква';
   const mod10 = k % 10;
   const mod100 = k % 100;
@@ -164,8 +166,17 @@ export interface Verdict {
 }
 
 /** The verdict lines under the transom. `typed` is the name as the visitor typed it. */
-export function verdict(typed: string, result: Removal): Verdict {
+export function verdict(typed: string, result: Removal, locale: Locale = DEFAULT_LOCALE): Verdict {
   const word = result.word.toUpperCase();
+  if (locale === 'en') {
+    return {
+      was: `Before: ${typed}`,
+      now: `After: ${word || '…'}`,
+      text: result.found
+        ? `${fallenLetters(result.removed.length, 'en')} — and the vessel is already called “${word}”. Marketing holds on less than it seems.`
+        : 'No word came together, but the leftover still reads like a diagnosis. The classic pet-project path: the start falls off first.',
+    };
+  }
   return {
     was: `Было: ${typed}`,
     now: `Стало: ${word || '…'}`,

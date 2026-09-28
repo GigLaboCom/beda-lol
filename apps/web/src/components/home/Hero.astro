@@ -1,7 +1,10 @@
 ---
 import { WORD } from '@beda/core';
 import Transom from '@beda/transom/Transom.astro';
-import { t } from '../../i18n/ru';
+import { getLangFromUrl, getLocalizedPath, useTranslations } from '../../i18n';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
 ---
 
 <section class="hero" id="top">
@@ -11,12 +14,12 @@ import { t } from '../../i18n/ru';
       <h1 class="display">{t('hero.title1')}<br />{t('hero.title2')}</h1>
       <p class="lead">{t('site.description')}</p>
       <div class="hero-actions">
-        <a class="btn btn-brass btn-big" href="/osmotr">{t('hero.cta')}</a>
+        <a class="btn btn-brass btn-big" href={getLocalizedPath('/osmotr', lang)}>{t('hero.cta')}</a>
         <span class="mono">{t('hero.ctaNote')}</span>
       </div>
     </div>
     <div>
-      <Transom letters={WORD} id="heroTransom" />
+      <Transom letters={WORD} id="heroTransom" lang={lang} />
       <p class="caption">{t('hero.caption')}</p>
     </div>
   </div>

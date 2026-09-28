@@ -1,5 +1,8 @@
 ---
-import { type Key, t } from '../../i18n/ru';
+import { getLangFromUrl, getLocalizedPath, type Key, useTranslations } from '../../i18n';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
 
 type Icon = 'search' | 'type' | 'drop' | 'bolt' | 'nail' | 'book' | 'anchor' | 'triangle';
 
@@ -40,7 +43,10 @@ const text = (id: string, part: 'title' | 'text' | 'meta') => t(`harbor.${id}.${
         moorings.map((m) => {
           const Tag = m.href ? 'a' : 'div';
           return (
-            <Tag class:list={['mooring', { dark: m.dark, soon: !m.href }]} href={m.href}>
+            <Tag
+              class:list={['mooring', { dark: m.dark, soon: !m.href }]}
+              href={m.href ? getLocalizedPath(m.href, lang) : undefined}
+            >
               <div class="top">
                 <svg
                   width="30"

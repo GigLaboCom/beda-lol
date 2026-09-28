@@ -1,8 +1,11 @@
 ---
 import NotFound from '../components/NotFound.astro';
+import { getLangFromUrl, useTranslations } from '../i18n';
 import Base from '../layouts/Base.astro';
+
+const t = useTranslations(getLangFromUrl(Astro.url));
 ---
 
-<Base title="Не найдено — Яхта «Беда»" robots="noindex">
+<Base title={t('notFound.pageTitle')} robots="noindex" alternates={false}>
   <NotFound />
 </Base>

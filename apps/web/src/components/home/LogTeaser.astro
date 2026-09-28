@@ -1,6 +1,7 @@
 ---
-import { t } from '../../i18n/ru';
+import { getLangFromUrl, useTranslations } from '../../i18n';
 
+const t = useTranslations(getLangFromUrl(Astro.url));
 const entries = [t('log.entryQuote1'), t('log.entryQuote'), t('log.entryQuote')];
 ---
 

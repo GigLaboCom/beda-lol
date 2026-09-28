@@ -1,8 +1,9 @@
 import { useState } from 'preact/hooks';
-import { t } from '../../i18n/ru';
+import { type Locale, useTranslations } from '../../i18n';
 
 /** «Скопировать ссылку» with a visible status line. */
-export default function CopyLink({ url }: { url: string }) {
+export default function CopyLink({ url, lang }: { url: string; lang: Locale }) {
+  const t = useTranslations(lang);
   const [status, setStatus] = useState('');
 
   async function copy() {
