@@ -25,6 +25,7 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [ ] S08c Transom v2: SVG renderer and controller with falls and breaks (stage 1 follow-up; parity sheet awaits the human)
 - [ ] S13a Share images on the shared transom renderer (stage 1 follow-up; image sheet awaits the human)
 - [ ] S08d Pun catalogue in core and the /dev/falls bench (stage 1 follow-up; contact sheet and English copy await the human)
+- [ ] S11a Name game with letter breaks (stage 1 follow-up; English word list awaits the human)
 
 ## Stages 2–6
 See `ROADMAP.md`. Expand each into a step file before starting it.
@@ -299,4 +300,40 @@ See `ROADMAP.md`. Expand each into a step file before starting it.
   - review the English gag copy (`GAG_COPY_EN`, D7);
   - review the contact sheet (`docs/scratch/1111/spike/shots/falls-sheet.html`);
   - confirm that PEST LUNCH stays out (D2).
+
+### S11a — Name game with letter breaks — 2026-09-28
+- Done:
+  - `@beda/core/src/charset.ts`: `normalizeName(raw) → { name, removed }`, following D6:
+    - NFKC, then upper case, then one space per whitespace run;
+    - `LOOKALIKE` (data: quotes, dashes, `‹ ›`, letters of other Cyrillic alphabets);
+    - an NFD fallback without combining marks;
+    - removal by one regexp built from `BOARD_CHARSET`;
+    - plus `canFall()`.
+  - `namer.ts`:
+    - `prepareName` normalises and cuts to 14 characters;
+    - `findOps(name, locale)` returns `{ ops, word, found }`. Each letter or digit is kept, dropped or broken by the transom's break table; punctuation stays on the board and is skipped. It is a per-word DP. Ranking: the longest word, then fewer ops, then fewer breaks, then the earliest ops, then list order. A result whose board shows a stop word is skipped. The fallback is unchanged and expressed as ops;
+    - `FUNNY_RU` / `FUNNY_EN` behind `getFunny(locale)`. Both languages stay reachable from either page, and the page's own words come first;
+    - added words: лёг, туман, пыль, ох, ой, дохлый; cold, pest, pet, cost, stall, oof, owe, coal, pain, boring, and the phrase «cold push» (letters in order, the space is not a letter);
+    - `opsSummary` replaces `fallenLetters` («2 буквы отвалились, у одной откололся кусок» / “2 letters fell off, one lost a piece”);
+    - `verdict(typed, result, locale)` keeps its signature.
+  - `findRemoval` and `fallenLetters` are removed; nothing else used them.
+  - `NamerIsland`:
+    - renders `fromOps` with the breaks ready and loads ext glyphs only when needed;
+    - plays the ops through the shared controller after `TIMELINE.namerStart` (`finalState` under reduced motion);
+    - shows «Убрали: …» / “Removed: …” under the field (dictionary key `namer.removed`, linked with `aria-describedby`);
+    - `namer_played { found }` is unchanged, and the name is never sent.
+  - `docs/tactics/02-kak-nazovesh.md`: what the field accepts, how input is cleaned, and how the break search works.
+- Deliberate changes to expectations:
+  - the verdict now reads «6 букв отвалились — и судно уже называется «БАГ»» (was «6 отвалившихся букв — …»);
+  - ПОБЕДА → БЕДА, Багтрекер → БАГ, DEADLINE → DEAD, «таск менеджер» → АД and «трекер» → ЕКЕР all still hold;
+  - letters now fall on the doc-09 timeline (nails, hang, fall) instead of all at once.
+- Verified:
+  - core 143 tests (namer lines 97 %): every D6 normalisation example, the catalogue pairs (ДЕНЬГИ → ЛЕНЬ, ДОХОДНЫЙ → ДОХЛЫЙ, ОГОНЬ → СОН, ШТУРМАН → ТУМАН, МЕДАЛЬ → МЕЛЬ, ПОЛЁТ → ЛЁГ, GOLD RUSH → COLD PUSH, BETA → PET), ranking ties, the stop list with breaks, and a 14-letter name under 5 ms;
+  - Chromium and WebKit, `/kak-nazovesh?name=Деньги`: Д breaks first, then two letters fall, «Стало: ЛЕНЬ», and the label reads «ЛЕНЬ пусто пусто»;
+  - `/en/kak-nazovesh?name=Gold%20Rush`: two breaks, “After: COLD PUSH”;
+  - 375 px has no horizontal scroll, and reduced motion jumps to the end;
+  - «Rocket 🚀» shows the hint, and «Crème brûlée» loads the ext glyphs;
+  - Biome, `astro check` and every TS project's typecheck, tests and build pass.
+- Follow-ups: letters with diacritics don't match plain words (`CRÈME` is not `creme`). Folding for the search is an open question.
+- [HUMAN] open: review the English word list (`FUNNY_EN`, D7).
 

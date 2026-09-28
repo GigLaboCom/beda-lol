@@ -61,6 +61,7 @@ const ru = {
   'namer.label': 'Название проекта',
   'namer.placeholder': 'например, Победа',
   'namer.submit': 'Спустить на воду',
+  'namer.removed': 'Убрали: {chars} — таких знаков на транце нет.',
 
   'pillars.title': 'Шесть букв — шесть вещей, на которых держится проект',
   'pillars.lead':
@@ -239,6 +240,7 @@ const en: Record<Key, string> = {
   'namer.label': 'Project name',
   'namer.placeholder': 'e.g. Pobeda',
   'namer.submit': 'Launch into water',
+  'namer.removed': 'Removed: {chars} — the transom has no such characters.',
 
   'pillars.title': 'Six letters — six things your project floats on',
   'pillars.lead':

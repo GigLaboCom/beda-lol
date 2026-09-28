@@ -1,9 +1,9 @@
-import { findRemoval, MAX_NAME_LENGTH, normalizeName, type Verdict, verdict } from '@beda/core';
-import { EN_LABEL_TEXT, fitSize, loadExt, needsExt, renderTransom } from '@beda/transom';
+import { findOps, MAX_NAME_LENGTH, prepareName, type Verdict, verdict } from '@beda/core';
+import { EN_LABEL_TEXT, fitSize, fromOps, loadExt, needsExt, renderTransom } from '@beda/transom';
 import { attachTransom } from '@beda/transom/client';
 import { TIMELINE } from '@beda/transom/timeline';
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { type Locale, useTranslations } from '../../i18n';
+import { fmt, type Locale, useTranslations } from '../../i18n';
 import { recordNamerPlayed } from '../../lib/api';
 
 function reducedMotion(): boolean {
@@ -15,6 +15,7 @@ export default function NamerIsland({ lang = 'ru' }: { lang?: Locale }) {
   const labelText = lang === 'en' ? EN_LABEL_TEXT : undefined;
   const [input, setInput] = useState('');
   const [result, setResult] = useState<Verdict | null>(null);
+  const [removed, setRemoved] = useState<string[]>([]);
   const outRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const letters = useRef<string[]>([]);
@@ -30,30 +31,34 @@ export default function NamerIsland({ lang = 'ru' }: { lang?: Locale }) {
 
   async function launch(raw: string, record: boolean) {
     const typed = raw.replace(/\s+/g, ' ').trim();
-    const name = normalizeName(typed);
+    const { name, removed: dropped } = prepareName(typed);
+    setRemoved(dropped);
     const board = boardRef.current;
     if (!name || !board) return;
     const chars = Array.from(name);
-    const removal = findRemoval(name);
+    const found = findOps(name, lang);
     // Accented Latin, other Cyrillic letters and rare symbols load on demand.
     if (needsExt(name)) await loadExt();
     letters.current = chars;
 
     // The board is plain DOM owned by the transom controller, not by Preact.
-    board.innerHTML = renderTransom({ letters: chars, labelText, idPrefix: 'namer-' });
+    board.innerHTML = renderTransom({
+      state: fromOps(name, found.ops),
+      labelText,
+      idPrefix: 'namer-',
+    });
     fit();
     const root = board.firstElementChild as HTMLElement;
     const tr = attachTransom(root);
-    const fallen = chars.map((_, i) => (removal.removed.includes(i) ? 0 : 4));
     window.clearTimeout(timer.current);
-    if (reducedMotion()) tr.set(fallen, { animate: false });
-    else timer.current = window.setTimeout(() => tr.set(fallen), TIMELINE.namerStart);
+    if (reducedMotion()) tr.finalState(found.ops);
+    else timer.current = window.setTimeout(() => tr.play(found.ops), TIMELINE.namerStart);
 
-    setResult(verdict(typed, removal, lang));
+    setResult(verdict(typed, found, lang));
     const url = new URL(location.href);
     url.searchParams.set('name', typed);
     history.replaceState(null, '', url);
-    if (record) recordNamerPlayed(removal.found);
+    if (record) recordNamerPlayed(found.found);
   }
 
   useEffect(() => {
@@ -91,7 +96,13 @@ export default function NamerIsland({ lang = 'ru' }: { lang?: Locale }) {
             required
             value={input}
             onInput={(e) => setInput((e.target as HTMLInputElement).value)}
+            aria-describedby={removed.length ? 'projRemoved' : undefined}
           />
+          {removed.length > 0 && (
+            <p class="removed" id="projRemoved">
+              {fmt(t('namer.removed'), { chars: removed.join(' ') })}
+            </p>
+          )}
         </div>
         <button class="btn btn-ink submit" type="submit">
           {t('namer.submit')}
