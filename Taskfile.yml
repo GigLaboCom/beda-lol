@@ -179,6 +179,9 @@ tasks:
           echo "BEDA_ENV=prod"
           echo "BEDA_BASE_URL=https://localhost"
           echo "BEDA_DATABASE_URL=$(task db:api-url | sed 's#@127.0.0.1:#@host.docker.internal:#')"
+          # The API fetches the JWKS from inside the container, but tokens name the host's URL.
+          echo "BEDA_SUPABASE_URL=$(echo '{{.LOCAL_SUPABASE_URL}}' | sed 's#//127.0.0.1:#//host.docker.internal:#')"
+          echo "BEDA_JWT_ISSUER={{.LOCAL_SUPABASE_URL}}/auth/v1"
         } > tmp/prod-local.env
       # backup needs object storage credentials; run it by hand when testing S06.
       - docker compose -f deploy/compose.yaml up -d --wait caddy web api
