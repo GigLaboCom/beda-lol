@@ -25,6 +25,7 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
       ctx.locals.auth = {
         userId: data.claims.sub,
         email: typeof data.claims.email === 'string' ? data.claims.email : null,
+        providers: providersOf(data.claims.app_metadata),
         accessToken: session.session.access_token,
       };
     }
@@ -36,3 +37,8 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   });
   return response;
 });
+
+function providersOf(meta: unknown): string[] {
+  const list = (meta as { providers?: unknown } | undefined)?.providers;
+  return Array.isArray(list) ? list.filter((p): p is string => typeof p === 'string') : [];
+}

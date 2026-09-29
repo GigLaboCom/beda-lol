@@ -1,0 +1,35 @@
+---
+/**
+ * Who is signed in, for the site header. Rendered as a server island (`server:defer`), so
+ * the pages around it stay prerendered and cacheable; the island itself is per visitor.
+ * The header shows the «Войти» link as the fallback until the island arrives.
+ */
+import { type Locale, useTranslations } from '../../i18n';
+import { authConfig } from '../../lib/auth/config';
+import { cabinetPath, signInHref } from '../../lib/auth/routes';
+
+interface Props {
+  lang: Locale;
+  /** The page the header is on, to come back to after sign-in. */
+  path: string;
+}
+
+const { lang, path } = Astro.props;
+const t = useTranslations(lang);
+Astro.response.headers.set('cache-control', 'private, no-store');
+const on = authConfig() !== null;
+const signedIn = Astro.locals.auth !== null;
+---
+
+{
+  on &&
+    (signedIn ? (
+      <a class="head-account" href={cabinetPath(lang)} data-testid="head-account">
+        {t('head.cabinet')}
+      </a>
+    ) : (
+      <a class="head-account" href={signInHref(lang, path)} data-testid="head-account">
+        {t('head.signIn')}
+      </a>
+    ))
+}

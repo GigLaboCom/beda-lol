@@ -1,3 +1,16 @@
+{{- /* One sign-in mail, both languages: `lang` is set in the user metadata by the
+       sign-in form (apps/web SignIn.tsx) when the address signs up. */ -}}
+{{ if eq (print .Data.lang) "en" -}}
+<!doctype html>
+<html lang="en">
+  <body style="font-family: Georgia, serif; color: #1c140e; line-height: 1.5">
+    <h2>Sign in to beda.lol</h2>
+    <p><a href="{{ .ConfirmationURL }}">Come aboard</a></p>
+    <p>Or type this code on the sign-in page: <strong style="font-size: 20px; letter-spacing: 2px">{{ .Token }}</strong></p>
+    <p style="color: #6b5a4a">The link and the code work once and expire soon. If you did not ask to sign in, just delete this email.</p>
+  </body>
+</html>
+{{- else -}}
 <!doctype html>
 <html lang="ru">
   <body style="font-family: Georgia, serif; color: #1c140e; line-height: 1.5">
@@ -7,3 +20,4 @@
     <p style="color: #6b5a4a">Ссылка и код одноразовые и скоро истекут. Если вы не просили вход, просто удалите письмо.</p>
   </body>
 </html>
+{{- end }}

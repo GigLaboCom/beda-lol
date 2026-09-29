@@ -14,6 +14,9 @@ vars:
     sh: '[ -n "$BEDA_SUPABASE_URL" ] && echo "$BEDA_SUPABASE_URL" || (supabase status -o env 2>/dev/null | sed -n "s/^API_URL=\"\(.*\)\"$/\1/p")'
   LOCAL_SUPABASE_KEY:
     sh: '[ -n "$BEDA_SUPABASE_PUBLISHABLE_KEY" ] && echo "$BEDA_SUPABASE_PUBLISHABLE_KEY" || (supabase status -o env 2>/dev/null | sed -n "s/^PUBLISHABLE_KEY=\"\(.*\)\"$/\1/p")'
+  # The local stack's secret key, for the API's account deletion (Auth Admin API).
+  LOCAL_SUPABASE_SECRET:
+    sh: '[ -n "$BEDA_SUPABASE_SECRET_KEY" ] && echo "$BEDA_SUPABASE_SECRET_KEY" || (supabase status -o env 2>/dev/null | sed -n "s/^SECRET_KEY=\"\(.*\)\"$/\1/p")'
 
 tasks:
   default:
@@ -36,6 +39,7 @@ tasks:
         BEDA_DATABASE_URL="$(task db:api-url)"
         BEDA_SUPABASE_URL='{{.LOCAL_SUPABASE_URL}}'
         BEDA_SUPABASE_PUBLISHABLE_KEY='{{.LOCAL_SUPABASE_KEY}}'
+        BEDA_SUPABASE_SECRET_KEY='{{.LOCAL_SUPABASE_SECRET}}'
         pnpm exec nx run-many -t dev --outputStyle=stream
 
   web:dev:
@@ -52,6 +56,7 @@ tasks:
       - >-
         BEDA_DATABASE_URL="${BEDA_DATABASE_URL:-$(task db:api-url)}"
         BEDA_SUPABASE_URL='{{.LOCAL_SUPABASE_URL}}'
+        BEDA_SUPABASE_SECRET_KEY='{{.LOCAL_SUPABASE_SECRET}}'
         watchexec -r -e rs,toml -- cargo run -p beda-api -- serve
 
   db:url:

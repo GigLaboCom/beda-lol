@@ -31,6 +31,8 @@ function inSitemap(page) {
   // Match rules against the locale-stripped path so both languages are covered.
   const bare = path === '/en' ? '/' : path.startsWith('/en/') ? path.slice(3) : path;
   if (bare.startsWith('/dev') || bare.startsWith('/osmotr/r/') || bare === '/404') return false;
+  // Personal pages (noindex).
+  if (bare === '/voiti' || bare === '/kabinet') return false;
   // English pillar articles are untranslated stubs (noindex): keep them out.
   if (path.startsWith('/en/bukvy/')) return false;
   return !draftPaths.includes(bare);

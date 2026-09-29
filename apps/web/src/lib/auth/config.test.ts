@@ -19,6 +19,7 @@ describe('safeNext', () => {
     ]) {
       expect(safeNext(bad)).toBe('/');
     }
+    expect(safeNext('//evil.example', '/kabinet')).toBe('/kabinet');
   });
 });
 

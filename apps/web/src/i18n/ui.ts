@@ -39,25 +39,54 @@ const ru = {
   'hero.ctaNote': '12 вопросов, полторы минуты',
   'hero.caption': 'ПО + БЕДА = ПОБЕДА. Отвалится ПО — останется БЕДА.',
 
+  'head.signIn': 'Войти',
+  'head.cabinet': 'Кабинет',
+
+  'auth.off': 'Вход выключен: не заданы BEDA_SUPABASE_URL и BEDA_SUPABASE_PUBLISHABLE_KEY.',
+  'auth.failed':
+    'Вход не удался: ссылка устарела или уже использована, или вход через GitHub отменён.',
+  'auth.github': 'Войти через GitHub',
+  'auth.or': 'или по почте',
+  'auth.email': 'Почта',
+  'auth.send': 'Прислать ссылку и код',
+  'auth.sent': 'Письмо отправлено. Откройте ссылку или введите код из письма.',
+  'auth.code': 'Код из письма',
+  'auth.verify': 'Войти по коду',
+  'auth.signOut': 'Выйти',
+  'auth.signOutAll': 'Выйти на всех устройствах',
+  'auth.error': 'Ошибка: {message}',
+
+  'signin.title': 'Вход',
+  'signin.lead':
+    'Пароля нет: войдите через GitHub или по почте. Мы пришлём письмо со ссылкой и кодом — код пригодится, если письмо открыто на другом устройстве.',
+  'signin.deleted': 'Аккаунт удалён. Попутного ветра.',
+
+  'cabinet.title': 'Кабинет',
+  'cabinet.profile': 'Кто на борту',
+  'cabinet.name': 'Имя',
+  'cabinet.email': 'Почта',
+  'cabinet.methods': 'Вход',
+  'cabinet.method.email': 'по почте',
+  'cabinet.method.github': 'GitHub',
+  'cabinet.unavailable': 'Сервер сейчас не отвечает, часть данных не показана.',
+  'cabinet.sessions': 'Сеансы',
+  'cabinet.signOutAllNote':
+    'Выход на всех устройствах завершает все сеансы. На других устройствах вход погаснет при ближайшем обновлении сеанса, в пределах часа.',
+  'cabinet.delete': 'Удалить аккаунт',
+  'cabinet.deleteNote':
+    'Аккаунт, вход и сеансы удаляются сразу и насовсем. Что вы писали на сайте, останется без имени.',
+  'cabinet.deleteConfirm': 'Понимаю, что это нельзя отменить',
+  'cabinet.deleteButton': 'Удалить аккаунт насовсем',
+  'cabinet.deleteFailed': 'Не получилось удалить аккаунт. Попробуйте ещё раз чуть позже.',
+
   'authdev.title': 'Вход: проверка',
   'authdev.lead':
     'Стенд для проверки входа: сессия Supabase в cookie, токен в Rust API, пользователь и аккаунт из /api/me.',
-  'authdev.off': 'Вход выключен: не заданы BEDA_SUPABASE_URL и BEDA_SUPABASE_PUBLISHABLE_KEY.',
-  'authdev.failed':
-    'Вход не удался: ссылка устарела или уже использована, или вход через GitHub отменён.',
   'authdev.server': 'Сервер видит',
   'authdev.signedIn': 'вошли: {who}',
   'authdev.signedOut': 'не вошли',
   'authdev.serverMe': 'GET /api/me с сервера: {status}',
-  'authdev.github': 'Войти через GitHub',
-  'authdev.email': 'Почта',
-  'authdev.send': 'Прислать ссылку и код',
-  'authdev.sent': 'Письмо отправлено. Откройте ссылку или введите код из письма.',
-  'authdev.code': 'Код из письма',
-  'authdev.verify': 'Войти по коду',
   'authdev.browserMe': 'GET /api/me из браузера',
-  'authdev.signOut': 'Выйти',
-  'authdev.error': 'Ошибка: {message}',
 
   'falls.title': 'Транец: падения и надломы',
   'falls.lead':
@@ -238,25 +267,54 @@ const en: Record<Key, string> = {
   'hero.ctaNote': '12 questions, a minute and a half',
   'hero.caption': 'PROOF without its PR: all that’s left is “oof”.',
 
+  'head.signIn': 'Sign in',
+  'head.cabinet': 'Account',
+
+  'auth.off': 'Sign-in is off: BEDA_SUPABASE_URL and BEDA_SUPABASE_PUBLISHABLE_KEY are not set.',
+  'auth.failed':
+    'Sign-in failed: the link has expired or was already used, or GitHub sign-in was cancelled.',
+  'auth.github': 'Sign in with GitHub',
+  'auth.or': 'or by email',
+  'auth.email': 'Email',
+  'auth.send': 'Send a link and a code',
+  'auth.sent': 'Email sent. Open the link or type the code from it.',
+  'auth.code': 'Code from the email',
+  'auth.verify': 'Sign in with the code',
+  'auth.signOut': 'Sign out',
+  'auth.signOutAll': 'Sign out on all devices',
+  'auth.error': 'Error: {message}',
+
+  'signin.title': 'Sign in',
+  'signin.lead':
+    'No password: sign in with GitHub or by email. We send a link and a code; the code helps when the email is open on another device.',
+  'signin.deleted': 'Account deleted. Fair winds.',
+
+  'cabinet.title': 'Account',
+  'cabinet.profile': 'Who’s aboard',
+  'cabinet.name': 'Name',
+  'cabinet.email': 'Email',
+  'cabinet.methods': 'Sign-in',
+  'cabinet.method.email': 'by email',
+  'cabinet.method.github': 'GitHub',
+  'cabinet.unavailable': 'The server is not answering right now; some details are missing.',
+  'cabinet.sessions': 'Sessions',
+  'cabinet.signOutAllNote':
+    'Signing out on all devices ends every session. Other devices lose it at their next session refresh, within the hour.',
+  'cabinet.delete': 'Delete account',
+  'cabinet.deleteNote':
+    'The account, its sign-in and its sessions go at once and for good. What you wrote on the site stays, without your name.',
+  'cabinet.deleteConfirm': 'I understand this cannot be undone',
+  'cabinet.deleteButton': 'Delete the account for good',
+  'cabinet.deleteFailed': 'Could not delete the account. Please try again a bit later.',
+
   'authdev.title': 'Sign-in: check',
   'authdev.lead':
     'A bench for sign-in: the Supabase session in cookies, the token to the Rust API, the user and account from /api/me.',
-  'authdev.off': 'Sign-in is off: BEDA_SUPABASE_URL and BEDA_SUPABASE_PUBLISHABLE_KEY are not set.',
-  'authdev.failed':
-    'Sign-in failed: the link has expired or was already used, or GitHub sign-in was cancelled.',
   'authdev.server': 'The server sees',
   'authdev.signedIn': 'signed in: {who}',
   'authdev.signedOut': 'not signed in',
   'authdev.serverMe': 'GET /api/me from the server: {status}',
-  'authdev.github': 'Sign in with GitHub',
-  'authdev.email': 'Email',
-  'authdev.send': 'Send a link and a code',
-  'authdev.sent': 'Email sent. Open the link or type the code from it.',
-  'authdev.code': 'Code from the email',
-  'authdev.verify': 'Sign in with the code',
   'authdev.browserMe': 'GET /api/me from the browser',
-  'authdev.signOut': 'Sign out',
-  'authdev.error': 'Error: {message}',
 
   'falls.title': 'Transom: falls and breaks',
   'falls.lead':

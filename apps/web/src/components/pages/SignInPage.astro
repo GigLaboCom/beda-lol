@@ -1,0 +1,31 @@
+---
+import { getLangFromUrl, useTranslations } from '../../i18n';
+import Base from '../../layouts/Base.astro';
+import { authConfig } from '../../lib/auth/config';
+import { allowSignIn } from '../../lib/auth/csp';
+import { afterSignIn } from '../../lib/auth/routes';
+/**
+ * `/voiti` and `/en/voiti`: the sign-in forms. The route files send a visitor who is
+ * already signed in on (`afterSignIn`); this renders the rest.
+ */
+import SignIn from '../auth/SignIn';
+import '../../styles/auth.css';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const cfg = authConfig();
+const failed = Astro.url.searchParams.get('auth') === 'failed';
+const deleted = Astro.url.searchParams.get('account') === 'deleted';
+if (cfg) allowSignIn(Astro.csp, cfg);
+Astro.response.headers.set('cache-control', 'no-store');
+---
+
+<Base title={t('signin.title')} robots="noindex, follow">
+  <div class="wrap auth-page">
+    <h1 class="display">{t('signin.title')}</h1>
+    {deleted && <p class="warn" role="status">{t('signin.deleted')}</p>}
+    <p class="lead">{t('signin.lead')}</p>
+    {failed && <p class="warn" role="alert">{t('auth.failed')}</p>}
+    {cfg ? <SignIn client:load cfg={cfg} lang={lang} next={afterSignIn(Astro.url, lang)} /> : <p class="warn">{t('auth.off')}</p>}
+  </div>
+</Base>

@@ -1,0 +1,87 @@
+---
+import { getLangFromUrl, getLocalizedPath, type Key, useTranslations } from '../../i18n';
+import Base from '../../layouts/Base.astro';
+import type { Cabinet } from '../../lib/auth/cabinet';
+/**
+ * `/kabinet` and `/en/kabinet`: who is signed in, sign-out here or everywhere, and account
+ * deletion. Everything is a plain form POST, so the page needs no JS.
+ */
+import SignOut from '../auth/SignOut.astro';
+import '../../styles/auth.css';
+
+interface Props {
+  cabinet: Cabinet;
+}
+
+const { cabinet } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const home = getLocalizedPath('/', lang);
+const deleteFailed = Astro.url.searchParams.get('delete') === 'failed';
+const methodKey: Record<string, Key> = {
+  email: 'cabinet.method.email',
+  github: 'cabinet.method.github',
+};
+const methods = cabinet.providers.map((p) => (methodKey[p] ? t(methodKey[p]) : p)).join(', ');
+Astro.response.headers.set('cache-control', 'no-store');
+---
+
+<Base title={t('cabinet.title')} robots="noindex, nofollow">
+  <div class="wrap auth-page">
+    <h1 class="display">{t('cabinet.title')}</h1>
+
+    <section class="panel" aria-labelledby="cabinetProfile">
+      <h2 class="sect mono" id="cabinetProfile">{t('cabinet.profile')}</h2>
+      {!cabinet.me && <p class="warn" role="status">{t('cabinet.unavailable')}</p>}
+      <dl class="facts">
+        {
+          cabinet.me?.display_name && (
+            <>
+              <dt>{t('cabinet.name')}</dt>
+              <dd data-testid="cabinet-name">{cabinet.me.display_name}</dd>
+            </>
+          )
+        }
+        {
+          cabinet.email && (
+            <>
+              <dt>{t('cabinet.email')}</dt>
+              <dd data-testid="cabinet-email">{cabinet.email}</dd>
+            </>
+          )
+        }
+        {
+          methods && (
+            <>
+              <dt>{t('cabinet.methods')}</dt>
+              <dd>{methods}</dd>
+            </>
+          )
+        }
+      </dl>
+    </section>
+
+    <section class="panel" aria-labelledby="cabinetSessions">
+      <h2 class="sect mono" id="cabinetSessions">{t('cabinet.sessions')}</h2>
+      <div class="actions">
+        <SignOut next={home} />
+        <SignOut scope="global" next={home} />
+      </div>
+      <p class="note">{t('cabinet.signOutAllNote')}</p>
+    </section>
+
+    <section class="panel" aria-labelledby="cabinetDelete">
+      <h2 class="sect mono" id="cabinetDelete">{t('cabinet.delete')}</h2>
+      {deleteFailed && <p class="warn" role="alert">{t('cabinet.deleteFailed')}</p>}
+      <p class="note">{t('cabinet.deleteNote')}</p>
+      <form method="post" action="/auth/delete">
+        <input type="hidden" name="lang" value={lang} />
+        <label class="confirm">
+          <input type="checkbox" name="confirm" value="yes" required />
+          {t('cabinet.deleteConfirm')}
+        </label>
+        <button class="btn" type="submit">{t('cabinet.deleteButton')}</button>
+      </form>
+    </section>
+  </div>
+</Base>

@@ -1,0 +1,26 @@
+---
+/** Sign-out button: a form POST to `/auth/signout`, so it works without JS. */
+import type { Key } from '../../i18n';
+import { getLangFromUrl, useTranslations } from '../../i18n';
+
+interface Props {
+  /** `global` ends the sessions on every device. */
+  scope?: 'local' | 'global';
+  /** Where to land afterwards (same-site path). */
+  next: string;
+  label?: Key;
+}
+
+const {
+  scope = 'local',
+  next,
+  label = scope === 'global' ? 'auth.signOutAll' : 'auth.signOut',
+} = Astro.props;
+const t = useTranslations(getLangFromUrl(Astro.url));
+---
+
+<form class="sign-out" method="post" action="/auth/signout">
+  <input type="hidden" name="scope" value={scope} />
+  <input type="hidden" name="next" value={next} />
+  <button class="btn" type="submit">{t(label)}</button>
+</form>

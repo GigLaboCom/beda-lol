@@ -1,0 +1,12 @@
+---
+import CabinetPage from '../../components/pages/CabinetPage.astro';
+import { getLangFromUrl } from '../../i18n';
+import { loadCabinet } from '../../lib/auth/cabinet';
+
+export const prerender = false;
+
+const page = await loadCabinet(Astro.locals, getLangFromUrl(Astro.url));
+if ('redirect' in page) return Astro.redirect(page.redirect, 303);
+---
+
+<CabinetPage cabinet={page.cabinet} />

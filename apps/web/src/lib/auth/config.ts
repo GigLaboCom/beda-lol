@@ -35,8 +35,8 @@ export function apiBaseUrl(): string {
   return (process.env.BEDA_API_URL ?? 'http://localhost:8080').replace(/\/+$/, '');
 }
 
-/** A same-site path to go to after sign-in; anything else becomes `/`. */
-export function safeNext(next: string | null | undefined): string {
-  if (!next?.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) return '/';
+/** A same-site path to go to after sign-in; anything else becomes `fallback`. */
+export function safeNext(next: string | null | undefined, fallback = '/'): string {
+  if (!next?.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) return fallback;
   return next;
 }

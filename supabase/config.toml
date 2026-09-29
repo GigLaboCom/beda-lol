@@ -255,11 +255,11 @@ otp_expiry = 3600
 # address when confirmations are on and "magic_link" otherwise; both use the same file, so the
 # production setting does not change what people get.
 [auth.email.template.magic_link]
-subject = "Вход на beda.lol"
+subject = '{{ if eq (print .Data.lang) "en" }}Sign in to beda.lol{{ else }}Вход на beda.lol{{ end }}'
 content_path = "./supabase/templates/sign_in.html"
 
 [auth.email.template.confirmation]
-subject = "Вход на beda.lol"
+subject = '{{ if eq (print .Data.lang) "en" }}Sign in to beda.lol{{ else }}Вход на beda.lol{{ end }}'
 content_path = "./supabase/templates/sign_in.html"
 
 # Uncomment to customize email template

@@ -7,6 +7,8 @@ import {
   stripLocale,
   useTranslations,
 } from '../i18n';
+import { signInHref } from '../lib/auth/routes';
+import HeaderAccount from './auth/HeaderAccount.astro';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -70,6 +72,9 @@ const languages = locales.map((l) => ({
           ))
         }
       </nav>
+      <HeaderAccount server:defer lang={lang} path={path}>
+        <a class="head-account" slot="fallback" href={signInHref(lang, path)}>{t('head.signIn')}</a>
+      </HeaderAccount>
       <a class="btn btn-line-brass head-cta" href="#subscribe">{t('head.cta')}</a>
     </div>
   </div>
@@ -145,6 +150,20 @@ const languages = locales.map((l) => ({
   }
   .lang-switch a[aria-current='true'] {
     color: var(--text);
+  }
+  /* Global: the link comes from the server island, outside this component's scope. */
+  .head-end :global(.head-account) {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 15px;
+    padding: 6px 8px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 6px;
+  }
+  .head-end :global(.head-account:hover) {
+    color: var(--brass);
   }
   .head-cta {
     min-height: 44px;

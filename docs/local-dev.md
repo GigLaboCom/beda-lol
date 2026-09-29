@@ -109,13 +109,16 @@ BEDA_LOCAL_DATABASE_URL=postgresql://beda_api:beda_api_dev@host.docker.internal:
 
 `task dev` passes the local Supabase URL and publishable key to both halves: the API
 fetches the signing keys (JWKS) from it, the site keeps the session in cookies through
-`@supabase/ssr`. Sign-ups by email are on in `supabase/config.toml` (local only; the
+`@supabase/ssr`. The API also gets the local secret key, for account deletion. Sign-ups by email are on in `supabase/config.toml` (local only; the
 production project is configured in the Supabase dashboard).
 
-1. Open http://localhost:4321/dev/auth and ask for a link.
+1. Open http://localhost:4321/voiti (or «Войти» in the header) and ask for a link.
 2. The mail lands in Mailpit (:54324). Open the link, or type the code from the mail.
-3. The page shows what the server reads from the cookies, and `/api/me` from the server
-   and from the browser: the user, the personal account and the role.
+3. The cabinet, http://localhost:4321/kabinet, has sign-out, sign-out on all devices and
+   account deletion.
+4. http://localhost:4321/dev/auth has the same forms and shows what the server reads from
+   the cookies, and `/api/me` from the server and from the browser: the user, the personal
+   account and the role.
 
 The local stack signs tokens with ES256, so no signing key setup is needed. The compose
 stacks below have no Supabase Auth: `/api/me` answers 503 there.
@@ -126,14 +129,21 @@ published test keys: the secret sits in `supabase/config.toml` (`[auth.captcha]`
 widget says it is for testing only and always passes. Both the browser and Supabase Auth then
 call Cloudflare, so offline the e-mail button stays disabled: comment out `[auth.captcha]` and
 restart Supabase to work without the internet. The link and the code in the mail come from
-`supabase/templates/sign_in.html`.
+`supabase/templates/sign_in.html`; its subject and body are in English for an address that
+signed up on `/en/voiti`.
 
 ### Sign-in end to end (Playwright)
 
-`apps/web/e2e/` drives `/dev/auth` in Chromium and WebKit at phone width against the running
-stack (`task dev`): a magic link and a code through Mailpit, `/api/me` from the server and
-from the browser, sign-out, and the GitHub round trip up to GitHub's authorize page with a
-cancelled sign-in coming back as failed (no GitHub account needed).
+`apps/web/e2e/` drives the sign-in pages in Chromium and WebKit at phone width against the
+running stack (`task dev`):
+
+- a magic link from the header's «Войти» and back to the page, the cabinet, sign-out;
+- a code on `/dev/auth`, with `/api/me` from the server and from the browser;
+- the GitHub round trip up to GitHub's authorize page, with a cancelled sign-in coming back
+  as failed (no GitHub account needed);
+- sign-out on all devices: the other browser's session can no longer be refreshed;
+- account deletion from the cabinet;
+- English: the English mail and the English cabinet.
 
 ```sh
 pnpm --filter web exec playwright install chromium webkit   # once

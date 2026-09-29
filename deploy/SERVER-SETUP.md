@@ -72,6 +72,9 @@ What goes in (see comments in `.env.example`):
   Set the role's password once in the Supabase SQL editor: `alter role beda_api password '…';`
 - `BEDA_SUPABASE_URL` — `https://<project-ref>.supabase.co`, in both files.
 - `BEDA_SUPABASE_PUBLISHABLE_KEY` (`web.env`) — Dashboard → Project Settings → API Keys.
+- `BEDA_SUPABASE_SECRET_KEY` (`.env` only) — Dashboard → Project Settings → API Keys → Secret
+  keys: create one named `beda-api`. The API deletes accounts with it (Auth Admin API). It is
+  the one Supabase secret on the server: never in `web.env`, images or CI.
 - `BEDA_TURNSTILE_SITE_KEY` (`web.env`) — the Turnstile widget's site key (§4a).
 - `BACKUP_*` and `RCLONE_CONFIG_S3_*` — bucket for backups, `age` public key.
   Create the key pair on **your** machine: `age-keygen -o beda-backup.key` — keep the file offline,
@@ -89,7 +92,7 @@ Auth settings live in the dashboard; `supabase/config.toml` is for the local sta
 | Authentication → Sign In / Providers → Email | enabled, sign-ups allowed |
 | Authentication → Sign In / Providers → GitHub | enabled; Client ID and Secret of the production OAuth app (below) |
 | Authentication → Emails → SMTP Settings | custom SMTP (below); the built-in mailer is for tests only and sends a few mails an hour |
-| Authentication → Emails → Templates → Magic link **and** Confirm signup | both: subject «Вход на beda.lol», body from `supabase/templates/sign_in.html` (a new address gets Confirm signup when «Confirm email» is on; the mail is the same either way) |
+| Authentication → Emails → Templates → Magic link **and** Confirm signup | both: subject and body as in `supabase/config.toml` and `supabase/templates/sign_in.html`. Both are templates that pick English when the user signed up from `/en/voiti` (`lang` in the user metadata), Russian otherwise. A new address gets Confirm signup when «Confirm email» is on; the mail is the same either way |
 | Authentication → Rate Limits | emails per hour: check the value once SMTP is on and raise it if sign-ins hit the limit |
 | Authentication → Attack Protection → Captcha | Turnstile, the widget's secret key (below). Turn it on **after** the site key is in `web.env` and web restarted, or e-mail sign-in fails |
 | SQL editor | `alter role beda_api password '…';` (the same password goes into `BEDA_DATABASE_URL`) |
@@ -117,8 +120,9 @@ mode Managed. The site key goes into `web.env` as `BEDA_TURNSTILE_SITE_KEY` (the
 `docker compose -f deploy/compose.yaml up -d web` with the current `BEDA_TAG`), the secret key
 into Attack Protection in the Supabase dashboard. Nowhere else.
 
-After the first release, check sign-in on `https://beda.lol/dev/auth` (magic link and GitHub),
-then promote yourself (after one GitHub sign-in):
+After the first release, check sign-in on `https://beda.lol/voiti` (magic link, code and
+GitHub; `/dev/auth` shows what the server and the API see), the cabinet `https://beda.lol/kabinet`
+(sign-out, sign-out on all devices), then promote yourself (after one GitHub sign-in):
 
 ```sh
 cd /opt/beda/src && BEDA_TAG=$(cat /opt/beda/.last_good) docker compose -f deploy/compose.yaml \
