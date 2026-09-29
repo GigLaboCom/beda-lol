@@ -39,6 +39,24 @@ const ru = {
   'hero.ctaNote': '12 вопросов, полторы минуты',
   'hero.caption': 'ПО + БЕДА = ПОБЕДА. Отвалится ПО — останется БЕДА.',
 
+  'authdev.title': 'Вход: проверка',
+  'authdev.lead':
+    'Стенд для проверки входа: сессия Supabase в cookie, токен в Rust API, пользователь и аккаунт из /api/me.',
+  'authdev.off': 'Вход выключен: не заданы BEDA_SUPABASE_URL и BEDA_SUPABASE_PUBLISHABLE_KEY.',
+  'authdev.failed': 'Вход не удался: ссылка устарела или уже использована.',
+  'authdev.server': 'Сервер видит',
+  'authdev.signedIn': 'вошли: {who}',
+  'authdev.signedOut': 'не вошли',
+  'authdev.serverMe': 'GET /api/me с сервера: {status}',
+  'authdev.email': 'Почта',
+  'authdev.send': 'Прислать ссылку и код',
+  'authdev.sent': 'Письмо отправлено. Откройте ссылку или введите код из письма.',
+  'authdev.code': 'Код из письма',
+  'authdev.verify': 'Войти по коду',
+  'authdev.browserMe': 'GET /api/me из браузера',
+  'authdev.signOut': 'Выйти',
+  'authdev.error': 'Ошибка: {message}',
+
   'falls.title': 'Транец: падения и надломы',
   'falls.lead':
     'Один движок на оба вида поломок: буква срывается целиком — гвозди вылетают, она качается на последнем и падает на полку; или от буквы откалывается кусок, и остаётся другая буква.',
@@ -217,6 +235,24 @@ const en: Record<Key, string> = {
   'hero.cta': 'Inspect your vessel',
   'hero.ctaNote': '12 questions, a minute and a half',
   'hero.caption': 'PROOF without its PR: all that’s left is “oof”.',
+
+  'authdev.title': 'Sign-in: check',
+  'authdev.lead':
+    'A bench for sign-in: the Supabase session in cookies, the token to the Rust API, the user and account from /api/me.',
+  'authdev.off': 'Sign-in is off: BEDA_SUPABASE_URL and BEDA_SUPABASE_PUBLISHABLE_KEY are not set.',
+  'authdev.failed': 'Sign-in failed: the link has expired or was already used.',
+  'authdev.server': 'The server sees',
+  'authdev.signedIn': 'signed in: {who}',
+  'authdev.signedOut': 'not signed in',
+  'authdev.serverMe': 'GET /api/me from the server: {status}',
+  'authdev.email': 'Email',
+  'authdev.send': 'Send a link and a code',
+  'authdev.sent': 'Email sent. Open the link or type the code from it.',
+  'authdev.code': 'Code from the email',
+  'authdev.verify': 'Sign in with the code',
+  'authdev.browserMe': 'GET /api/me from the browser',
+  'authdev.signOut': 'Sign out',
+  'authdev.error': 'Error: {message}',
 
   'falls.title': 'Transom: falls and breaks',
   'falls.lead':

@@ -1,0 +1,95 @@
+---
+/**
+ * Dev bench for sign-in (S16): what the server reads from the session cookies,
+ * `/api/me` called from the server and from the browser. Not linked anywhere,
+ * noindex, disallowed in robots.txt, excluded from the sitemap (the /dev rule).
+ */
+import AuthBench from '../../components/auth/AuthBench';
+import { fmt, getLangFromUrl, useTranslations } from '../../i18n';
+import Base from '../../layouts/Base.astro';
+import { authConfig } from '../../lib/auth/config';
+import { apiFromServer } from '../../lib/auth/server';
+
+export const prerender = false;
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const cfg = authConfig();
+const auth = Astro.locals.auth;
+const me = await apiFromServer(Astro.locals, '/api/me');
+const failed = Astro.url.searchParams.get('auth') === 'failed';
+// supabase-js talks to Supabase Auth directly from this page.
+if (cfg) Astro.csp?.insertDirective(`connect-src 'self' ${new URL(cfg.url).origin}`);
+Astro.response.headers.set('cache-control', 'no-store');
+---
+
+<Base title={t('authdev.title')} robots="noindex, nofollow">
+  <div class="wrap auth-page">
+    <h1 class="display">{t('authdev.title')}</h1>
+    <p class="lead">{t('authdev.lead')}</p>
+    {failed && <p class="warn" role="alert">{t('authdev.failed')}</p>}
+    {
+      cfg ? (
+        <>
+          <section class="panel">
+            <h2 class="sect mono">{t('authdev.server')}</h2>
+            <p data-testid="server-auth">
+              {auth ? fmt(t('authdev.signedIn'), { who: auth.email ?? auth.userId }) : t('authdev.signedOut')}
+            </p>
+            <p class="mono">{fmt(t('authdev.serverMe'), { status: me.status })}</p>
+            <pre class="mono" data-testid="server-me">{JSON.stringify(me.body, null, 2)}</pre>
+          </section>
+          <AuthBench client:load cfg={cfg} lang={lang} signedIn={auth !== null} />
+        </>
+      ) : (
+        <p class="warn">{t('authdev.off')}</p>
+      )
+    }
+  </div>
+</Base>
+
+<style is:global>
+  .auth-page {
+    padding-block: 28px 64px;
+    max-width: 44em;
+  }
+  .auth-page .lead {
+    color: var(--text-2);
+  }
+  .auth-page .panel,
+  .auth-bench {
+    margin-top: 24px;
+    padding: 18px;
+    background: var(--hull);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .auth-page .warn {
+    color: var(--brass);
+  }
+  .auth-page pre {
+    overflow-x: auto;
+    font-size: 13px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .auth-bench form {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .auth-bench input {
+    min-height: 44px;
+    font: inherit;
+    padding: 0 12px;
+  }
+  .auth-bench .auth-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .auth-bench .status {
+    min-height: 1.5em;
+    color: var(--brass);
+  }
+</style>

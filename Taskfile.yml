@@ -9,6 +9,11 @@ vars:
   # Override with LOCAL_DB_URL=... when the database runs elsewhere.
   LOCAL_DB_URL:
     sh: '[ -n "$LOCAL_DB_URL" ] && echo "$LOCAL_DB_URL" || (supabase status -o env 2>/dev/null | sed -n "s/^DB_URL=\"\(.*\)\"$/\1/p")'
+  # Local Supabase API URL and publishable key for sign-in (API: JWKS; web: supabase-js).
+  LOCAL_SUPABASE_URL:
+    sh: '[ -n "$BEDA_SUPABASE_URL" ] && echo "$BEDA_SUPABASE_URL" || (supabase status -o env 2>/dev/null | sed -n "s/^API_URL=\"\(.*\)\"$/\1/p")'
+  LOCAL_SUPABASE_KEY:
+    sh: '[ -n "$BEDA_SUPABASE_PUBLISHABLE_KEY" ] && echo "$BEDA_SUPABASE_PUBLISHABLE_KEY" || (supabase status -o env 2>/dev/null | sed -n "s/^PUBLISHABLE_KEY=\"\(.*\)\"$/\1/p")'
 
 tasks:
   default:
@@ -27,17 +32,27 @@ tasks:
       - supabase start
       - task: db:dev-role
       # Nx runs every project's continuous `dev` target in parallel (api, web).
-      - BEDA_DATABASE_URL="$(task db:api-url)" pnpm exec nx run-many -t dev --outputStyle=stream
+      - >-
+        BEDA_DATABASE_URL="$(task db:api-url)"
+        BEDA_SUPABASE_URL='{{.LOCAL_SUPABASE_URL}}'
+        BEDA_SUPABASE_PUBLISHABLE_KEY='{{.LOCAL_SUPABASE_KEY}}'
+        pnpm exec nx run-many -t dev --outputStyle=stream
 
   web:dev:
     desc: 'Astro dev server on :4321; /api goes to BEDA_API_URL (default http://localhost:8080)'
     cmds:
-      - pnpm exec nx run web:dev --outputStyle=stream
+      - >-
+        BEDA_SUPABASE_URL='{{.LOCAL_SUPABASE_URL}}'
+        BEDA_SUPABASE_PUBLISHABLE_KEY='{{.LOCAL_SUPABASE_KEY}}'
+        pnpm exec nx run web:dev --outputStyle=stream
 
   api:dev:
     desc: Rust API with reload on :8080 (needs watchexec and a running database)
     cmds:
-      - BEDA_DATABASE_URL="${BEDA_DATABASE_URL:-$(task db:api-url)}" watchexec -r -e rs,toml -- cargo run -p beda-api -- serve
+      - >-
+        BEDA_DATABASE_URL="${BEDA_DATABASE_URL:-$(task db:api-url)}"
+        BEDA_SUPABASE_URL='{{.LOCAL_SUPABASE_URL}}'
+        watchexec -r -e rs,toml -- cargo run -p beda-api -- serve
 
   db:url:
     desc: Print the local database URL (superuser)

@@ -9,6 +9,7 @@
     "preview": "astro preview",
     "start": "node ./dist/server/entry.mjs",
     "typecheck": "astro check",
+    "test": "vitest run",
     "og": "tsx scripts/og.ts"
   },
   "dependencies": {
@@ -19,6 +20,8 @@
     "@beda/core": "workspace:*",
     "@beda/tokens": "workspace:*",
     "@beda/transom": "workspace:*",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.117.2",
     "astro": "7.3.5",
     "preact": "10.29.8"
   },
@@ -29,7 +32,8 @@
     "satori": "0.33.5",
     "sharp": "^0.35.4",
     "tsx": "^4.23.15",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "vitest": "5.0.2"
   },
   "nx": {
     "targets": {
