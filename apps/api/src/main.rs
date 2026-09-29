@@ -5,7 +5,7 @@ use std::process::ExitCode;
 use std::time::Duration;
 
 use anyhow::Context as _;
-use beda_api::auth::Verifier;
+use beda_api::auth::{AuthAdmin, Verifier};
 use beda_api::store::users::set_role_by_github_login;
 use beda_api::{AppState, Config, Store, telemetry};
 use clap::{Parser, Subcommand};
@@ -134,6 +134,13 @@ async fn serve() -> anyhow::Result<()> {
             .with_auth(Verifier::remote(jwks_url, issuer).context("building the JWKS client")?);
     } else {
         tracing::warn!("BEDA_SUPABASE_URL is not set: routes that need a user answer 503");
+    }
+    if let (Some(url), Some(key)) = (&config.supabase_url, &config.supabase_secret_key) {
+        state = state.with_admin(
+            AuthAdmin::new(url, key.clone()).context("building the auth admin client")?,
+        );
+    } else {
+        tracing::warn!("BEDA_SUPABASE_SECRET_KEY is not set: account deletion answers 503");
     }
     let housekeeping = state.clone();
     tokio::spawn(async move {

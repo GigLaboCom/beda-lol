@@ -3,6 +3,8 @@
 use std::fmt;
 use std::net::SocketAddr;
 
+use crate::auth::Secret;
+
 /// Deployment environment.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Env {
@@ -28,6 +30,8 @@ pub struct Config {
     pub supabase_url: Option<String>,
     /// Expected `iss` of access tokens; default `{supabase_url}/auth/v1`.
     pub jwt_issuer: Option<String>,
+    /// Supabase secret (or legacy `service_role`) key, for the Admin API only.
+    pub supabase_secret_key: Option<Secret>,
     /// Origins allowed on unsafe methods besides `base_url`.
     pub extra_origins: Vec<String>,
     /// Refuse unsafe methods from other origins; on in prod, off in dev
@@ -60,6 +64,7 @@ impl Default for Config {
             db_max_connections: 10,
             supabase_url: None,
             jwt_issuer: None,
+            supabase_secret_key: None,
             extra_origins: Vec::new(),
             origin_check: false,
         }
@@ -164,6 +169,10 @@ impl Config {
             _ => {}
         }
         config.jwt_issuer = get("BEDA_JWT_ISSUER").map(|u| u.trim_end_matches('/').to_owned());
+        config.supabase_secret_key = get("BEDA_SUPABASE_SECRET_KEY").map(Secret::new);
+        if config.supabase_secret_key.is_some() && config.supabase_url.is_none() {
+            problems.push("BEDA_SUPABASE_SECRET_KEY needs BEDA_SUPABASE_URL".to_owned());
+        }
 
         config.extra_origins = get("BEDA_ALLOWED_ORIGINS")
             .map(|list| {
@@ -282,6 +291,30 @@ mod tests {
                 .issuer()
                 .is_none()
         );
+    }
+
+    #[test]
+    fn secret_key_needs_the_url_and_stays_out_of_debug_output() {
+        let err = load(&[
+            ("BEDA_DATABASE_URL", "postgres://u@h/db"),
+            ("BEDA_SUPABASE_SECRET_KEY", "sb_secret_abc"),
+        ])
+        .unwrap_err();
+        assert_eq!(
+            err.0,
+            vec!["BEDA_SUPABASE_SECRET_KEY needs BEDA_SUPABASE_URL".to_owned()]
+        );
+        let config = load(&[
+            ("BEDA_DATABASE_URL", "postgres://u@h/db"),
+            ("BEDA_SUPABASE_URL", "http://127.0.0.1:54321"),
+            ("BEDA_SUPABASE_SECRET_KEY", " sb_secret_abc "),
+        ])
+        .unwrap();
+        assert_eq!(
+            config.supabase_secret_key.as_ref().map(Secret::expose),
+            Some("sb_secret_abc")
+        );
+        assert!(!format!("{config:?}").contains("sb_secret_abc"));
     }
 
     #[test]

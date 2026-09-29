@@ -67,3 +67,20 @@ pub async fn set_role_by_github_login(
     .fetch_optional(db)
     .await
 }
+
+/// Detaches the user from everything they wrote, before the account is deleted
+/// (amendment П-1, rule 6). Every table that records a user id outside the
+/// user's own accounts gets its statement here; account data (`account_id`)
+/// goes away with the personal account. Returns the number of rows changed.
+pub async fn anonymise_user(
+    db: &mut sqlx::PgConnection,
+    user_id: Uuid,
+) -> Result<u64, sqlx::Error> {
+    let events = sqlx::query!(
+        "update app.events set user_id = null where user_id = $1",
+        user_id
+    )
+    .execute(&mut *db)
+    .await?;
+    Ok(events.rows_affected())
+}

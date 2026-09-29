@@ -13,7 +13,7 @@ use axum::body::Body;
 use axum::http::{Request, StatusCode};
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-use beda_api::auth::{TokenError, Verifier};
+use beda_api::auth::{AuthAdmin, Secret, TokenError, Verifier};
 use beda_api::{AppState, Config, Store, app};
 use http_body_util::BodyExt as _;
 use jsonwebtoken::{Algorithm, EncodingKey, Header};
@@ -376,5 +376,170 @@ async fn blocked_and_unknown_users_are_refused() {
     let (status, _, _) = get_me(test_app(state), Some(&stranger), None).await;
     assert_eq!(status, StatusCode::UNAUTHORIZED);
 
+    user.delete().await;
+}
+
+// ---- Account deletion ----
+
+async fn delete_me(router: axum::Router, token: &str) -> (StatusCode, Value) {
+    let req = Request::delete("/api/me")
+        .header("authorization", format!("Bearer {token}"))
+        .body(Body::empty())
+        .unwrap();
+    let res = router.oneshot(req).await.unwrap();
+    let status = res.status();
+    let bytes = res.into_body().collect().await.unwrap().to_bytes();
+    (
+        status,
+        serde_json::from_slice(&bytes).unwrap_or(Value::Null),
+    )
+}
+
+/// What the fake Admin API saw: the path and the `apikey` header of each call.
+type AdminCalls = std::sync::Arc<std::sync::Mutex<Vec<(String, String)>>>;
+
+/// A stand-in for Supabase's `/auth/v1/admin/users/{id}`. Given a pool, it
+/// removes the `auth.users` row as Supabase Auth would; without one it answers 500.
+async fn fake_admin(pool: Option<sqlx::PgPool>) -> (String, AdminCalls) {
+    let calls = AdminCalls::default();
+    let seen = calls.clone();
+    let server = axum::Router::new().route(
+        "/auth/v1/admin/users/{id}",
+        axum::routing::delete(
+            move |axum::extract::Path(id): axum::extract::Path<Uuid>,
+                  headers: axum::http::HeaderMap| {
+                let seen = seen.clone();
+                let pool = pool.clone();
+                async move {
+                    let key = headers
+                        .get("apikey")
+                        .and_then(|v| v.to_str().ok())
+                        .unwrap_or_default()
+                        .to_owned();
+                    seen.lock()
+                        .unwrap()
+                        .push((format!("/auth/v1/admin/users/{id}"), key));
+                    let Some(pool) = pool else {
+                        return StatusCode::INTERNAL_SERVER_ERROR;
+                    };
+                    sqlx::query("delete from auth.users where id = $1")
+                        .bind(id)
+                        .execute(&pool)
+                        .await
+                        .unwrap();
+                    StatusCode::OK
+                }
+            },
+        ),
+    );
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = listener.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(listener, server).await.unwrap() });
+    (format!("http://{addr}"), calls)
+}
+
+async fn event_user(pool: &sqlx::PgPool, event: i64) -> Option<Uuid> {
+    sqlx::query_scalar("select user_id from app.events where id = $1")
+        .bind(event)
+        .fetch_one(pool)
+        .await
+        .unwrap()
+}
+
+async fn event_by(pool: &sqlx::PgPool, user: Uuid) -> i64 {
+    sqlx::query_scalar("insert into app.events (name, user_id) values ('test', $1) returning id")
+        .bind(user)
+        .fetch_one(pool)
+        .await
+        .unwrap()
+}
+
+#[tokio::test]
+async fn deleting_the_account_anonymises_first_then_deletes_the_user() {
+    let Some(url) = database_url() else { return };
+    let keys = keys();
+    let user = AuthUser::create(&url, json!({})).await;
+    let event = event_by(&user.pool, user.id).await;
+    let (base, calls) = fake_admin(Some(user.pool.clone())).await;
+    let state = AppState::new(store(&url))
+        .with_auth(verifier(&keys))
+        .with_admin(AuthAdmin::new(&base, Secret::new("sb_secret_test".to_owned())).unwrap());
+    let token = sign(&keys, &claims(user.id));
+
+    // Loaded once, so the cache holds the user: deletion must drop it.
+    let (status, _, _) = get_me(test_app(state.clone()), Some(&token), None).await;
+    assert_eq!(status, StatusCode::OK);
+
+    let (status, body) = delete_me(test_app(state.clone()), &token).await;
+    assert_eq!(status, StatusCode::NO_CONTENT, "{body}");
+    assert_eq!(
+        *calls.lock().unwrap(),
+        [(
+            format!("/auth/v1/admin/users/{}", user.id),
+            "sb_secret_test".to_owned()
+        )]
+    );
+    assert_eq!(
+        event_user(&user.pool, event).await,
+        None,
+        "event anonymised"
+    );
+    let left: i64 = sqlx::query_scalar("select count(*) from app.users where id = $1")
+        .bind(user.id)
+        .fetch_one(&user.pool)
+        .await
+        .unwrap();
+    assert_eq!(left, 0, "app.users row cascaded away");
+
+    // The token is still unexpired, but it no longer belongs to anyone.
+    let (status, _, _) = get_me(test_app(state), Some(&token), None).await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+
+    sqlx::query("delete from app.events where id = $1")
+        .bind(event)
+        .execute(&user.pool)
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
+async fn a_failed_admin_call_keeps_the_user_and_can_be_retried() {
+    let Some(url) = database_url() else { return };
+    let keys = keys();
+    let user = AuthUser::create(&url, json!({})).await;
+    let event = event_by(&user.pool, user.id).await;
+    let (base, calls) = fake_admin(None).await;
+    let state = AppState::new(store(&url))
+        .with_auth(verifier(&keys))
+        .with_admin(AuthAdmin::new(&base, Secret::new("k".to_owned())).unwrap());
+    let token = sign(&keys, &claims(user.id));
+
+    let (status, body) = delete_me(test_app(state.clone()), &token).await;
+    assert_eq!(status, StatusCode::INTERNAL_SERVER_ERROR, "{body}");
+    assert_eq!(calls.lock().unwrap().len(), 1);
+    // Records are detached already; the account is still there to retry with.
+    assert_eq!(event_user(&user.pool, event).await, None);
+    let (status, _, _) = get_me(test_app(state), Some(&token), None).await;
+    assert_eq!(status, StatusCode::OK);
+
+    sqlx::query("delete from app.events where id = $1")
+        .bind(event)
+        .execute(&user.pool)
+        .await
+        .unwrap();
+    user.delete().await;
+}
+
+#[tokio::test]
+async fn deletion_is_unavailable_without_the_secret_key() {
+    let Some(url) = database_url() else { return };
+    let keys = keys();
+    let user = AuthUser::create(&url, json!({})).await;
+    let state = AppState::new(store(&url)).with_auth(verifier(&keys));
+    let token = sign(&keys, &claims(user.id));
+    let (status, body) = delete_me(test_app(state.clone()), &token).await;
+    assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE, "{body}");
+    let (status, _, _) = get_me(test_app(state), Some(&token), None).await;
+    assert_eq!(status, StatusCode::OK, "nothing was deleted");
     user.delete().await;
 }

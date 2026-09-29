@@ -48,7 +48,7 @@ pub fn routes(config: &Config, state: AppState) -> Router {
     let router = Router::new()
         .route("/api/healthz", get(health::healthz))
         .route("/api/readyz", get(health::readyz))
-        .route("/api/me", get(me::me))
+        .route("/api/me", get(me::me).delete(me::delete_me))
         .route(
             "/api/quiz/attempts",
             post(quiz::create_attempt).layer(limited(state.limits.quiz_attempts.clone())),

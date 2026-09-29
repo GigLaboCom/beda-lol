@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update app.events set user_id = null where user_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "18b78fea4cd70b2cb95b4a882972fe28ec7b33dfb693d9cba913ed08547f3a0b"
+}

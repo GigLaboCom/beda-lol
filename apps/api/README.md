@@ -19,6 +19,7 @@ task api:dev                          # with reload (watchexec)
 | `BEDA_DATABASE_URL` | — (required) | Postgres URL of the `beda_api` role |
 | `BEDA_DB_MAX_CONNECTIONS` | `10` | pool size |
 | `BEDA_SUPABASE_URL` | — (required in prod) | Supabase project URL; the API fetches its signing keys from `/auth/v1/.well-known/jwks.json`. Without it, routes that need a user answer 503 |
+| `BEDA_SUPABASE_SECRET_KEY` | — | Supabase secret key, for the Auth Admin API only (account deletion); never logged. Without it, `DELETE /api/me` answers 503. `task dev` passes the local one |
 | `BEDA_JWT_ISSUER` | `{BEDA_SUPABASE_URL}/auth/v1` | expected `iss` of access tokens, for when the API reaches Supabase by another host name than the browser does (Docker) |
 | `BEDA_ORIGIN_CHECK` | `on` in prod, `off` in dev | refuse POST/PUT/PATCH/DELETE whose `Origin` is not the site (amendment П-1, rule 3); off in dev because the dev site is opened by LAN addresses too |
 | `BEDA_ALLOWED_ORIGINS` | — | more origins for that check, comma-separated |
@@ -51,6 +52,12 @@ async fn public(user: Option<CurrentUser>) -> … { … } // guests get None, a 
 - Tables with user data carry `account_id`, and handlers take it from `user.account.id`, never from the body.
 - Errors: 401 with no token, a bad token or an unknown user; 403 for a blocked user, a foreign account or a missing role; 400 for a malformed `x-beda-account`; 503 when auth is not configured or the keys cannot be fetched.
 - `GET /api/me` returns the user, the current account and all of the user's accounts.
+- `DELETE /api/me` deletes the account (204): first the user is detached from what they wrote
+  (`store::users::anonymise_user`, one statement per table that records a user id; today
+  `app.events`), then the Admin API deletes the `auth.users` row, which ends the sessions and
+  cascades to `app.users`, the personal account and its data. If the Admin call fails, the
+  answer is 500 and a retry finishes the job. A new table with user-authored rows adds its
+  statement to `anonymise_user`.
 - The first admin: `beda-api admin promote <github-login>` (`--role moderator|user` too), run
   where `BEDA_DATABASE_URL` is set. It finds the user by their GitHub identity, and a running API
   sees the new role within 60 s.
@@ -66,4 +73,5 @@ Builds without a database use `SQLX_OFFLINE=true`.
 `cargo test` runs everything; database tests need `BEDA_TEST_DATABASE_URL` (the local
 `postgres` superuser URL) and are skipped without it. Each runs in a rolled-back transaction,
 except the `/api/me` tests in `tests/auth.rs`: they create an `auth.users` row and delete it at the end.
+The deletion tests talk to a stand-in Admin API on a random local port.
 Tokens in tests are signed with a key generated per run; no key material is committed.
