@@ -45,7 +45,7 @@ There are no ads on the site. We do not sell your data or pass it on for adverti
 - **Cloudflare Turnstile:** checks that a person, not a bot, fills in the email sign-in form. Cloudflare sees your IP address and browser details.
 - **GitHub, Google, X:** only if you sign in with them, and they then learn that you signed in to beda.lol.
 - **Backup storage:** [provider]. Backups are encrypted, and the key is kept apart from them.
-- **Google Analytics** (Google) counts visits. The data is processed on Google's servers, including outside Russia.
+- **Google Analytics** (Google) counts visits. The data is processed on Google's servers.
 - **ipregistry.co** finds the country of an IP address for the region check and returns it to our server.
 
 ## Cookies and browser storage
