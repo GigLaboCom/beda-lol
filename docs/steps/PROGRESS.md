@@ -37,9 +37,10 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [x] S16 Supabase Auth wiring
 - [ ] S17 GitHub provider (repo part done; the OAuth apps await the human)
 - [ ] S18 Magic link (repo part done; SMTP, the sending domain and the Turnstile widget await the human)
+- [ ] S19 Login UI and cabinet (repo part done; the production secret key and a joint check await the human)
 
 ## Stages 2–6
-See `ROADMAP.md`. Expand each into a step file before starting it (S16–S18 ran from their ROADMAP lines, by the human's decision).
+See `ROADMAP.md`. Expand each into a step file before starting it (S16–S19 ran from their ROADMAP lines, by the human's decision).
 
 ---
 
@@ -553,3 +554,59 @@ See `ROADMAP.md`. Expand each into a step file before starting it (S16–S18 ran
   - Create the Turnstile widget for `beda.lol`: the site key into `/opt/beda/web.env`, the secret into Attack Protection. Turn it on after the site key is live.
   - Paste `sign_in.html` into both the Magic link and the Confirm signup templates.
   - Then a joint check on `https://beda.lol/dev/auth`: the mail arrives in the inbox (Gmail, Yandex), and the link and the code both sign in.
+
+### S19 — Login UI and cabinet — 2026-09-29 (repo part done; not ticked until the production secret key is set and a joint check on beda.lol passes)
+- Done:
+  - **API: account deletion.**
+    - `DELETE /api/me` (204). First `store::users::anonymise_user` detaches the user from every table that records a user id (today `app.events.user_id`), in one transaction. Then `auth::AuthAdmin` deletes the `auth.users` row through the Supabase Admin API, which ends the sessions and cascades to `app.users` and the personal account. Last, the user cache entry is dropped.
+    - Answers: a failed Admin call gives 500, and a retry finishes the job (404 from Supabase counts as already deleted). Without the key, 503.
+    - Config: `BEDA_SUPABASE_SECRET_KEY` (optional; needs `BEDA_SUPABASE_URL`). It is a `Secret` type that prints as `Secret(***)`, and a test checks the key is not in `Config`'s Debug output. Added to `deploy/.env.example` (api only) and `SERVER-SETUP.md` §4.
+  - **Site:**
+    - `/voiti` and `/kabinet`, plus `/en/…`: on demand, noindex, out of the sitemap. `/kabinet` was already disallowed in robots.txt.
+      - `/voiti`: GitHub, the mail with a link and a code, `?auth=failed`, and «Аккаунт удалён» after a deletion. A signed-in visitor goes to `next` or to the cabinet.
+      - `/kabinet`: email, sign-in methods, name (hidden when empty), sign-out, sign-out on all devices, account deletion with a required confirmation. A signed-out visitor goes to `/voiti?next=/kabinet`. A token whose user is gone gets signed out.
+    - One sign-in island, `SignIn.tsx`, serves `/voiti` and the `/dev/auth` bench; the bench keeps only its `/api/me` probe. Shared styles are in `styles/auth.css`. Links are built in `lib/auth/routes.ts`, the cabinet data in `lib/auth/cabinet.ts`.
+    - **Header:** «Войти» or «Кабинет» comes from a server island (`HeaderAccount.astro`, `private, no-store`), with «Войти» as the fallback, so every page stays prerendered.
+    - **Forms without JS:** `POST /auth/signout` (`scope=local|global`) and `POST /auth/delete`, which calls `DELETE /api/me` from the server, then clears the cookies. Astro's origin check guards both.
+    - **English sign-in mail:** the form stores `lang` in the metadata of a new address. The mail subject (in `config.toml`) and `sign_in.html` pick English for `lang=en`, Russian otherwise.
+  - Dictionary: shared `auth.*` keys for the forms (the bench's `authdev.*` keys that duplicated them are gone), plus `signin.*`, `cabinet.*` and `head.signIn` / `head.cabinet`, in ru and en.
+  - `task dev` and `task api:dev` pass the local secret key to the API (`LOCAL_SUPABASE_SECRET` from `supabase status`).
+  - Docs:
+    - ADR 0003: pages and header, what sign-out everywhere does and does not do, and the deletion order;
+    - API README;
+    - `docs/local-dev.md`;
+    - `SERVER-SETUP.md`: the template row and the post-release check;
+    - `apps/web/CLAUDE.md`: no JSON-LD on the personal pages.
+- Verified:
+  - **Rust:**
+    - fmt and clippy `-D warnings` on fresh roots;
+    - `cargo test --workspace` with the database: lib 18, auth 12, db 6, events 3, http 8, quiz 4;
+    - new tests: deletion anonymises first, calls the Admin API with the key, and a cached token then gets 401; a failed Admin call keeps the user; no key gives 503; the secret stays out of Debug output;
+    - `sqlx prepare --check`, the offline release build, `cargo deny`.
+  - **E2E** (`pnpm --filter web e2e`): 12/12 in Chromium and WebKit, three runs in a row, against `task dev`-like servers.
+    - «Войти» in the header on `/osmotr` → `/voiti?next=/osmotr` → the link from the mail → back on `/osmotr` with «Кабинет» → the cabinet → sign-out → `/kabinet` sends to `/voiti`.
+    - The code on the bench, with `/api/me` from the server and from the browser.
+    - GitHub cancelled → `/voiti?auth=failed`.
+    - Sign-out on all devices: the second browser's refresh token is refused (400).
+    - Deletion needs the checkbox, then leads to `/voiti?account=deleted`, and the account is gone.
+    - `/en/voiti`: English mail subject and body, the English cabinet.
+  - **Production build** (`node dist/server/entry.mjs`, test Turnstile key):
+    - the island answers `private, no-store`;
+    - a POST to `/auth/signout` or `/auth/delete` with a foreign `Origin` gets 403, and a same-origin one works;
+    - the `/voiti` CSP carries Turnstile and `'self'`;
+    - the e2e passes except the bench's browser `/api/me`, because the bare Node server has no `/api` proxy (Caddy does that in production).
+  - Screenshots at 375 px and 1280 px (Chromium, WebKit): no horizontal scroll; the header fits logo, RU/EN and «Войти»/«Кабинет».
+  - The mail language was checked on the local Supabase with the templated subject: `lang=en` gets «Sign in to beda.lol», `lang=ru` and no `lang` get «Вход на beda.lol».
+  - TS lint, typecheck, test, build (Nx, 5 projects), `astro check` 0 errors. Biome is clean except the untracked `.claude/settings.json`. The JSON-LD audit gives 0 errors; its 6 warnings are the known `datePublished` gap.
+- Deviations:
+  - No step file; the step ran from its ROADMAP line.
+  - **Sign-out on all devices is not instant elsewhere.** Supabase revokes the refresh tokens, but an access token (a stateless JWT) stays valid until it expires: 1 h by default. The cabinet says «в пределах часа». Deletion is instant for the API, because the user row is gone. Closing the window for sign-out would mean checking `session_id` against `auth.sessions` in the API, or a shorter JWT expiry in the dashboard.
+  - Deletion is immediate; the spec allows up to 30 days.
+  - The mail language is set once, when an address signs up. An existing user who switches to `/en` still gets the language they signed up with.
+  - This sandbox's Docker cannot bind-mount templates (as in S18): the scratch Supabase stack got the templates copied into Kong by hand.
+- New deps: none.
+- [HUMAN] open:
+  - A Supabase **secret key** for the API: Dashboard → Project Settings → API Keys → Secret keys, name `beda-api`, into `/opt/beda/.env` as `BEDA_SUPABASE_SECRET_KEY` (`SERVER-SETUP.md` §4). Only there.
+  - In both dashboard templates (Magic link, Confirm signup): the subject from `supabase/config.toml` (it is a template) and the new `sign_in.html`.
+  - Optional: a shorter JWT expiry (Dashboard → JWT Keys) if an hour is too long for sign-out everywhere.
+  - Then a joint check on `https://beda.lol/voiti` and `/kabinet`: sign-in three ways, sign-out on all devices, and deleting a test account.
