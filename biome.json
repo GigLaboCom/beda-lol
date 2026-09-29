@@ -19,6 +19,7 @@
       "!**/*.gen.ts",
       "!**/public/og",
       "!packages/brand/src/*.svg",
+      "!supabase/templates",
       "!pnpm-lock.yaml"
     ]
   },
