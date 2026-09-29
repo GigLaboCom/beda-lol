@@ -49,3 +49,21 @@ pub async fn memberships(
     .fetch_all(db)
     .await
 }
+
+/// Sets the site role of the user who signed in with GitHub login `login`.
+/// Returns the user id, or `None` when no such user exists.
+pub async fn set_role_by_github_login(
+    db: impl PgExecutor<'_>,
+    login: &str,
+    role: &str,
+) -> Result<Option<Uuid>, sqlx::Error> {
+    sqlx::query_scalar!(
+        "update app.users set role = $2
+         where id = app.user_id_by_github_login($1)
+         returning id",
+        login,
+        role,
+    )
+    .fetch_optional(db)
+    .await
+}

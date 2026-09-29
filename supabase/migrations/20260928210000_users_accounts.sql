@@ -101,9 +101,32 @@ revoke execute on function app.on_auth_user_created() from public, anon, authent
 create trigger app_on_auth_user_created after insert on auth.users
   for each row execute function app.on_auth_user_created();
 
--- Users that signed up before this migration.
+-- Users that signed up before this migration. `to_jsonb(u)`, because the
+-- local compose database has a bare `auth.users` without the metadata column.
 do $$
 begin
-  perform app.provision_user(u.id, coalesce(u.raw_user_meta_data, '{}'::jsonb)) from auth.users u;
+  perform app.provision_user(u.id, coalesce(to_jsonb(u) -> 'raw_user_meta_data', '{}'::jsonb))
+  from auth.users u;
 end
 $$;
+
+-- `beda-api admin promote <github-login>`: the API role cannot read `auth`,
+-- so the lookup by GitHub login goes through this one function. plpgsql, so
+-- the body is checked when it runs: `auth.identities` is created by Supabase
+-- Auth, and CI starts the database without it.
+create function app.user_id_by_github_login(p_login text) returns uuid
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  return (
+    select i.user_id from auth.identities i
+    where i.provider = 'github' and lower(i.identity_data ->> 'user_name') = lower(p_login)
+    limit 1
+  );
+end;
+$$;
+revoke execute on function app.user_id_by_github_login(text) from public, anon, authenticated;
+grant execute on function app.user_id_by_github_login(text) to beda_api;

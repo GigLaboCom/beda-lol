@@ -28,6 +28,11 @@ pub struct Config {
     pub supabase_url: Option<String>,
     /// Expected `iss` of access tokens; default `{supabase_url}/auth/v1`.
     pub jwt_issuer: Option<String>,
+    /// Origins allowed on unsafe methods besides `base_url`.
+    pub extra_origins: Vec<String>,
+    /// Refuse unsafe methods from other origins; on in prod, off in dev
+    /// (the dev site is opened by LAN addresses too).
+    pub origin_check: bool,
 }
 
 /// Every problem found in the environment, reported at once.
@@ -55,6 +60,8 @@ impl Default for Config {
             db_max_connections: 10,
             supabase_url: None,
             jwt_issuer: None,
+            extra_origins: Vec::new(),
+            origin_check: false,
         }
     }
 }
@@ -74,6 +81,13 @@ impl Config {
                 .as_ref()
                 .map(|url| format!("{url}/auth/v1"))
         })
+    }
+
+    /// Origins allowed to send unsafe requests.
+    pub fn allowed_origins(&self) -> Vec<String> {
+        std::iter::once(self.base_url.clone())
+            .chain(self.extra_origins.iter().cloned())
+            .collect()
     }
 
     /// Reads the configuration from the process environment.
@@ -151,6 +165,26 @@ impl Config {
         }
         config.jwt_issuer = get("BEDA_JWT_ISSUER").map(|u| u.trim_end_matches('/').to_owned());
 
+        config.extra_origins = get("BEDA_ALLOWED_ORIGINS")
+            .map(|list| {
+                list.split(',')
+                    .map(|o| o.trim().trim_end_matches('/').to_owned())
+                    .filter(|o| !o.is_empty())
+                    .collect()
+            })
+            .unwrap_or_default();
+        config.origin_check = match get("BEDA_ORIGIN_CHECK").as_deref() {
+            None => config.env.is_prod(),
+            Some("on") => true,
+            Some("off") => false,
+            Some(other) => {
+                problems.push(format!(
+                    "BEDA_ORIGIN_CHECK must be `on` or `off`, got `{other}`"
+                ));
+                false
+            }
+        };
+
         if problems.is_empty() {
             Ok(config)
         } else {
@@ -194,6 +228,7 @@ mod tests {
         ])
         .unwrap();
         assert!(config.env.is_prod());
+        assert!(config.origin_check, "on by default in prod");
         assert_eq!(
             config.jwks_url().as_deref(),
             Some("https://ref.supabase.co/auth/v1/.well-known/jwks.json")
@@ -246,6 +281,40 @@ mod tests {
                 .unwrap()
                 .issuer()
                 .is_none()
+        );
+    }
+
+    #[test]
+    fn origin_settings() {
+        let config = load(&[
+            ("BEDA_DATABASE_URL", "postgres://u@h/db"),
+            ("BEDA_ORIGIN_CHECK", "on"),
+            (
+                "BEDA_ALLOWED_ORIGINS",
+                "http://172.17.0.3:4321/, ,http://localhost:4322",
+            ),
+        ])
+        .unwrap();
+        assert!(config.origin_check);
+        assert_eq!(
+            config.allowed_origins(),
+            [
+                "http://localhost:4321",
+                "http://172.17.0.3:4321",
+                "http://localhost:4322"
+            ]
+        );
+        assert!(
+            !load(&[("BEDA_DATABASE_URL", "postgres://u@h/db")])
+                .unwrap()
+                .origin_check
+        );
+        assert!(
+            load(&[
+                ("BEDA_DATABASE_URL", "postgres://u@h/db"),
+                ("BEDA_ORIGIN_CHECK", "yes")
+            ])
+            .is_err()
         );
     }
 

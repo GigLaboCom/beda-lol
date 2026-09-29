@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update app.users set role = $2\n         where id = app.user_id_by_github_login($1)\n         returning id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "app.users",
+            "name": "id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "50cf830e771487b48ed1d0fa1b9105055b1fdaff1b0e364b3a8ae3479db66394"
+}

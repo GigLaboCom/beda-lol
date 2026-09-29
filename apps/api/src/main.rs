@@ -6,6 +6,7 @@ use std::time::Duration;
 
 use anyhow::Context as _;
 use beda_api::auth::Verifier;
+use beda_api::store::users::set_role_by_github_login;
 use beda_api::{AppState, Config, Store, telemetry};
 use clap::{Parser, Subcommand};
 use tokio::io::{AsyncReadExt as _, AsyncWriteExt as _};
@@ -25,12 +26,43 @@ struct Cli {
 enum Command {
     /// Run the HTTP server.
     Serve,
-    /// Service commands (added in S16).
-    Admin,
+    /// Service commands.
+    Admin {
+        #[command(subcommand)]
+        command: AdminCommand,
+    },
     /// Probe `GET /api/readyz` on the local server; exit 0 on 200.
     Healthcheck,
     /// Print the version and build SHA.
     Version,
+}
+
+#[derive(Subcommand)]
+enum AdminCommand {
+    /// Give the user who signed in with this GitHub login a site role.
+    /// A running API picks it up within 60 s (user cache).
+    Promote {
+        github_login: String,
+        #[arg(long, value_enum, default_value_t = RoleArg::Admin)]
+        role: RoleArg,
+    },
+}
+
+#[derive(Clone, Copy, clap::ValueEnum)]
+enum RoleArg {
+    User,
+    Moderator,
+    Admin,
+}
+
+impl RoleArg {
+    fn as_db(self) -> &'static str {
+        match self {
+            Self::User => "user",
+            Self::Moderator => "moderator",
+            Self::Admin => "admin",
+        }
+    }
 }
 
 fn main() -> ExitCode {
@@ -44,10 +76,7 @@ fn main() -> ExitCode {
             );
             ExitCode::SUCCESS
         }
-        Command::Admin => {
-            println!("admin commands are added in S16");
-            ExitCode::SUCCESS
-        }
+        Command::Admin { command } => run(admin(command)),
         Command::Healthcheck => run(healthcheck()),
         Command::Serve => run(serve()),
     }
@@ -69,6 +98,26 @@ fn run(fut: impl Future<Output = anyhow::Result<()>>) -> ExitCode {
         Err(err) => {
             eprintln!("{err:#}");
             ExitCode::FAILURE
+        }
+    }
+}
+
+async fn admin(command: AdminCommand) -> anyhow::Result<()> {
+    let config = Config::from_env()?;
+    let store =
+        Store::connect_lazy(&config.database_url, 1).context("invalid BEDA_DATABASE_URL")?;
+    match command {
+        AdminCommand::Promote { github_login, role } => {
+            let id = set_role_by_github_login(store.pool(), &github_login, role.as_db())
+                .await
+                .context("updating the role")?;
+            match id {
+                Some(id) => {
+                    println!("{github_login} ({id}) is now {}", role.as_db());
+                    Ok(())
+                }
+                None => anyhow::bail!("no user signed in with GitHub login `{github_login}`"),
+            }
         }
     }
 }

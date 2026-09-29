@@ -20,6 +20,8 @@ task api:dev                          # with reload (watchexec)
 | `BEDA_DB_MAX_CONNECTIONS` | `10` | pool size |
 | `BEDA_SUPABASE_URL` | — (required in prod) | Supabase project URL; the API fetches its signing keys from `/auth/v1/.well-known/jwks.json`. Without it, routes that need a user answer 503 |
 | `BEDA_JWT_ISSUER` | `{BEDA_SUPABASE_URL}/auth/v1` | expected `iss` of access tokens, for when the API reaches Supabase by another host name than the browser does (Docker) |
+| `BEDA_ORIGIN_CHECK` | `on` in prod, `off` in dev | refuse POST/PUT/PATCH/DELETE whose `Origin` is not the site (amendment П-1, rule 3); off in dev because the dev site is opened by LAN addresses too |
+| `BEDA_ALLOWED_ORIGINS` | — | more origins for that check, comma-separated |
 
 ## Which Supabase connection string
 
@@ -49,6 +51,9 @@ async fn public(user: Option<CurrentUser>) -> … { … } // guests get None, a 
 - Tables with user data carry `account_id`, and handlers take it from `user.account.id`, never from the body.
 - Errors: 401 with no token, a bad token or an unknown user; 403 for a blocked user, a foreign account or a missing role; 400 for a malformed `x-beda-account`; 503 when auth is not configured or the keys cannot be fetched.
 - `GET /api/me` returns the user, the current account and all of the user's accounts.
+- The first admin: `beda-api admin promote <github-login>` (`--role moderator|user` too), run
+  where `BEDA_DATABASE_URL` is set. It finds the user by their GitHub identity, and a running API
+  sees the new role within 60 s.
 
 ## Queries
 

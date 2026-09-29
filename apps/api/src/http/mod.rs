@@ -6,6 +6,7 @@ pub mod events;
 pub mod health;
 pub mod json;
 pub mod me;
+pub mod origin;
 pub mod quiz;
 pub mod rate_limit;
 
@@ -38,13 +39,13 @@ pub const BODY_LIMIT: usize = 64 * 1024;
 pub const REQUEST_TIMEOUT: Duration = Duration::from_secs(15);
 
 /// Routes under `/api`, without middleware.
-pub fn routes(_config: &Config, state: AppState) -> Router {
+pub fn routes(config: &Config, state: AppState) -> Router {
     let limited = |limiter: Arc<DefaultKeyedRateLimiter<IpAddr>>| {
         middleware::from_fn(move |client, request, next| {
             rate_limit::enforce(limiter.clone(), client, request, next)
         })
     };
-    Router::new()
+    let router = Router::new()
         .route("/api/healthz", get(health::healthz))
         .route("/api/readyz", get(health::readyz))
         .route("/api/me", get(me::me))
@@ -57,7 +58,15 @@ pub fn routes(_config: &Config, state: AppState) -> Router {
             post(events::create_event).layer(limited(state.limits.events.clone())),
         )
         .fallback(|| async { AppError::NotFound })
-        .with_state(state)
+        .with_state(state);
+    if config.origin_check {
+        let allowed: Arc<[String]> = config.allowed_origins().into();
+        router.layer(middleware::from_fn(move |request, next| {
+            origin::enforce(allowed.clone(), request, next)
+        }))
+    } else {
+        router
+    }
 }
 
 /// Wraps a router in the standard middleware stack, outermost first:

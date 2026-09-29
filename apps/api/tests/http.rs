@@ -123,3 +123,42 @@ async fn readyz_is_503_without_database() {
     assert_eq!(res.status(), StatusCode::SERVICE_UNAVAILABLE);
     assert_eq!(json_body(res).await["error"]["code"], "unavailable");
 }
+
+#[tokio::test]
+async fn unsafe_requests_from_foreign_origins_are_refused() {
+    let store = Store::connect_lazy("postgres://nobody@127.0.0.1:1/none", 1).unwrap();
+    let config = Config {
+        origin_check: true,
+        ..Config::default()
+    };
+    let router = app(&config, AppState::new(store));
+    let post = |origin: Option<&str>| {
+        let mut req = Request::post("/api/events").header("content-type", "application/json");
+        if let Some(origin) = origin {
+            req = req.header("origin", origin);
+        }
+        req.body(Body::from("{}")).unwrap()
+    };
+    // Foreign and opaque origins: 403 before the body is looked at.
+    for origin in ["https://evil.example", "null"] {
+        let res = router.clone().oneshot(post(Some(origin))).await.unwrap();
+        assert_eq!(res.status(), StatusCode::FORBIDDEN, "{origin}");
+        assert_eq!(json_body(res).await["error"]["code"], "forbidden");
+    }
+    // Own origin and no origin reach the handler (which rejects the empty event).
+    for origin in [Some("http://localhost:4321"), None] {
+        let res = router.clone().oneshot(post(origin)).await.unwrap();
+        assert_eq!(res.status(), StatusCode::BAD_REQUEST, "{origin:?}");
+    }
+    // Safe methods are not checked.
+    let res = router
+        .oneshot(
+            Request::get("/api/healthz")
+                .header("origin", "https://evil.example")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::OK);
+}

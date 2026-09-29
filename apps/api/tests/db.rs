@@ -173,3 +173,60 @@ async fn browser_roles_cannot_touch_users_or_call_provisioning() {
         }
     }
 }
+
+#[tokio::test]
+async fn promote_by_github_login() {
+    let Some(mut conn) = connect().await else {
+        return;
+    };
+    // `auth.identities` comes from Supabase Auth; CI runs the database alone.
+    let (identities,): (Option<String>,) =
+        sqlx::query_as("select to_regclass('auth.identities')::text")
+            .fetch_one(&mut conn)
+            .await
+            .unwrap();
+    if identities.is_none() {
+        eprintln!("auth.identities missing (Supabase Auth not running), skipping");
+        return;
+    }
+    let mut tx = conn.begin().await.unwrap();
+    let id = uuid::Uuid::new_v4();
+    sqlx::query(
+        "insert into auth.users (id, instance_id, aud, role, email)
+         values ($1, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+                 'promote@example.test')",
+    )
+    .bind(id)
+    .execute(&mut *tx)
+    .await
+    .unwrap();
+    sqlx::query(
+        "insert into auth.identities (provider_id, user_id, identity_data, provider)
+         values ('4242', $1, '{\"user_name\": \"Captain-Test\"}', 'github')",
+    )
+    .bind(id)
+    .execute(&mut *tx)
+    .await
+    .unwrap();
+
+    sqlx::query("set local role beda_api")
+        .execute(&mut *tx)
+        .await
+        .unwrap();
+    let promoted =
+        beda_api::store::users::set_role_by_github_login(&mut *tx, "captain-test", "admin")
+            .await
+            .unwrap();
+    assert_eq!(promoted, Some(id));
+    let user = beda_api::store::users::find_user(&mut *tx, id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(user.role, "admin");
+    let nobody = beda_api::store::users::set_role_by_github_login(&mut *tx, "nobody-here", "admin")
+        .await
+        .unwrap();
+    assert_eq!(nobody, None);
+
+    tx.rollback().await.unwrap();
+}
