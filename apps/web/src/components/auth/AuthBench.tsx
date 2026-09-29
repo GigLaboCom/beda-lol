@@ -2,8 +2,12 @@ import { useState } from 'preact/hooks';
 import { fmt, type Locale, useTranslations } from '../../i18n';
 import { apiFetch, browserClient } from '../../lib/auth/browser';
 import type { AuthConfig } from '../../lib/auth/config';
+import Turnstile from './Turnstile';
 
-/** Dev sign-in bench (`/dev/auth`): GitHub, magic link or OTP code, `/api/me` from the browser, sign-out. */
+/**
+ * Dev sign-in bench (`/dev/auth`): GitHub, magic link or OTP code (behind Turnstile when on),
+ * `/api/me` from the browser, sign-out.
+ */
 export default function AuthBench({
   cfg,
   lang = 'ru',
@@ -18,6 +22,8 @@ export default function AuthBench({
   const [code, setCode] = useState('');
   const [status, setStatus] = useState('');
   const [me, setMe] = useState('');
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const [round, setRound] = useState(0);
   const supabase = () => browserClient(cfg);
   const fail = (message: string) => setStatus(fmt(t('authdev.error'), { message }));
   const callback = () =>
@@ -36,8 +42,13 @@ export default function AuthBench({
     e.preventDefault();
     const { error } = await supabase().auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: callback() },
+      options: { emailRedirectTo: callback(), captchaToken: captcha ?? undefined },
     });
+    // The Turnstile token is spent either way: ask the widget for a new one.
+    if (cfg.turnstile) {
+      setCaptcha(null);
+      setRound((r) => r + 1);
+    }
     if (error) fail(error.message);
     else setStatus(t('authdev.sent'));
   }
@@ -80,7 +91,16 @@ export default function AuthBench({
               value={email}
               onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
             />
-            <button class="btn btn-brass" type="submit">
+            {cfg.turnstile && (
+              <Turnstile
+                siteKey={cfg.turnstile}
+                lang={lang}
+                round={round}
+                onToken={setCaptcha}
+                onError={fail}
+              />
+            )}
+            <button class="btn btn-brass" type="submit" disabled={!!cfg.turnstile && !captcha}>
               {t('authdev.send')}
             </button>
           </form>

@@ -1,6 +1,6 @@
 ---
 /**
- * Dev bench for sign-in (S16): what the server reads from the session cookies,
+ * Dev bench for sign-in (S16–S18): what the server reads from the session cookies,
  * `/api/me` called from the server and from the browser. Not linked anywhere,
  * noindex, disallowed in robots.txt, excluded from the sitemap (the /dev rule).
  */
@@ -8,6 +8,7 @@ import AuthBench from '../../components/auth/AuthBench';
 import { fmt, getLangFromUrl, useTranslations } from '../../i18n';
 import Base from '../../layouts/Base.astro';
 import { authConfig } from '../../lib/auth/config';
+import { allowSignIn } from '../../lib/auth/csp';
 import { apiFromServer } from '../../lib/auth/server';
 
 export const prerender = false;
@@ -18,8 +19,7 @@ const cfg = authConfig();
 const auth = Astro.locals.auth;
 const me = await apiFromServer(Astro.locals, '/api/me');
 const failed = Astro.url.searchParams.get('auth') === 'failed';
-// supabase-js talks to Supabase Auth directly from this page.
-if (cfg) Astro.csp?.insertDirective(`connect-src 'self' ${new URL(cfg.url).origin}`);
+if (cfg) allowSignIn(Astro.csp, cfg);
 Astro.response.headers.set('cache-control', 'no-store');
 ---
 

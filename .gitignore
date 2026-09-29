@@ -37,3 +37,7 @@ supabase/.branches/
 
 # Generated share images (nx run web:og)
 apps/web/public/og/
+
+# Playwright output (pnpm --filter web e2e)
+test-results/
+playwright-report/

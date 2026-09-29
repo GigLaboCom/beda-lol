@@ -215,11 +215,14 @@ token_verifications = 30
 # Number of Web3 logins that can be made in a 5 minute interval per IP address.
 web3 = 30
 
-# Configure one of the supported captcha providers: `hcaptcha`, `turnstile`.
-# [auth.captcha]
-# enabled = true
-# provider = "hcaptcha"
-# secret = ""
+# Turnstile guards e-mail sign-in (S18): Supabase Auth checks the token the site sends with
+# the request. Locally this is Cloudflare's published test secret, which accepts any token;
+# `astro dev` falls back to the matching test site key (apps/web/src/lib/auth/config.ts).
+# Both need the internet. Production: the real secret in the dashboard (deploy/SERVER-SETUP.md).
+[auth.captcha]
+enabled = true
+provider = "turnstile"
+secret = "1x0000000000000000000000000000000AA"
 
 [auth.email]
 # Allow/disallow new user signups via email to your project. Magic link (S18); mail goes to Mailpit locally.
@@ -248,10 +251,16 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
-# Magic link: a link and the same one-time code (S18 finishes the Russian templates).
+# One sign-in mail, a link and the same one-time code. Supabase sends "confirmation" to a new
+# address when confirmations are on and "magic_link" otherwise; both use the same file, so the
+# production setting does not change what people get.
 [auth.email.template.magic_link]
 subject = "Вход на beda.lol"
-content_path = "./supabase/templates/magic_link.html"
+content_path = "./supabase/templates/sign_in.html"
+
+[auth.email.template.confirmation]
+subject = "Вход на beda.lol"
+content_path = "./supabase/templates/sign_in.html"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]
