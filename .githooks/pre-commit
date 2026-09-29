@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+# Secrets in the staged changes, before they become a commit (as in watchword).
+# Config: .gitleaks.toml. Installed by `task hooks`.
+set -e
+if ! command -v gitleaks >/dev/null; then
+  echo "pre-commit: gitleaks is not installed, secret scan skipped" >&2
+  echo "  install: brew install gitleaks, or https://github.com/gitleaks/gitleaks#installing" >&2
+  exit 0
+fi
+gitleaks git -c .gitleaks.toml --staged --redact --no-banner .

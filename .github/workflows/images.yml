@@ -29,8 +29,28 @@ env:
   SHA: ${{ github.event.workflow_run.head_sha || github.event.pull_request.head.sha || github.sha }}
 
 jobs:
+  # Tags and manual runs do not pass through ci.yml: scan the exact commit's history here
+  # too, and publish nothing if it holds a secret (as watchword's release does).
+  secrets:
+    name: secrets
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.SHA }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-gitleaks
+      - name: Secrets in the git history
+        run: gitleaks git -c .gitleaks.toml --redact --no-banner --verbose .
+
   build:
     name: ${{ matrix.image }}
+    needs: secrets
     # After CI: only a green push to main publishes.
     if: >-
       github.event_name != 'workflow_run' ||

@@ -12,10 +12,14 @@ task gate    # Rust: nightly fmt --check → touch crate roots → clippy -D war
 task check   # everything CI runs: Biome, shellcheck, typecheck, tests, builds, secret scan, cargo-deny, sqlx --check, offline release build
 ```
 
-`task hooks` installs a pre-push hook (`.githooks/pre-push`) that runs the fast
-part — `cargo +nightly fmt --all -- --check`, `biome check` and, when `gitleaks` is
-installed, the secret scan of every commit — the equivalent of mnemoria's
-`.rusty-hook.toml` pre-push fmt check.
+`task hooks` installs two hooks (`.githooks/`), set up the same way as in watchword:
+
+- `pre-commit` scans the staged changes for secrets;
+- `pre-push` runs the fast part of the gate — `cargo +nightly fmt --all -- --check`,
+  `biome check` and a secret scan of every commit. It is the equivalent of mnemoria's
+  `.rusty-hook.toml` pre-push fmt check.
+
+Without `gitleaks` installed, both hooks skip the secret scan and say so.
 
 | Check | Command | Config |
 | --- | --- | --- |
@@ -27,7 +31,7 @@ installed, the secret scan of every commit — the equivalent of mnemoria's
 | TS/JSON/CSS | `pnpm exec biome check .` (`biome ci` on CI) | `biome.json` |
 | TS types, tests, builds | `pnpm nx run-many -t typecheck test build` | `nx.json`, package scripts |
 | Shell | `shellcheck deploy/scripts/*.sh` | — |
-| Secrets | `task leaks`: gitleaks over every commit, uncommitted and staged changes, and `apps/web/dist` (what the web image ships). CI: the history and `dist` in the `web` job | `.gitleaks.toml`: the default rules plus the Supabase secret key, personal access token, `service_role` JWT and passwords in Postgres URLs. The allowlist covers Cloudflare's public Turnstile test keys, local dev passwords and Astro's server-island key in the server bundle. Local binary, or the `ghcr.io/gitleaks/gitleaks` image of the same version |
+| Secrets | `task leaks`: gitleaks over every commit, uncommitted and staged changes, and `apps/web/dist` (what the web image ships). CI: a `secrets` job over the full history (`ci.yml`, and `images.yml`, whose builds need it, since tags and manual runs skip `ci.yml`), and `dist` in the `web` job, with the binary from `.github/actions/setup-gitleaks` | `.gitleaks.toml`: the default rules plus the Supabase secret key, personal access token, `service_role` JWT and passwords in Postgres URLs. The allowlist covers Cloudflare's public Turnstile test keys, local dev passwords and Astro's server-island key in the server bundle. Local binary, or the `ghcr.io/gitleaks/gitleaks` image of the same version |
 | No secret in the site | `apps/web/src/lib/auth/no-secrets.test.ts` (Vitest) | the site code never names the secret or `service_role` key, and `authConfig` never passes it on, even when the process has it |
 
 ## Rules

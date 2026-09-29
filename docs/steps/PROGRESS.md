@@ -649,3 +649,18 @@ See `ROADMAP.md`. Expand each into a step file before starting it (S16–S19 ran
   - The pre-push hook passes end to end.
   - The site test fails on a planted file that reads `BEDA_SUPABASE_SECRET_KEY`.
 - New deps: gitleaks 8.30.1 (tool, not a package), for the scan the human asked for.
+- Addendum, same day («посмотреть как сделано в watchword проекте и добавить тоже самое»), set up as in watchword:
+  - `.githooks/pre-commit` scans the staged changes (it skips with a note when gitleaks is missing), and `task hooks` says how to install gitleaks, like watchword's `install-hooks.sh`;
+  - a dedicated `secrets` job with the full history in `ci.yml`;
+  - a `secrets` job in `images.yml` that every image build `needs`: tags and manual runs do not go through `ci.yml`, just as watchword's release has `needs: [secrets, test]`;
+  - one composite action, `.github/actions/setup-gitleaks`, installs the binary for all three jobs.
+
+  Deviations from watchword:
+  - Instead of `gitleaks/gitleaks-action@v2` + `GITLEAKS_LICENSE`, the checksum-pinned binary. The action needs a licence for organisations, and actions here are pinned to a SHA.
+  - The config has project rules (Supabase) on top of the defaults.
+  - The web image's `dist` is scanned too.
+
+  Verified:
+  - pre-commit in a throwaway clone: a staged secret gives exit 1 with the value redacted; clean changes give 0; without gitleaks, 0 with the note;
+  - actionlint on both workflows;
+  - every Taskfile command parses as a string: a `: ` in the new echo had first made YAML read it as a mapping.
