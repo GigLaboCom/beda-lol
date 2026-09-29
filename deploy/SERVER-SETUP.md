@@ -76,6 +76,7 @@ What goes in (see comments in `.env.example`):
   keys: create one named `beda-api`. The API deletes accounts with it (Auth Admin API). It is
   the one Supabase secret on the server: never in `web.env`, images or CI.
 - `BEDA_TURNSTILE_SITE_KEY` (`web.env`) — the Turnstile widget's site key (§4a).
+- `BEDA_GA_ID` (`web.env`) — the GA4 measurement id, `G-…` (§4b). Empty: no analytics, no banner.
 - `BACKUP_*` and `RCLONE_CONFIG_S3_*` — bucket for backups, `age` public key.
   Create the key pair on **your** machine: `age-keygen -o beda-backup.key` — keep the file offline,
   put only the `age1…` public key on the server.
@@ -180,6 +181,46 @@ Google and X; `/dev/auth` shows what the server and the API see), the cabinet `h
 cd /opt/beda/src && BEDA_TAG=$(cat /opt/beda/.last_good) docker compose -f deploy/compose.yaml \
   exec api beda-api admin promote <github-login> --role admin
 ```
+
+## 4b. Google Analytics and the cookie banner's region check
+
+The site runs GA4 in Consent Mode, as the sibling GigLabo sites do (lookbook, stereola,
+moat-atlas): consent denied until a choice, cookies only after it. Visitors in the EU (and
+anyone the region check cannot place) see the banner; elsewhere consent is granted without
+asking. `/cookies` changes the choice. Code: `apps/web/src/lib/{analytics,consent}.ts`.
+
+**GA4 property.** analytics.google.com → Admin → Create property `beda.lol` → Web stream for
+`https://beda.lol`. Copy the measurement id `G-…` into `BEDA_GA_ID` in `/opt/beda/web.env` and
+restart web (`docker compose … up -d web`); `/analytics.js` then sets gtag up (runtime, no rebuild).
+In the property keep advertising off: Admin → Data collection → **Google signals off**, and no
+Google Ads links. Set the data retention you want (Admin → Data retention) and write it into
+`/konfidencialnost`.
+
+**Region check.** The banner asks `/api-shared/ip` on the site's own origin. Caddy sends it to the
+`shared` service (GigLabo `shared-service`, github.com/glani/shared-service): it takes the
+visitor's address from Caddy (`X-Real-Ip`; forged `Cf-Connecting-Ip` and friends are dropped),
+asks ipregistry.co and answers `{status, ip: {isEu}}` only. Without the service Caddy answers
+502 and the banner asks everyone, which is the safe failure. To run it on this VPS:
+
+```sh
+# The shared-service image (it is in the private GigLabo registry; `docker login` there first,
+# as the deploy user) and its ipregistry.co key:
+sudo -u deploy tee /opt/beda/shared.env >/dev/null <<'ENV'
+IP_REGISTRY_CO_KEY=<ipregistry.co API key>
+ENV
+sudo -u deploy chmod 600 /opt/beda/shared.env
+cd /opt/beda/src && sudo -u deploy env BEDA_TAG=$(cat /opt/beda/.last_good) \
+  BEDA_SHARED_IMAGE=<registry>/shared-service/shared-service-x86_64:<version> \
+  docker compose -f deploy/compose.yaml --profile shared up -d shared
+curl -s https://beda.lol/api-shared/ip   # {"status":"OK","ip":{"isEu":…}}
+```
+
+The service is not part of a release: `deploy.sh` leaves it running (its `--remove-orphans`
+keeps profile services). Update it the same way with a new image. Why not call the instance
+the cluster already runs (behind `lookbook.giglabo.com`): that host is behind Cloudflare, which
+sets `Cf-Connecting-Ip` to this server's address, so every visitor would be placed where the VPS
+is. The Caddyfile's upstream can still be changed with `BEDA_SHARED_UPSTREAM`, which `deploy.sh`
+does not pass: set it for every compose run if you use it.
 
 ## 5. Deploy key with a forced command
 

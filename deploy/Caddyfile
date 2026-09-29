@@ -27,6 +27,21 @@
 		reverse_proxy api:8080
 	}
 
+	# The cookie banner's region check, as on the sibling GigLabo sites: the shared service
+	# (compose profile `shared`) looks the visitor's address up and answers only whether it is
+	# in the EU. The address is the one Caddy sees on the connection; headers a visitor could
+	# forge are dropped. Only /ip is exposed. Without the service this answers 502, and the
+	# banner then asks everyone (src/lib/consent.ts).
+	handle /api-shared/ip {
+		rewrite * /ip
+		reverse_proxy {$BEDA_SHARED_UPSTREAM:shared:8080} {
+			header_up -Cf-Connecting-Ip
+			header_up -X-Client-Ip
+			header_up -X-Forwarded-For
+			header_up X-Real-Ip {client_ip}
+		}
+	}
+
 	handle {
 		reverse_proxy web:4321
 	}

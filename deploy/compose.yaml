@@ -21,6 +21,7 @@ services:
     environment:
       BEDA_SITE_ADDRESS: ${BEDA_SITE_ADDRESS:-beda.lol}
       BEDA_TLS_INTERNAL: ${BEDA_TLS_INTERNAL:-0}
+      BEDA_SHARED_UPSTREAM: ${BEDA_SHARED_UPSTREAM:-shared:8080}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
@@ -80,6 +81,23 @@ services:
     image: ghcr.io/giglabocom/beda-backup:${BEDA_TAG:?set BEDA_TAG}
     restart: unless-stopped
     env_file: ${BEDA_ENV_FILE:-/opt/beda/.env}
+    logging: *logging
+
+  shared:
+    # GigLabo shared-service (github.com/glani/shared-service): the region check behind the
+    # cookie banner, `/api-shared/ip` in the Caddyfile. Not part of a release: it has its own
+    # image and is started once by hand (deploy/SERVER-SETUP.md §4b); deploys leave it running.
+    # It sends the visitor's address to ipregistry.co and keeps address → region in memory.
+    profiles: [shared]
+    image: ${BEDA_SHARED_IMAGE:-}
+    restart: unless-stopped
+    env_file:
+      - path: ${BEDA_SHARED_ENV_FILE:-/opt/beda/shared.env}
+        required: false
+    environment:
+      NODE_ENV: production
+      PORT: "8080"
+      LOG_LEVEL: info
     logging: *logging
 
 volumes:
