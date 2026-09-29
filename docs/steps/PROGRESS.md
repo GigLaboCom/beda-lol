@@ -605,8 +605,22 @@ See `ROADMAP.md`. Expand each into a step file before starting it (S16–S19 ran
   - The mail language is set once, when an address signs up. An existing user who switches to `/en` still gets the language they signed up with.
   - This sandbox's Docker cannot bind-mount templates (as in S18): the scratch Supabase stack got the templates copied into Kong by hand.
 - New deps: none.
+- Addendum, same day, at the human's request («сгенерь сам скриптом»): `deploy/scripts/supabase-setup.sh` does the dashboard part of §4a through the Management API. It covers:
+  - Auth URLs, the e-mail provider, manual linking off;
+  - both templates, from the repo files;
+  - the secret key `beda_api`, created or reused;
+  - optionally the `beda_api` password, GitHub, SMTP and Turnstile;
+  - a check of the JWT signing keys.
+
+  Secrets go only to a mode-600 file, and the token reaches curl through a file descriptor, not argv. No token for the production project exists here, so the script was run against a mock Management API:
+  - first run and re-run (the key is reused);
+  - the HS256 warning;
+  - a bad token exits 1 without writing a file;
+  - a bad password is refused before any request;
+  - the template sent is byte-identical to `sign_in.html`;
+  - no secret in the output;
+  - shellcheck is clean.
 - [HUMAN] open:
-  - A Supabase **secret key** for the API: Dashboard → Project Settings → API Keys → Secret keys, name `beda-api`, into `/opt/beda/.env` as `BEDA_SUPABASE_SECRET_KEY` (`SERVER-SETUP.md` §4). Only there.
-  - In both dashboard templates (Magic link, Confirm signup): the subject from `supabase/config.toml` (it is a template) and the new `sign_in.html`.
+  - Run `deploy/scripts/supabase-setup.sh` with an access token and the project ref (`SERVER-SETUP.md` §4a). Copy `supabase-setup.env` into `/opt/beda/.env` and `web.env`, then delete it.
   - Optional: a shorter JWT expiry (Dashboard → JWT Keys) if an hour is too long for sign-out everywhere.
   - Then a joint check on `https://beda.lol/voiti` and `/kabinet`: sign-in three ways, sign-out on all devices, and deleting a test account.

@@ -85,6 +85,28 @@ What goes in (see comments in `.env.example`):
 Auth settings live in the dashboard; `supabase/config.toml` is for the local stack only
 (do not `supabase config push` it: it would set the site URL to localhost).
 
+**Script first.** `deploy/scripts/supabase-setup.sh` does most of the table below through the
+Management API. Run it on your machine (bash, curl, jq, openssl) with a personal access token
+(dashboard → Account → Access Tokens); it is safe to re-run:
+
+```sh
+SUPABASE_ACCESS_TOKEN=sbp_… SUPABASE_PROJECT_REF=<project-ref> BEDA_API_DB_PASSWORD=generate \
+  deploy/scripts/supabase-setup.sh
+```
+
+- It sets the site URL and redirect URLs, turns on e-mail sign-in and turns off manual linking.
+- It sets both mail templates, with the subject from `supabase/config.toml` and the body from
+  `supabase/templates/sign_in.html`.
+- It creates the API's secret key `beda_api`, or reuses it on a re-run.
+- With `BEDA_API_DB_PASSWORD=generate`, it sets a new password for role `beda_api`.
+- It warns if tokens are not signed with an asymmetric key.
+
+Add `GITHUB_CLIENT_ID` and `GITHUB_SECRET`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`
+and `SMTP_ADMIN_EMAIL`, and later `TURNSTILE_SECRET`, to set those too. Secrets are not
+printed. The values for `/opt/beda/.env` and `web.env` go to `./supabase-setup.env` (mode 600,
+gitignored): copy them over, then delete the file. Afterwards only the asymmetric JWT key, if
+the script warned, and the rate limits are left for the dashboard.
+
 | Where | Setting |
 | --- | --- |
 | Project Settings → JWT Keys | **Asymmetric signing keys** (ES256): create a key and rotate to it. The API accepts only ES256/RS256 tokens verified against the JWKS; with the legacy HS256 secret every signed-in request gets 401. |
