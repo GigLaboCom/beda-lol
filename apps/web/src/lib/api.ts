@@ -1,3 +1,5 @@
+import { trackEvent } from './analytics';
+
 /**
  * Fire-and-forget calls to the Rust API. They never throw and never block
  * navigation: statistics are nice to have, the visitor's flow is not.
@@ -26,9 +28,11 @@ function send(path: string, body: unknown): void {
 /** Anonymous record of a completed quiz: only the result code and where it started. */
 export function recordQuizAttempt(code: string, source?: string): void {
   send('/api/quiz/attempts', source ? { code, source } : { code });
+  trackEvent('quiz_complete', source ? { result: code, source } : { result: code });
 }
 
 /** Name game played. Only whether a word was found — never the typed name. */
 export function recordNamerPlayed(found: boolean): void {
   send('/api/events', { name: 'namer_played', props: { found } });
+  trackEvent('namer_played', { found });
 }

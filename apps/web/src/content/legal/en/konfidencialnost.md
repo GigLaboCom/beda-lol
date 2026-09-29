@@ -12,11 +12,13 @@ beda.lol is run by the author of the «Яхта Беда» (Yacht “Beda”) ru
 
 ## Without signing in
 
-Until you sign in, we collect nothing that identifies you.
+Until you sign in, the site does not know who you are: no name, no email.
 
 - **The ship inspection quiz** sends the server only the result code (six digits), plus a short tag if you came from one of our links. Your individual answers are not sent.
 - **The name game** tells the server one thing only: whether a word was found. The word itself is not sent.
 - **Your IP address** is held in memory for a few minutes to rate-limit requests. It is written neither to the database nor to the logs.
+- **The region check.** Once per tab, the server uses your IP address to ask ipregistry.co whether you are in the EU, and tells the page only yes or no. It decides whether we ask you about statistics. Details are on the [cookie page](/en/cookies).
+- **Visit statistics.** Google Analytics sees which pages are opened, from what browser and where visitors came from. It sets cookies only with your consent; without it, it gets anonymous signals.
 
 ## When you sign in
 
@@ -30,7 +32,8 @@ There is no password. You sign in with GitHub, Google, X, or with a link and a c
 
 - so that you can sign in and your data on the site belongs to your account;
 - to send sign-in emails;
-- to protect the site from bots and abuse.
+- to protect the site from bots and abuse;
+- to see which parts of the site people read and where it is awkward (statistics; its cookies only with your consent).
 
 There are no ads on the site. We do not sell your data or pass it on for advertising or mailings.
 
@@ -42,20 +45,24 @@ There are no ads on the site. We do not sell your data or pass it on for adverti
 - **Cloudflare Turnstile:** checks that a person, not a bot, fills in the email sign-in form. Cloudflare sees your IP address and browser details.
 - **GitHub, Google, X:** only if you sign in with them, and they then learn that you signed in to beda.lol.
 - **Backup storage:** [provider]. Backups are encrypted, and the key is kept apart from them.
+- **Google Analytics** (Google) counts visits. The data is processed on Google's servers, including outside Russia.
+- **ipregistry.co** finds the country of an IP address for the region check and returns it to our server.
 
 ## Cookies and browser storage
 
 - **Session cookie** (`sb-…-auth-token`): set only after you sign in. It lasts until you sign out, and at most 400 days.
 - **Sign-in cookie** (`…-code-verifier`): a second one that exists briefly during sign-in. Sign-in does not work without these two.
-- **Browser storage** (`localStorage`, `sessionStorage`): the site keeps your quiz progress and ticked nails here. This stays on your device.
-- **No analytics or advertising cookies.** If visit statistics are added, they will work without cookies, and we will describe them here.
+- **Browser storage** (`localStorage`, `sessionStorage`): the site keeps your quiz progress, ticked nails and your choice about statistics here. This stays on your device.
+- **Statistics cookies** (`_ga`, `_ga_…`) are set by Google Analytics, only if you consent. There are no advertising cookies.
+
+The full list with purposes and lifetimes, and the statistics switch, are on the [cookie page](/en/cookies).
 
 ## How long we keep data
 
 - **Your account:** until you delete it.
 - **Deletion in the cabinet** erases the account, the email address, the sign-in methods and the sessions at once. What you published on the site stays, without your name.
 - **Database backups** are encrypted and kept for up to six months, then deleted automatically. A deleted account's data disappears from them as the old backups go.
-- **Server logs** contain no IP addresses or emails. When an account is deleted, its internal ID goes into the log. The logs are overwritten as they grow.
+- **Server logs** contain no IP addresses or emails. When an account is deleted, its internal ID goes into the log. One exception is the region check: when the country cannot be found, the IP address goes into the log. The logs are overwritten as they grow.
 
 ## Your rights
 

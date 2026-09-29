@@ -1,0 +1,12 @@
+---
+import { getLangFromUrl } from '../../i18n';
+import CookieSettings from '../consent/CookieSettings';
+import LegalPage from './LegalPage.astro';
+
+/** `/cookies` (+ `/en`): the cookie policy, then the choice itself. */
+const lang = getLangFromUrl(Astro.url);
+---
+
+<LegalPage page="cookies">
+  <CookieSettings client:load lang={lang} />
+</LegalPage>

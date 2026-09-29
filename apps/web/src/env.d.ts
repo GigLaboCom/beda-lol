@@ -1,5 +1,12 @@
 /// <reference types="astro/client" />
 
+interface Window {
+  /** Set by `/analytics.js` when GA is on (`src/lib/analytics.ts`). */
+  gtag?: (...args: unknown[]) => void;
+  dataLayer?: unknown[];
+  bedaAnalytics?: { id: string };
+}
+
 declare namespace App {
   interface Locals {
     /** The signed-in user on on-demand pages (see `src/middleware.ts`); null otherwise. */

@@ -4,7 +4,7 @@ import type { Locale } from '../i18n';
 export type LegalPage = CollectionEntry<'legal'>['data']['page'];
 export type LegalEntry = CollectionEntry<'legal'>;
 
-/** The rules and the privacy policy live at the root: `/pravila`, `/konfidencialnost`. */
+/** The legal pages live at the root: `/pravila`, `/konfidencialnost`, `/cookies`. */
 export const legalPath = (page: LegalPage) => `/${page}`;
 
 /** The entry of `page` in `lang` (`src/content/legal/<lang>/<page>.md`). */

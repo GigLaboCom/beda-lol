@@ -17,13 +17,14 @@ const pillars = defineCollection({
 });
 
 /**
- * Site rules and privacy policy (`/pravila`, `/konfidencialnost`), one file per locale:
+ * Site rules, privacy and cookie policy (`/pravila`, `/konfidencialnost`, `/cookies`), one file
+ * per locale:
  * `legal/<lang>/<page>.md`. Square brackets mark what the author fills in before publishing.
  */
 const legal = defineCollection({
   loader: glob({ pattern: '*/*.md', base: './src/content/legal' }),
   schema: z.object({
-    page: z.enum(['pravila', 'konfidencialnost']),
+    page: z.enum(['pravila', 'konfidencialnost', 'cookies']),
     title: z.string().max(90),
     description: z.string().min(60).max(220),
     /** Date of the last change of substance, shown on the page. */

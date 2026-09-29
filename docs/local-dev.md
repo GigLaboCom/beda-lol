@@ -179,6 +179,17 @@ and press the button on `/voiti`.
 Identities with the same email are linked into one user (ADR 0003): a magic link, GitHub and
 Google with the same address give the same user and account.
 
+## Analytics and the cookie banner locally
+
+Locally analytics is off: `/analytics.js` is empty without `BEDA_GA_ID`, so there is no banner
+and nothing goes to Google. `BEDA_GA_ID=G-…` in the environment of `astro dev` (or in
+`web.env` for the compose stacks) turns it on. The region check `/api-shared/ip` is served only
+by Caddy's route to the `shared` service on the server (`deploy/SERVER-SETUP.md` §4b); in dev it
+is a 404, which the banner reads as "cannot place the visitor", so it asks every time.
+
+`apps/web/e2e/consent.e2e.ts` does not need either: it serves the real `/analytics.js` for a test
+id, stubs gtag.js and answers the region check itself (EU, elsewhere, failure, no answer).
+
 ## How the local database differs from Supabase
 
 The compose `db` is plain Postgres 17 with just what our migrations need from

@@ -5,7 +5,8 @@ import Base from '../../layouts/Base.astro';
 import { breadcrumbList } from '../../lib/jsonld';
 import { type LegalPage, legalEntry, legalPath } from '../../lib/legal';
 /**
- * `/pravila` and `/konfidencialnost` (+ `/en`): one Markdown entry per locale. A draft is
+ * `/pravila`, `/konfidencialnost` and `/cookies` (+ `/en`): one Markdown entry per locale,
+ * then whatever the route puts in the slot (the consent settings on `/cookies`). A draft is
  * marked on the page, carries noindex and stays out of the sitemap; square brackets in the
  * text are what the author fills in before `draft: false`.
  */
@@ -43,6 +44,7 @@ const jsonLd = breadcrumbList(Astro.site, [
       <div class="body">
         <Content />
       </div>
+      <slot />
     </div>
   </article>
 </Base>
@@ -91,6 +93,60 @@ const jsonLd = breadcrumbList(Astro.site, [
   }
   .body :global(li) {
     margin: 8px 0;
+  }
+  .body :global(table) {
+    display: block;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 15px;
+    margin: 16px 0;
+  }
+  .body :global(th),
+  .body :global(td) {
+    text-align: left;
+    vertical-align: top;
+    padding: 8px 12px 8px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .body :global(th) {
+    color: var(--text);
+  }
+  .body :global(td code) {
+    overflow-wrap: normal;
+    white-space: nowrap;
+  }
+  /* On a phone each row is a card: the name and where it lives, then what for, then how long. */
+  @media (max-width: 599px) {
+    .body :global(table),
+    .body :global(tbody),
+    .body :global(tr),
+    .body :global(td) {
+      display: block;
+    }
+    .body :global(thead) {
+      display: none;
+    }
+    .body :global(tr) {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .body :global(td) {
+      padding: 2px 0;
+      border: 0;
+    }
+    .body :global(td:nth-child(-n + 2)) {
+      display: inline;
+      margin-right: 8px;
+    }
+    .body :global(td:nth-child(2)),
+    .body :global(td:last-child) {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .body :global(td code) {
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
   }
   .body :global(code) {
     font-family: var(--mono);

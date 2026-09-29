@@ -34,10 +34,33 @@ const ru = {
   'foot.legalLabel': 'Документы',
   'foot.rules': 'Правила',
   'foot.privacy': 'Конфиденциальность',
+  'foot.cookies': 'Cookie',
 
   'legal.updated': 'Обновлено',
   'legal.draft':
     'Черновик: текст ещё проверяется. В квадратных скобках — то, что автор допишет перед публикацией.',
+
+  'consent.title': 'Cookie и статистика',
+  'consent.text':
+    'Разрешите cookie Google Analytics: так мы поймём, какие разделы читают. Откажетесь — сайт работает так же, а статистика обойдётся без cookie.',
+  'consent.accept': 'Разрешить',
+  'consent.reject': 'Отказаться',
+  'consent.customize': 'Настроить',
+  'consent.save': 'Сохранить выбор',
+  'consent.policy': 'Подробнее о cookie',
+  'consent.always': 'Всегда включены',
+  'consent.cat.essential': 'Необходимые',
+  'consent.cat.essential.desc':
+    'Вход, ход квиза, гвозди и этот выбор. Без них сайт не работает, их нельзя отключить.',
+  'consent.cat.analytics': 'Статистика',
+  'consent.cat.analytics.desc':
+    'Cookie Google Analytics: считают посещения и показывают, какие разделы читают. Рекламы на сайте нет.',
+  'consent.settings': 'Ваш выбор',
+  'consent.saved': 'Выбор сохранён.',
+  'consent.none': 'Вы ещё не выбирали: пока выбора нет, статистика работает без cookie.',
+  'consent.auto': 'В вашем регионе статистика включена по умолчанию. Здесь её можно выключить.',
+  'consent.off':
+    'Статистика на сайте сейчас выключена, cookie аналитики не ставятся. Выбор всё равно сохранится.',
 
   'hero.kicker': 'Рубрика о пет-проектах',
   'hero.title1': 'ПО у тебя есть.',
@@ -272,10 +295,33 @@ const en: Record<Key, string> = {
   'foot.legalLabel': 'Documents',
   'foot.rules': 'Rules',
   'foot.privacy': 'Privacy',
+  'foot.cookies': 'Cookies',
 
   'legal.updated': 'Updated',
   'legal.draft':
     'Draft: this text is still being reviewed. Square brackets mark what the author fills in before publishing.',
+
+  'consent.title': 'Cookies and statistics',
+  'consent.text':
+    'Allow Google Analytics cookies, so we can see which parts of the site people read. If you refuse, the site works the same, and statistics do without cookies.',
+  'consent.accept': 'Allow',
+  'consent.reject': 'Refuse',
+  'consent.customize': 'Choose',
+  'consent.save': 'Save my choice',
+  'consent.policy': 'More about cookies',
+  'consent.always': 'Always on',
+  'consent.cat.essential': 'Necessary',
+  'consent.cat.essential.desc':
+    'Sign-in, quiz progress, nails and this choice. The site does not work without them, so they cannot be turned off.',
+  'consent.cat.analytics': 'Statistics',
+  'consent.cat.analytics.desc':
+    'Google Analytics cookies: they count visits and show which parts of the site people read. There are no ads on the site.',
+  'consent.settings': 'Your choice',
+  'consent.saved': 'Your choice is saved.',
+  'consent.none': 'You have not chosen yet: until you do, statistics run without cookies.',
+  'consent.auto': 'In your region statistics are on by default. You can turn them off here.',
+  'consent.off':
+    'Statistics are off on the site right now, and no analytics cookies are set. Your choice is still saved.',
 
   'hero.kicker': 'A rubric about pet projects',
   'hero.title1': 'You have the software.',

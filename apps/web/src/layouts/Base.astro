@@ -4,6 +4,8 @@ import '@beda/tokens/tokens.css';
 import '@beda/tokens/fonts.css';
 import { displayFontUrl } from '@beda/tokens/preload';
 import '../styles/global.css';
+import AnalyticsLoader from '../components/consent/AnalyticsLoader.astro';
+import CookieBanner from '../components/consent/CookieBanner';
 import SiteFooter from '../components/SiteFooter.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import {
@@ -16,6 +18,8 @@ import {
   stripLocale,
   useTranslations,
 } from '../i18n';
+import { ANALYTICS_SCRIPT_PATH } from '../lib/analytics';
+import { legalPath } from '../lib/legal';
 
 interface Props {
   title?: string;
@@ -67,6 +71,8 @@ const xDefaultHref = new URL(getLocalizedPath(basePath, 'ru'), Astro.site).href;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- GA4 with Consent Mode, or an empty script: decided at runtime (src/lib/analytics.ts). -->
+    <script is:inline src={ANALYTICS_SCRIPT_PATH}></script>
     <title>{title}</title>
     <link rel="preload" href={displayFontUrl} as="font" type="font/woff2" crossorigin />
     <meta name="description" content={description} />
@@ -105,5 +111,7 @@ const xDefaultHref = new URL(getLocalizedPath(basePath, 'ru'), Astro.site).href;
       <slot />
     </main>
     <SiteFooter />
+    <CookieBanner client:idle lang={lang} policyHref={getLocalizedPath(legalPath('cookies'), lang)} />
+    <AnalyticsLoader />
   </body>
 </html>

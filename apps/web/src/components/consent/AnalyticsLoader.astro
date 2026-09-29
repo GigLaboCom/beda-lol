@@ -1,0 +1,18 @@
+---
+/**
+ * The page view, sent by hand (gtag is configured with `send_page_view: false`) after the
+ * stored choice is applied, so the hit carries the locale and the right consent. A separate
+ * component: one module script per loader keeps Astro's script indexing out of the way.
+ */
+---
+
+<script>
+  import { analyticsOn, trackPageView } from '../../lib/analytics';
+  import { applyConsent, loadConsent } from '../../lib/consent';
+
+  if (analyticsOn()) {
+    const stored = loadConsent();
+    if (stored) applyConsent(stored.choice);
+    trackPageView();
+  }
+</script>

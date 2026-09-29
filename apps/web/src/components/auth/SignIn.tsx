@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks';
 import { fmt, type Locale, useTranslations } from '../../i18n';
+import { trackEvent } from '../../lib/analytics';
 import { browserClient } from '../../lib/auth/browser';
 import type { AuthConfig } from '../../lib/auth/config';
 import { type OAuthProvider, PROVIDER_NAMES } from '../../lib/auth/providers';
@@ -42,6 +43,7 @@ export default function SignIn({
   }
 
   async function oauth(provider: OAuthProvider) {
+    trackEvent('sign_in_start', { method: provider });
     // Leaves for the provider; comes back to /auth/callback with a PKCE code.
     const { error } = await supabase().auth.signInWithOAuth({
       provider,
@@ -67,7 +69,10 @@ export default function SignIn({
       setRound((r) => r + 1);
     }
     if (error) fail(error.message);
-    else setStatus(t('auth.sent'));
+    else {
+      setStatus(t('auth.sent'));
+      trackEvent('sign_in_start', { method: 'email' });
+    }
   }
 
   async function verify(e: Event) {

@@ -4,6 +4,7 @@ import node from '@astrojs/node';
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
+import { GA_CONNECT, GA_IMG, GTAG_ORIGIN } from './src/lib/analytics.ts';
 
 // Public site URL: canonical links, OG and sitemaps are built from it.
 const site = process.env.BEDA_BASE_URL ?? 'https://beda.lol';
@@ -72,13 +73,15 @@ export default defineConfig({
     }),
   ],
   security: {
-    // Astro hashes its own scripts and styles; nothing else may run.
+    // Astro hashes its own scripts and styles; nothing else may run, except gtag.js, which
+    // `/analytics.js` loads only when BEDA_GA_ID is set (src/lib/analytics.ts).
     csp: {
+      scriptDirective: { resources: ["'self'", GTAG_ORIGIN] },
       directives: [
         "default-src 'self'",
-        "img-src 'self' data:",
+        `img-src 'self' data: ${GA_IMG.join(' ')}`,
         "font-src 'self'",
-        "connect-src 'self'",
+        `connect-src 'self' ${GA_CONNECT.join(' ')}`,
         "base-uri 'self'",
         "form-action 'self'",
         "object-src 'none'",

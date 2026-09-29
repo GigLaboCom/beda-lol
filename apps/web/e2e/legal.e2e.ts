@@ -1,17 +1,19 @@
 import { expect, test } from '@playwright/test';
 import { type Key, type Locale, translate } from '../src/i18n';
 
-// The rules and the privacy policy: reachable from the footer and from sign-in, marked as
-// drafts while they are, and readable at phone width (the long Russian heading included).
+// The rules, the privacy and the cookie policy: reachable from the footer (the first two also
+// from sign-in), marked as drafts while they are, and readable at phone width (the long Russian
+// heading included).
 
 for (const lang of ['ru', 'en'] as Locale[]) {
   const t = (key: Key) => translate(lang, key);
   const prefix = lang === 'ru' ? '' : '/en';
 
-  test(`${lang}: the footer leads to both pages, which fit a phone`, async ({ page }) => {
+  test(`${lang}: the footer leads to each page, which fits a phone`, async ({ page }) => {
     for (const [label, path] of [
       [t('foot.rules'), '/pravila'],
       [t('foot.privacy'), '/konfidencialnost'],
+      [t('foot.cookies'), '/cookies'],
     ] as const) {
       await page.goto(prefix || '/');
       await page

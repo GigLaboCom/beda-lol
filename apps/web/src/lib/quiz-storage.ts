@@ -4,8 +4,8 @@
  */
 import { EMPTY_SESSION, type Nails, parseSession, type QuizSession } from '@beda/core';
 
-const SESSION_KEY = 'beda-quiz-v1';
-const REVEAL_KEY = 'beda-quiz-reveal-v1';
+export const SESSION_KEY = 'beda-quiz-v1';
+export const REVEAL_KEY = 'beda-quiz-reveal-v1';
 
 function storage(): Storage | null {
   try {
