@@ -5,6 +5,8 @@ version: '3'
 vars:
   # Dev-only password for the `beda_api` role on the LOCAL Supabase database.
   DEV_API_PASSWORD: beda_api_dev
+  # gitleaks for `task leaks`: same version as CI (.github/workflows/ci.yml).
+  GITLEAKS_VERSION: 8.30.1
   # Superuser URL of the local Supabase database, read from the CLI (ports are not hardcoded).
   # Override with LOCAL_DB_URL=... when the database runs elsewhere.
   LOCAL_DB_URL:
@@ -197,6 +199,19 @@ tasks:
         if command -v shellcheck >/dev/null; then shellcheck deploy/scripts/*.sh deploy/local/initdb/*.sh
         else docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck:stable deploy/scripts/*.sh deploy/local/initdb/*.sh; fi
 
+  leaks:
+    desc: 'Secret scan (gitleaks, .gitleaks.toml): every commit, uncommitted changes, the built site'
+    cmds:
+      - |
+        if command -v gitleaks >/dev/null; then gl() { gitleaks "$@"; }
+        else gl() { docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/gitleaks/gitleaks:v{{.GITLEAKS_VERSION}} "$@"; }; fi
+        set -e
+        gl git -c .gitleaks.toml --redact --no-banner .
+        gl git -c .gitleaks.toml --pre-commit --redact --no-banner .
+        gl git -c .gitleaks.toml --pre-commit --staged --redact --no-banner .
+        # What the web image ships: nothing secret may be baked into the bundle.
+        if [ -d apps/web/dist ]; then gl dir -c .gitleaks.toml --redact --no-banner apps/web/dist; fi
+
   # ── Local stack from GHCR images (docs/local-dev.md) ──────────────────────
   local:pull:
     desc: 'Pull the published images (BEDA_TAG=main by default, or a commit SHA)'
@@ -262,6 +277,7 @@ tasks:
       - task: typecheck
       - task: test
       - task: build
+      - task: leaks
       - task: deny
       - task: gen:check
       - SQLX_OFFLINE=true cargo build --release -p beda-api

@@ -48,6 +48,7 @@ All common commands go through Task (`Taskfile.yml`). Prefer them over ad-hoc co
 | `task local:up` / `task local:backend` | local stack from GHCR images (whole site on :8088 / API + DB for a host frontend) — `docs/local-dev.md` |
 | `task gate` | Rust quality gate before every push (nightly fmt, clippy on fresh roots, tests) |
 | `task fmt` | format everything (Biome + `cargo +nightly fmt`) |
+| `task leaks` | secret scan (gitleaks, `.gitleaks.toml`): every commit, uncommitted changes, the built site; part of `task check` and CI |
 | `pnpm nx run-many -t build` | Nx directly: build every TS project (also `test`, `lint`, `typecheck`); `pnpm nx graph` shows the project graph |
 | `task test` | unit tests only |
 | `task brand:icons` | regenerate favicons, app and manifest icons from `packages/brand/src/tile.svg` (commit the output) |

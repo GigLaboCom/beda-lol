@@ -1,6 +1,12 @@
 #!/usr/bin/env sh
-# Fast format gate before a push (the mnemoria-server rusty-hook equivalent).
+# Fast gate before a push (the mnemoria-server rusty-hook equivalent): format, secrets.
 # The full gate is `task gate` (Rust) and `task check` (everything).
 set -e
 cargo +nightly fmt --all -- --check
 pnpm exec biome check .
+# Secrets in any commit about to leave (config: .gitleaks.toml).
+if command -v gitleaks >/dev/null; then
+  gitleaks git -c .gitleaks.toml --redact --no-banner .
+else
+  echo "pre-push: gitleaks not installed, secret scan skipped (task leaks runs it in Docker)" >&2
+fi

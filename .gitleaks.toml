@@ -1,0 +1,55 @@
+# Secret scan (gitleaks): `task leaks`, CI and the pre-push hook. Gitleaks' default rules
+# plus the secrets this project has. The repo is public: only `*.env.example` with names and
+# placeholders is committed, and the Supabase secret key lives only in the API's server .env.
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "supabase-secret-key"
+description = "Supabase secret API key (server .env of the API only)"
+regex = '''\bsb_secret_[A-Za-z0-9_-]{20,}'''
+keywords = ["sb_secret_"]
+
+[[rules]]
+id = "supabase-access-token"
+description = "Supabase personal access token (Management API, deploy/scripts/supabase-setup.sh)"
+regex = '''\bsbp_[a-f0-9]{40}\b'''
+keywords = ["sbp_"]
+
+[[rules]]
+id = "supabase-service-role-jwt"
+description = "Legacy Supabase service_role key: a JWT whose payload says role service_role"
+# base64url of `"role":"service_role"` at any of the three alignments.
+regex = '''\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]*(?:InJvbGUiOiJzZXJ2aWNlX3JvbGUi|cm9sZSI6InNlcnZpY2Vfcm9sZS|icm9sZSI6InNlcnZpY2Vfcm9sZSJ9)[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+'''
+keywords = ["eyJ"]
+
+[[rules]]
+id = "postgres-url-password"
+description = "Password inside a Postgres connection string"
+regex = '''postgres(?:ql)?://[^:@/\s'"]+:([^@\s'"]+)@'''
+secretGroup = 1
+keywords = ["postgres://", "postgresql://"]
+
+[rules.allowlist]
+description = "Local dev and test passwords (restore.sh's throwaway container), and placeholders"
+regexTarget = "secret"
+regexes = ['''^(?:postgres|beda_api_dev|restore|password|pass|x|<[^>]+>|\$\{?[A-Z_]+\}?)$''']
+
+[[allowlists]]
+description = "Published test values"
+regexes = [
+  # Cloudflare Turnstile's public test keys (they always pass; supabase/config.toml, config.ts).
+  '''1x0000000000000000000000000000000AA''',
+  '''1x00000000000000000000AA''',
+]
+
+# Astro's server-island key in the server bundle's manifest (never sent to browsers). It is
+# random per build and only encrypts island props, which carry no secrets here (lang, path).
+[[allowlists]]
+description = "Astro server-island key"
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''dist/server/[^/]+\.mjs$''']
+regexTarget = "match"
+regexes = ['''^key":"''']

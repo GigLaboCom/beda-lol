@@ -624,3 +624,28 @@ See `ROADMAP.md`. Expand each into a step file before starting it (S16–S19 ran
   - Run `deploy/scripts/supabase-setup.sh` with an access token and the project ref (`SERVER-SETUP.md` §4a). Copy `supabase-setup.env` into `/opt/beda/.env` and `web.env`, then delete it.
   - Optional: a shorter JWT expiry (Dashboard → JWT Keys) if an hour is too long for sign-out everywhere.
   - Then a joint check on `https://beda.lol/voiti` and `/kabinet`: sign-in three ways, sign-out on all devices, and deleting a test account.
+
+### Secret scan (out of step, the human's request «добавь также лики для проверки утечек») — 2026-09-29
+- Done:
+  - `.gitleaks.toml` has gitleaks' default rules plus four of its own:
+    - `supabase-secret-key` (`sb_secret_…`);
+    - `supabase-access-token` (`sbp_…`);
+    - `supabase-service-role-jwt` (a JWT whose payload has `"role":"service_role"`);
+    - `postgres-url-password`.
+
+    The allowlist is narrow: Cloudflare's public Turnstile test keys, local dev passwords and placeholders, and Astro's server-island key. That key is the `"key"` field of the server bundle's manifest, is never sent to browsers, is random per build, and only encrypts island props (lang, path).
+  - `task leaks` runs `gitleaks` or, without it, the `ghcr.io/gitleaks/gitleaks` image of the pinned version (8.30.1). It scans every commit, uncommitted and staged changes, and `apps/web/dist`, and it is part of `task check`.
+  - CI (`ci.yml`, `web` job): full history (`fetch-depth: 0`). The gitleaks release binary is checked against its published SHA-256; not `gitleaks-action`, which needs a licence for organisations. After the build, it scans the history and `dist`.
+  - The pre-push hook scans every commit when `gitleaks` is installed, and says so when it is not.
+  - `apps/web/src/lib/auth/no-secrets.test.ts`: the site code never names the secret or `service_role` key, and `authConfig` does not pass on a secret from the environment.
+  - Found on the way:
+    - Biome parsed `supabase/templates/sign_in.html` (a Go template with two `<!doctype>`, since S19) and failed. `supabase/templates` is now out of Biome's scope. My S19 check had filtered Biome's output by file type and missed it.
+    - A config passed only by cwd is not found by `gitleaks dir`, so every call gives `-c .gitleaks.toml`.
+- Verified:
+  - The history (51 commits), the working changes and `dist` are clean.
+  - Canaries of the real shapes are all caught: a secret key, a PAT, a `service_role` JWT, a pooler URL with a password. Test keys, dev URLs and placeholders pass. The same `"key"` in a client bundle is still caught, and so is a real secret key in the server bundle.
+  - A commit with a planted secret in a throwaway clone fails the scan (exit 1), with the value redacted.
+  - The CI install step, run locally: the checksum matches, and the binary lands on `GITHUB_PATH`. actionlint 1.7.7 is clean.
+  - The pre-push hook passes end to end.
+  - The site test fails on a planted file that reads `BEDA_SUPABASE_SECRET_KEY`.
+- New deps: gitleaks 8.30.1 (tool, not a package), for the scan the human asked for.
