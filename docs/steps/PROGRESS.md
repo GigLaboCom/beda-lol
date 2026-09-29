@@ -36,9 +36,10 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 ## Stage 2 — Accounts and tracker
 - [x] S16 Supabase Auth wiring
 - [ ] S17 GitHub provider (repo part done; the OAuth apps await the human)
+- [ ] S18 Magic link (repo part done; SMTP, the sending domain and the Turnstile widget await the human)
 
 ## Stages 2–6
-See `ROADMAP.md`. Expand each into a step file before starting it (S16 and S17 ran from their ROADMAP lines, by the human's decision).
+See `ROADMAP.md`. Expand each into a step file before starting it (S16–S18 ran from their ROADMAP lines, by the human's decision).
 
 ---
 
@@ -509,3 +510,46 @@ See `ROADMAP.md`. Expand each into a step file before starting it (S16 and S17 r
   - A prod OAuth app with callback `https://<project-ref>.supabase.co/auth/v1/callback`; its keys go into the Supabase dashboard (GitHub provider).
   - Then sign in with GitHub on `/dev/auth` together, and run `beda-api admin promote <login>`.
 
+### S18 — Magic link — 2026-09-29 (repo part done; not ticked until SMTP sends from the verified domain and Turnstile is on in production)
+- Done:
+  - **One sign-in mail.** `supabase/templates/sign_in.html` (renamed from `magic_link.html`) carries the link and the same one-time code, in Russian. `config.toml` uses it for both the `magic_link` and the `confirmation` template: Supabase sends "confirmation" to a new address when «Confirm email» is on, so the production toggle does not change the mail.
+  - **Turnstile through Supabase Auth's CAPTCHA.** Locally `[auth.captcha]` holds Cloudflare's published test secret (it accepts any token). On the site:
+    - `AuthConfig.turnstile` comes from `BEDA_TURNSTILE_SITE_KEY`; `astro dev` falls back to the matching test site key;
+    - `components/auth/Turnstile.tsx` loads Cloudflare's script once, renders the widget (dark, flexible width, page language) and asks for a fresh token after every send, since a token is single-use;
+    - the e-mail button stays disabled until there is a token; entering the code needs none.
+  - **CSP for sign-in pages in one place.** `lib/auth/csp.ts` `allowSignIn()` opens `connect-src` for Supabase Auth and, when Turnstile is on, `script-src` and `frame-src` for `challenges.cloudflare.com`. An inserted script source replaces Astro's default `'self'`, so it re-adds `'self'`. `/dev/auth` uses it; `/voiti` (S19) will too.
+  - **Playwright in the repo.** `apps/web/e2e/sign-in.e2e.ts` + `playwright.config.ts`, `pnpm --filter web e2e`, Chromium and WebKit at 375 px, against the running stack:
+    - magic link through Mailpit, then sign-out;
+    - the code from the mail;
+    - GitHub up to the authorize page, and a cancelled sign-in back to `?auth=failed`.
+
+    Strings come from the dictionary. Not part of `task check`: CI has no Supabase stack.
+  - Deploy:
+    - `deploy/web.env.example` gets `BEDA_TURNSTILE_SITE_KEY`;
+    - `deploy/SERVER-SETUP.md` §4a: SMTP settings, both templates, rate limits, Attack Protection (turn it on only after the site key is live), the sending domain (SPF, DKIM, DMARC) and the Turnstile widget.
+  - Docs: `docs/local-dev.md` covers Turnstile locally (and how to work offline) and the e2e run. ADR 0003 gets an "E-mail sign-in" note.
+- Verified:
+  - **Local Supabase (CLI 2.117), through the API.**
+    - `/otp` without a token → 400 `captcha_failed`; with a token → the mail goes out, so Supabase Auth reaches Cloudflare's siteverify.
+    - `/verify` with the code needs no token.
+    - The mail renders from `sign_in.html`: subject «Вход на beda.lol», link and code.
+    - With confirmations on (scratch copy only), the new address gets the `type=signup` mail from the same file, and its code verifies as `type: email`.
+  - **E2E:** 6/6, then 3 more runs of 6/6, Chromium and WebKit.
+  - **Production build** (`node dist/server/entry.mjs`, test site key), in both browsers:
+    - the `/dev/auth` CSP carries `'self'` and Cloudflare in `script-src`, and `frame-src` for Cloudflare;
+    - other pages keep the old policy;
+    - the Turnstile frame loads, the button waits for the token, and a fresh token arrives after the send;
+    - screenshots at 375 px.
+  - TS lint, typecheck, test, build (Nx, 5 projects); Biome is clean except the untracked `.claude/settings.json`.
+  - `api:test` and `api:build` fail here only on the known `/workspace/.env` sqlx trap. No Rust changed in this step.
+- Deviations:
+  - No step file; the step ran from its ROADMAP line.
+  - This sandbox's Docker cannot bind-mount template files. For the checks the template was copied into the Kong container by hand. The `config.toml` mapping itself was confirmed from the container's mounts.
+  - **WebKit logs one CSP error on sign-in pages:** Turnstile's script injects a stylesheet that `style-src` (hashes only) refuses. The widget works and looks the same as in Chromium. I did not add `'unsafe-inline'` to `style-src` for it. The e2e ignores console output from the Turnstile frame (WebKit also logs a postMessage race on navigation); page errors still fail the test.
+  - English sign-in mail: not done. There is one Russian template, as the step says. A per-locale mail needs the locale in the user's metadata; left for when `/en` sign-in exists (S19).
+- New deps: `@playwright/test` 1.63.0 (dev, `apps/web`). The step names Playwright; the version matches the browsers already used by the spike checks.
+- [HUMAN] open:
+  - Choose the sending domain (tactic 11: possibly not `.lol`) and a transactional mail provider. Verify the domain there (SPF, DKIM, DMARC), then fill in SMTP in the dashboard (§4a).
+  - Create the Turnstile widget for `beda.lol`: the site key into `/opt/beda/web.env`, the secret into Attack Protection. Turn it on after the site key is live.
+  - Paste `sign_in.html` into both the Magic link and the Confirm signup templates.
+  - Then a joint check on `https://beda.lol/dev/auth`: the mail arrives in the inbox (Gmail, Yandex), and the link and the code both sign in.

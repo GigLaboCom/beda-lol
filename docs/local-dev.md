@@ -120,6 +120,30 @@ production project is configured in the Supabase dashboard).
 The local stack signs tokens with ES256, so no signing key setup is needed. The compose
 stacks below have no Supabase Auth: `/api/me` answers 503 there.
 
+E-mail sign-in passes Turnstile, as in production. Locally both halves use Cloudflare's
+published test keys: the secret sits in `supabase/config.toml` (`[auth.captcha]`), and
+`astro dev` falls back to the matching site key when `BEDA_TURNSTILE_SITE_KEY` is unset. The
+widget says it is for testing only and always passes. Both the browser and Supabase Auth then
+call Cloudflare, so offline the e-mail button stays disabled: comment out `[auth.captcha]` and
+restart Supabase to work without the internet. The link and the code in the mail come from
+`supabase/templates/sign_in.html`.
+
+### Sign-in end to end (Playwright)
+
+`apps/web/e2e/` drives `/dev/auth` in Chromium and WebKit at phone width against the running
+stack (`task dev`): a magic link and a code through Mailpit, `/api/me` from the server and
+from the browser, sign-out, and the GitHub round trip up to GitHub's authorize page with a
+cancelled sign-in coming back as failed (no GitHub account needed).
+
+```sh
+pnpm --filter web exec playwright install chromium webkit   # once
+pnpm --filter web e2e
+```
+
+`BEDA_E2E_BASE_URL` (default `http://localhost:4321`) and `BEDA_E2E_MAIL_URL` (default
+`http://127.0.0.1:54324`) point it elsewhere. It is not part of `task check`: CI has no
+Supabase stack.
+
 ### Sign in with GitHub locally
 
 GitHub is enabled in `supabase/config.toml`, with its keys read from `supabase/.env`

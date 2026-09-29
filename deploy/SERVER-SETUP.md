@@ -56,7 +56,7 @@ sudo -u deploy cp /opt/beda/src/deploy/.env.example /opt/beda/.env
 sudo -u deploy cp /opt/beda/src/deploy/web.env.example /opt/beda/web.env
 sudo -u deploy chmod 600 /opt/beda/.env /opt/beda/web.env
 sudo -u deploy nano /opt/beda/.env      # api + backup: fill in every value
-sudo -u deploy nano /opt/beda/web.env   # web: Supabase URL and publishable key
+sudo -u deploy nano /opt/beda/web.env   # web: Supabase URL, publishable key, Turnstile site key
 ```
 
 The web container reads only `web.env`, which holds public values; the database and backup
@@ -72,6 +72,7 @@ What goes in (see comments in `.env.example`):
   Set the role's password once in the Supabase SQL editor: `alter role beda_api password '…';`
 - `BEDA_SUPABASE_URL` — `https://<project-ref>.supabase.co`, in both files.
 - `BEDA_SUPABASE_PUBLISHABLE_KEY` (`web.env`) — Dashboard → Project Settings → API Keys.
+- `BEDA_TURNSTILE_SITE_KEY` (`web.env`) — the Turnstile widget's site key (§4a).
 - `BACKUP_*` and `RCLONE_CONFIG_S3_*` — bucket for backups, `age` public key.
   Create the key pair on **your** machine: `age-keygen -o beda-backup.key` — keep the file offline,
   put only the `age1…` public key on the server.
@@ -87,8 +88,10 @@ Auth settings live in the dashboard; `supabase/config.toml` is for the local sta
 | Authentication → URL Configuration | Site URL `https://beda.lol`; Redirect URLs `https://beda.lol/**` |
 | Authentication → Sign In / Providers → Email | enabled, sign-ups allowed |
 | Authentication → Sign In / Providers → GitHub | enabled; Client ID and Secret of the production OAuth app (below) |
-| Authentication → Emails → SMTP (S18) | custom SMTP from a verified sending domain; the built-in mailer is for tests only |
-| Authentication → Emails → Templates → Magic link | subject «Вход на beda.lol», body from `supabase/templates/magic_link.html` |
+| Authentication → Emails → SMTP Settings | custom SMTP (below); the built-in mailer is for tests only and sends a few mails an hour |
+| Authentication → Emails → Templates → Magic link **and** Confirm signup | both: subject «Вход на beda.lol», body from `supabase/templates/sign_in.html` (a new address gets Confirm signup when «Confirm email» is on; the mail is the same either way) |
+| Authentication → Rate Limits | emails per hour: check the value once SMTP is on and raise it if sign-ins hit the limit |
+| Authentication → Attack Protection → Captcha | Turnstile, the widget's secret key (below). Turn it on **after** the site key is in `web.env` and web restarted, or e-mail sign-in fails |
 | SQL editor | `alter role beda_api password '…';` (the same password goes into `BEDA_DATABASE_URL`) |
 
 **GitHub OAuth app (production).** GitHub → organisation GigLaboCom → Settings → Developer
@@ -100,6 +103,19 @@ settings → OAuth Apps → New OAuth App:
 Generate a client secret and paste the Client ID and the secret into the GitHub provider in
 the Supabase dashboard. The secret goes nowhere else. For local development create a second
 app (see `docs/local-dev.md`): an OAuth app has one callback URL.
+
+**Sending domain and SMTP.** Sign-in mail goes out from a verified sending domain (tactic 11:
+`.lol` has a weaker reputation with mail filters, so the sender may be another domain of
+ours). Pick a transactional mail provider, verify the domain there (its SPF and DKIM records,
+plus a `DMARC` record `v=DMARC1; p=none; rua=mailto:<you>` to start), then fill in the SMTP
+settings: host, port, user, password from the provider; sender `vhod@<sending-domain>`,
+name «Яхта Беда». Send yourself a sign-in from `/dev/auth` and check it lands in the inbox, not
+spam, in Gmail and Yandex Mail.
+
+**Turnstile widget.** Cloudflare dashboard → Turnstile → Add widget: hostname `beda.lol`,
+mode Managed. The site key goes into `web.env` as `BEDA_TURNSTILE_SITE_KEY` (then
+`docker compose -f deploy/compose.yaml up -d web` with the current `BEDA_TAG`), the secret key
+into Attack Protection in the Supabase dashboard. Nowhere else.
 
 After the first release, check sign-in on `https://beda.lol/dev/auth` (magic link and GitHub),
 then promote yourself (after one GitHub sign-in):
