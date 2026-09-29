@@ -698,5 +698,30 @@ See `ROADMAP.md`. Expand each into a step file before starting it (S16–S19 ran
 - New deps: none.
 - [HUMAN] open:
   - the Google OAuth client and the X app (`deploy/SERVER-SETUP.md` §4a), then the script with their keys and a web restart;
-  - the privacy policy and terms URLs that X requires for the e-mail permission, and Google's consent screen asks for (legal pages are S21; until then, X sign-in cannot be switched on in production).
+  - the privacy policy and terms URLs that X requires for the e-mail permission, and Google's consent screen asks for (legal pages are S21; until then, X sign-in cannot be switched on in production). Addendum, same day: the pages exist as drafts, see the next entry.
+
+### Loose ends: legal page drafts and `task prod:up` (out of step, the human's request «давай сделаем логические завершения») — 2026-09-29
+- Done:
+  - **Legal pages, the S21 part done early.** The Google consent screen and the X app need live terms and privacy URLs.
+    - `/pravila` («Правила и условия»: the terms, the rules for posts, moderation, the UGC licence, complaints, the brand line) and `/konfidencialnost` («Политика конфиденциальности»), with the same pages under `/en`.
+    - Markdown in a new `legal` collection, `src/content/legal/<lang>/<page>.md`, with `title`, `description`, `updated` and `draft` (default true). One page component, `LegalPage.astro`; thin routes.
+    - A draft shows a notice, carries `noindex, follow` and stays out of the sitemap (`astro.config.mjs` reads the per-locale draft flag). JSON-LD: `BreadcrumbList`.
+    - Links in a second footer nav («Документы»), and under the sign-in form («Входя, вы принимаете правила и политику конфиденциальности»), as the spec's legal section asks.
+    - The text states only what the code does:
+      - no IP is stored;
+      - quiz and namer beacons are anonymous;
+      - the Supabase session cookies last up to 400 days;
+      - browser storage holds the quiz state;
+      - deletion is immediate;
+      - encrypted backups are kept up to 6 months;
+      - logs have no IP or e-mail.
+
+      Square brackets mark what the human fills in: the operator, the contact address, the Supabase region, the hosting, mail and backup providers, and how changes are announced. Personal data stays out of the repo.
+  - **`task prod:up`, broken since S16:** the two lines from the S06+ entry are in. The container's `BEDA_SUPABASE_URL` goes through `host.docker.internal`, and `BEDA_JWT_ISSUER` is the host URL that tokens name.
+- Verified:
+  - Build: both pages in ru and en, the notice, `noindex`, not in `sitemap-0.xml`; the JSON-LD audit gives 27 pages, 0 errors and the 6 known warnings.
+  - `e2e/legal.e2e.ts`: 8/8 in Chromium and WebKit. From the footer to each page; the notice and `noindex`; the heading inside 375 px (the first render cut «конфиденциальности», fixed with a smaller mobile size and hyphens); the sign-in links.
+  - Screenshots at 375 and 1280 px.
+  - `task prod:up` with freshly built images: `api` and `web` healthy, `/api/readyz` 200 from the web container, `/konfidencialnost` 200. `caddy` did not start in this sandbox, whose Docker cannot bind-mount host files (`deploy/Caddyfile`); that is not the stack. The web image build needs BuildKit (`docker buildx`), which this sandbox lacked until the plugin was installed.
+- [HUMAN] open: fill in the square brackets, have the texts checked (the spec: not legal advice; the data region question, amendment П-1 item 8), then `draft: false` in the four files.
 

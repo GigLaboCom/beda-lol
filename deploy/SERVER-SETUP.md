@@ -136,7 +136,7 @@ app (see `docs/local-dev.md`): an OAuth app has one callback URL.
 **Google OAuth client (production).** Google Cloud console → a project for beda.lol:
 
 - Google Auth Platform → Branding: app name «Яхта Беда», support e-mail, home page
-  `https://beda.lol`, privacy policy and terms links (the legal pages come in S21), authorised
+  `https://beda.lol`, privacy policy `https://beda.lol/konfidencialnost` and terms `https://beda.lol/pravila`, authorised
   domains `beda.lol` and `supabase.co`. Audience: External, then Publish app (in Testing only
   listed test users can sign in).
 - Data Access: scopes `openid`, `.../auth/userinfo.email`, `.../auth/userinfo.profile`, nothing
@@ -153,7 +153,8 @@ authentication settings → Set up:
   without it sign-in fails).
 - Type of App: Web App (a confidential client).
 - Callback URI `https://<project-ref>.supabase.co/auth/v1/callback`, website `https://beda.lol`,
-  terms of service and privacy policy URLs (S21; X requires both for the e-mail permission).
+  terms of service `https://beda.lol/pravila` and privacy policy `https://beda.lol/konfidencialnost`
+  (X requires both for the e-mail permission).
 
 Keys and tokens → OAuth 2.0 Client ID and Client Secret go to the script as `X_CLIENT_ID` /
 `X_SECRET`. An X account without a confirmed e-mail cannot sign in; such people use another way.

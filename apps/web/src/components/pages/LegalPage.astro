@@ -1,0 +1,100 @@
+---
+import { render } from 'astro:content';
+import { getLangFromUrl, getLocalizedPath, htmlLang, useTranslations } from '../../i18n';
+import Base from '../../layouts/Base.astro';
+import { breadcrumbList } from '../../lib/jsonld';
+import { type LegalPage, legalEntry, legalPath } from '../../lib/legal';
+/**
+ * `/pravila` and `/konfidencialnost` (+ `/en`): one Markdown entry per locale. A draft is
+ * marked on the page, carries noindex and stays out of the sitemap; square brackets in the
+ * text are what the author fills in before `draft: false`.
+ */
+import JsonLd from '../JsonLd.astro';
+
+interface Props {
+  page: LegalPage;
+}
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const entry = await legalEntry(Astro.props.page, lang);
+const { Content } = await render(entry);
+const { title, description, updated, draft } = entry.data;
+const date = new Intl.DateTimeFormat(htmlLang[lang], { dateStyle: 'long', timeZone: 'UTC' }).format(
+  new Date(`${updated}T00:00:00Z`),
+);
+const jsonLd = breadcrumbList(Astro.site, [
+  { name: t('site.name'), path: getLocalizedPath('/', lang) },
+  { name: title, path: getLocalizedPath(legalPath(entry.data.page), lang) },
+]);
+---
+
+<Base
+  title={`${title} — ${t('site.name')}`}
+  description={description}
+  robots={draft ? 'noindex, follow' : undefined}
+>
+  <JsonLd slot="head" data={jsonLd} />
+  <article class="legal-page">
+    <div class="wrap">
+      <h1 class="display">{title}</h1>
+      <p class="updated mono">{t('legal.updated')} <time datetime={updated}>{date}</time></p>
+      {draft && <p class="draft" role="note">{t('legal.draft')}</p>}
+      <div class="body">
+        <Content />
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .legal-page {
+    padding: clamp(32px, 5vw, 56px) 0 clamp(56px, 8vw, 96px);
+  }
+  .legal-page .wrap {
+    max-width: 760px;
+  }
+  h1 {
+    /* «конфиденциальности» is one long word: it must fit 375 px. */
+    font-size: clamp(28px, 4.4vw, 52px);
+    line-height: 1.05;
+    hyphens: auto;
+    overflow-wrap: break-word;
+    margin: 0 0 12px;
+  }
+  .updated {
+    font-size: 14px;
+    color: var(--muted);
+    margin: 0 0 24px;
+  }
+  .draft {
+    padding: 16px 18px;
+    background: var(--hull);
+    border: 1px solid var(--brass);
+    border-radius: 6px;
+    margin: 0 0 32px;
+  }
+  .body {
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--text-2);
+  }
+  .body :global(h2) {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(22px, 2.6vw, 28px);
+    color: var(--text);
+    margin: 40px 0 12px;
+  }
+  .body :global(strong) {
+    color: var(--text);
+  }
+  .body :global(li) {
+    margin: 8px 0;
+  }
+  .body :global(code) {
+    font-family: var(--mono);
+    font-size: 0.9em;
+    overflow-wrap: anywhere;
+  }
+</style>

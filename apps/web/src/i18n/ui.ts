@@ -31,6 +31,13 @@ const ru = {
   'foot.write': 'Написать',
   'foot.channelHref': '[ссылка на канал]',
   'foot.contactHref': '[контакт]',
+  'foot.legalLabel': 'Документы',
+  'foot.rules': 'Правила',
+  'foot.privacy': 'Конфиденциальность',
+
+  'legal.updated': 'Обновлено',
+  'legal.draft':
+    'Черновик: текст ещё проверяется. В квадратных скобках — то, что автор допишет перед публикацией.',
 
   'hero.kicker': 'Рубрика о пет-проектах',
   'hero.title1': 'ПО у тебя есть.',
@@ -61,6 +68,9 @@ const ru = {
   'signin.leadEmail':
     'Пароля нет: войдите по почте. Мы пришлём письмо со ссылкой и кодом — код пригодится, если письмо открыто на другом устройстве.',
   'signin.deleted': 'Аккаунт удалён. Попутного ветра.',
+  'signin.legal': 'Входя, вы принимаете {rules} и {privacy}.',
+  'signin.rules': 'правила',
+  'signin.privacy': 'политику конфиденциальности',
 
   'cabinet.title': 'Кабинет',
   'cabinet.profile': 'Кто на борту',
@@ -259,6 +269,13 @@ const en: Record<Key, string> = {
   'foot.write': 'Write to us',
   'foot.channelHref': '[channel link]',
   'foot.contactHref': '[contact]',
+  'foot.legalLabel': 'Documents',
+  'foot.rules': 'Rules',
+  'foot.privacy': 'Privacy',
+
+  'legal.updated': 'Updated',
+  'legal.draft':
+    'Draft: this text is still being reviewed. Square brackets mark what the author fills in before publishing.',
 
   'hero.kicker': 'A rubric about pet projects',
   'hero.title1': 'You have the software.',
@@ -290,6 +307,9 @@ const en: Record<Key, string> = {
   'signin.leadEmail':
     'No password: sign in by email. We send a link and a code; the code helps when the email is open on another device.',
   'signin.deleted': 'Account deleted. Fair winds.',
+  'signin.legal': 'By signing in you accept the {rules} and the {privacy}.',
+  'signin.rules': 'rules',
+  'signin.privacy': 'privacy policy',
 
   'cabinet.title': 'Account',
   'cabinet.profile': 'Who’s aboard',

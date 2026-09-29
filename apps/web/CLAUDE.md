@@ -12,7 +12,7 @@ JSON-LD is built **in code**, not in frontmatter. Each page component in `src/co
 - One `<JsonLd>` per page. Several nodes go in one `@graph` (see `PillarArticle.astro`).
 - A locale that shows a stub (en pillar articles) gets only what is true for it (breadcrumbs), not `Article`.
 
-Current coverage: `WebSite` on `/`; `Article` + `BreadcrumbList` on `/bukvy/<slug>` (en: breadcrumbs only); `BreadcrumbList` on `/bukvy`, `/osmotr`, `/kak-nazovesh`. None on `/404`, `/dev/*`, `/osmotr/r/*`, `/voiti` or `/kabinet` (out of search).
+Current coverage: `WebSite` on `/`; `Article` + `BreadcrumbList` on `/bukvy/<slug>` (en: breadcrumbs only); `BreadcrumbList` on `/bukvy`, `/osmotr`, `/kak-nazovesh`, `/pravila`, `/konfidencialnost`. None on `/404`, `/dev/*`, `/osmotr/r/*`, `/voiti` or `/kabinet` (out of search).
 
 **When you add or change a page, give it JSON-LD with the `generate-ldjson` skill** (`.claude/skills/generate-ldjson/`). `SKILL.md` has the workflow and `reference.md` covers which type to use for which page, field rules and a checklist. Then audit the build:
 

@@ -23,7 +23,7 @@ The decision tree, field rules and examples are in [`reference.md`](reference.md
 | OG images used as `image` | `/og/bukvy/<slug>.png`, `/og/osmotr/<code>.png` (S13) |
 | Site origin | `Astro.site` (from `BEDA_BASE_URL`, default `https://beda.lol`) |
 
-Current coverage (S12/S14): `WebSite` on `/`; `Article` + `BreadcrumbList` in one `@graph` on `/bukvy/<slug>` (en has only `BreadcrumbList`, because the article is an untranslated stub); `BreadcrumbList` on `/bukvy`, `/osmotr`, `/kak-nazovesh`. Planned: `CreativeWork` for epitaphs (S27, `ROADMAP.md`).
+Current coverage (S12/S14): `WebSite` on `/`; `Article` + `BreadcrumbList` in one `@graph` on `/bukvy/<slug>` (en has only `BreadcrumbList`, because the article is an untranslated stub); `BreadcrumbList` on `/bukvy`, `/osmotr`, `/kak-nazovesh`, `/pravila`, `/konfidencialnost`. Planned: `CreativeWork` for epitaphs (S27, `ROADMAP.md`).
 
 ## Workflow
 

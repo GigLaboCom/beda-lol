@@ -3,6 +3,7 @@ import { pickGag } from '@beda/core';
 import { EN_LABEL_TEXT, finalOf, fromOps, RU_LABEL_TEXT } from '@beda/transom';
 import Transom from '@beda/transom/Transom.astro';
 import { getLangFromUrl, getLocalizedPath, isPlaceholder, useTranslations } from '../i18n';
+import { legalPath } from '../lib/legal';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -11,6 +12,10 @@ const links = [
   { href: t('foot.channelHref'), label: t('foot.channel') },
   { href: `${getLocalizedPath('/', lang)}#journal`, label: t('foot.journal') },
   { href: t('foot.contactHref'), label: t('foot.write') },
+];
+const legal = [
+  { href: getLocalizedPath(legalPath('pravila'), lang), label: t('foot.rules') },
+  { href: getLocalizedPath(legalPath('konfidencialnost'), lang), label: t('foot.privacy') },
 ];
 
 // A pun plaque from the catalogue, final state, no motion. It changes with
@@ -31,6 +36,7 @@ const punLabel = `${(lang === 'en' ? EN_LABEL_TEXT : RU_LABEL_TEXT).prefix}: ${p
         <Transom state={punState} id="footPun" lang={lang} label={punLabel} />
       </div>
     </div>
+    <div class="foot-links">
     <nav aria-label={t('foot.navLabel')}>
       {
         links.map((l) =>
@@ -44,6 +50,10 @@ const punLabel = `${(lang === 'en' ? EN_LABEL_TEXT : RU_LABEL_TEXT).prefix}: ${p
         )
       }
     </nav>
+    <nav class="foot-legal" aria-label={t('foot.legalLabel')}>
+      {legal.map((l) => <a href={l.href}>{l.label}</a>)}
+    </nav>
+    </div>
   </div>
 </footer>
 
@@ -78,6 +88,17 @@ const punLabel = `${(lang === 'en' ? EN_LABEL_TEXT : RU_LABEL_TEXT).prefix}: ${p
     display: flex;
     gap: 28px;
     flex-wrap: wrap;
+  }
+  .foot-links {
+    display: grid;
+    gap: 16px;
+    align-content: start;
+  }
+  .foot-legal {
+    font-size: 14px;
+  }
+  .foot-legal a {
+    color: var(--muted);
   }
   .foot-pun {
     margin-top: 20px;

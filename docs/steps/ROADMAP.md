@@ -12,7 +12,7 @@ One paragraph per future step. Before starting a stage, ask Claude Code: «ра�
 - **S20 Server-side tracker.** `tracker_nails` table; `GET/PUT /api/tracker`, `POST /api/tracker/import` (max per letter); `/moya-yahta` page with the tracker island (port from the prototype), guest mode on `localStorage`, import on first login; enable the «Прибить буквы обратно» button from S10. First in the gamification rollout: weather as project state (tactic 09 #3; the presets of `archive/src/beda-water.html` map to state) and weekly watches with «якорная стоянка» (#4).
 - **S20a Nail metals, ranks, plaque collection (new).** Tactic 09 #1, #5, #6: metals of the nails, ranks, and the plaque collection, which persists the `beda:find` events emitted since S14a.
 - **S20b «Отколи у меня букву» (new).** Tactic 09 #10: a user opts in to a public break of their own board; the break is an `Op` with `brk` from `@beda/core` and plays on the shared transom.
-- **S21 Analytics and legal pages.** Umami container with its own small Postgres container on the VPS (analytics stays off Supabase); `events` for the list in the spec; SQL views for funnel and retention; `/pravila`, `/konfidencialnost` drafts marked for the human's review; uptime monitor notes.
+- **S21 Analytics and legal pages.** Umami container with its own small Postgres container on the VPS (analytics stays off Supabase); `events` for the list in the spec; SQL views for funnel and retention; `/pravila`, `/konfidencialnost` drafts marked for the human's review (done early, 2026-09-29, for the Google and X apps: PROGRESS); uptime monitor notes.
 
 ## Stage 3 — Bermuda triangle (first UGC)
 

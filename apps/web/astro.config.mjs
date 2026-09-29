@@ -25,6 +25,16 @@ const draftPaths = pillarFiles
   .map((f) => `/bukvy/${f.replace(/\.md$/, '')}`);
 if (draftPaths.length === pillarFiles.length) draftPaths.push('/bukvy');
 
+// Legal pages still marked `draft: true`, per locale (`src/content/legal/<lang>/<page>.md`).
+const legalDir = new URL('./src/content/legal/', import.meta.url);
+const legalDrafts = readdirSync(legalDir).flatMap((lang) =>
+  readdirSync(new URL(`${lang}/`, legalDir))
+    .filter((f) =>
+      /^draft:\s*true\s*$/m.test(readFileSync(new URL(`${lang}/${f}`, legalDir), 'utf8')),
+    )
+    .map((f) => `${lang === 'ru' ? '' : `/${lang}`}/${f.replace(/\.md$/, '')}`),
+);
+
 /** @param {string} page absolute URL */
 function inSitemap(page) {
   const path = new URL(page).pathname.replace(/\/$/, '') || '/';
@@ -35,6 +45,7 @@ function inSitemap(page) {
   if (bare === '/voiti' || bare === '/kabinet') return false;
   // English pillar articles are untranslated stubs (noindex): keep them out.
   if (path.startsWith('/en/bukvy/')) return false;
+  if (legalDrafts.includes(path)) return false;
   return !draftPaths.includes(bare);
 }
 

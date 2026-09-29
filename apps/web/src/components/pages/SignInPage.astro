@@ -1,10 +1,11 @@
 ---
-import { fmt, getLangFromUrl, htmlLang, useTranslations } from '../../i18n';
+import { fmt, getLangFromUrl, getLocalizedPath, htmlLang, useTranslations } from '../../i18n';
 import Base from '../../layouts/Base.astro';
 import { authConfig } from '../../lib/auth/config';
 import { allowSignIn } from '../../lib/auth/csp';
 import { PROVIDER_NAMES } from '../../lib/auth/providers';
 import { afterSignIn } from '../../lib/auth/routes';
+import { legalPath } from '../../lib/legal';
 /**
  * `/voiti` and `/en/voiti`: the sign-in forms. The route files send a visitor who is
  * already signed in on (`afterSignIn`); this renders the rest.
@@ -22,6 +23,17 @@ if (cfg) allowSignIn(Astro.csp, cfg);
 const services = new Intl.ListFormat(htmlLang[lang], { type: 'disjunction' }).format(
   (cfg?.providers ?? []).map((p) => PROVIDER_NAMES[p]),
 );
+// «Входя, вы принимаете {rules} и {privacy}.» with the two placeholders as links.
+const legalLinks = {
+  '{rules}': { href: getLocalizedPath(legalPath('pravila'), lang), label: t('signin.rules') },
+  '{privacy}': {
+    href: getLocalizedPath(legalPath('konfidencialnost'), lang),
+    label: t('signin.privacy'),
+  },
+} as const;
+const legalParts = t('signin.legal')
+  .split(/(\{rules\}|\{privacy\})/)
+  .map((part) => (part in legalLinks ? legalLinks[part as keyof typeof legalLinks] : part));
 const lead = services ? fmt(t('signin.lead'), { services }) : t('signin.leadEmail');
 Astro.response.headers.set('cache-control', 'no-store');
 ---
@@ -33,5 +45,8 @@ Astro.response.headers.set('cache-control', 'no-store');
     <p class="lead">{lead}</p>
     {failed && <p class="warn" role="alert">{t('auth.failed')}</p>}
     {cfg ? <SignIn client:load cfg={cfg} lang={lang} next={afterSignIn(Astro.url, lang)} /> : <p class="warn">{t('auth.off')}</p>}
+    <p class="note" data-testid="signin-legal">
+      {legalParts.map((part) => (typeof part === 'string' ? part : <a href={part.href}>{part.label}</a>))}
+    </p>
   </div>
 </Base>
