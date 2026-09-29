@@ -21,6 +21,8 @@ Stage 2 adds sign-in (Supabase Auth, amendment П-1) and per-user data: the trac
   `Option<CurrentUser>` serves routes that guests may use too. The role is read from `app.users`, never from the token.
 - **Tenancy rule:** a table that holds user data carries `account_id` (references `app.accounts`). Handlers read and write it only with `user.account.id` from `CurrentUser`, never with an id taken from the request body.
 
+- **On the site:** `@supabase/ssr` keeps the session in cookies. The middleware verifies it with `getClaims()` and sets `locals.auth` on on-demand pages. Server code calls the API with `apiFromServer(locals, …)`, islands with `apiFetch(cfg, …)`: both send the access token as a bearer header, and the browser uses supabase-js only to sign in.
+
 ## Consequences
 
 - Every protected route is one extractor argument away: `async fn handler(user: CurrentUser, …)`.

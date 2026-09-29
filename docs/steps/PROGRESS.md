@@ -34,7 +34,7 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 - [x] R1 ROADMAP: gamification and falls mapped into stages 2–6
 
 ## Stage 2 — Accounts and tracker
-- [ ] S16 Supabase Auth wiring (API part done: token → user and account; web side and `admin promote` open)
+- [x] S16 Supabase Auth wiring
 
 ## Stages 2–6
 See `ROADMAP.md`. Expand each into a step file before starting it (S16's API part ran without one, by the human's decision).
@@ -427,6 +427,40 @@ See `ROADMAP.md`. Expand each into a step file before starting it (S16's API par
 - New deps: `jsonwebtoken` 9.3, `reqwest` 0.12, and the `serde` feature of `uuid`; dev: `ring` 0.17 and `base64` 0.22 (already in the lockfile), used to sign test tokens with a key generated per run.
 - Follow-ups: the web side of S16 (`@supabase/ssr`, middleware, islands); `beda-api admin promote`; S20's `tracker_nails` carries `account_id`.
 - [HUMAN] open:
-  - local signing keys: Supabase publishes a JWKS only for asymmetric keys. Check that `task dev` issues ES256 tokens; if not, run `supabase gen signing-key --algorithm ES256`, keep the file out of git, and point `[auth] signing_keys_path` at it.
+  - ~~local signing keys~~: resolved in the next entry. The local stack (CLI 2.117) signs with ES256 and publishes the key.
   - in the prod project, switch JWT signing to asymmetric keys (Supabase dashboard → JWT signing keys);
   - S17/S18: the GitHub OAuth app, SMTP, Turnstile.
+
+### S16 (rest) — sign-in on the site, `admin promote`, Origin check — 2026-09-29
+- Done:
+  - **Site**, `@supabase/ssr` 0.12.7 + `@supabase/supabase-js` 2.117.2:
+    - `src/middleware.ts` reads the session on on-demand pages with `getClaims()` (verified against the JWKS; refreshes an expired session) and sets `locals.auth` (`userId`, `email`, `accessToken`) and `locals.supabase`. Prerendered pages skip it.
+    - `lib/auth/config.ts`: runtime settings `BEDA_SUPABASE_URL` (the same variable as the API), `BEDA_SUPABASE_PUBLISHABLE_KEY`, `BEDA_API_URL`, and `safeNext`.
+    - `lib/auth/server.ts`: `serverClient`, and `apiFromServer(locals, path)`, which calls the Rust API with the bearer token.
+    - `lib/auth/browser.ts`: `browserClient`, and `apiFetch`, the same call from islands.
+    - `/auth/callback` exchanges the PKCE code and goes to a same-site `next`.
+  - **`/dev/auth`** (noindex, `/dev` rule): what the server sees, and `/api/me` from the server and from the browser. The island signs in by magic link or by the code from the mail, and signs out. The page adds the Supabase origin to `connect-src` with `Astro.csp.insertDirective`; static pages keep `connect-src 'self'`.
+  - **API**:
+    - `beda-api admin promote <github-login> [--role …]`, through `app.user_id_by_github_login` (security definer, executable by `beda_api` only; plpgsql, so the migration applies without Supabase Auth, as in CI);
+    - Origin check on unsafe methods (`http/origin.rs`): on in prod, `BEDA_ORIGIN_CHECK`, `BEDA_ALLOWED_ORIGINS`.
+  - **Local Supabase** (`config.toml`): email sign-ups on, `site_url` and redirect URLs for the dev site. A Russian magic-link mail with the link and the code (`supabase/templates/magic_link.html`).
+  - **Migration**: the backfill reads the metadata through `to_jsonb(u)`, so the bare `auth.users` of the compose stack (`deploy/local/initdb`) works too.
+  - **Plumbing**: `Taskfile.yml` `dev`, `web:dev` and `api:dev` pass the local Supabase URL and key; robots.txt disallows `/auth/`; `apps/web` has Vitest with the `lib/auth/config` tests; Biome's `noFocusedTests` is off for `.tsx` (the rule took `fit()` for Vitest's `fit`).
+- Verified:
+  - End to end on the local stack, with Supabase CLI 2.117 (Auth, Kong, Mailpit), the Rust API and `astro dev`: Chromium and WebKit, sign-in by link and by code. Each run: signed out → signed in on the server → `/api/me` 200 from the server and from the browser, the same user with a personal account as owner → sign-out. No console errors.
+  - Production build (`node dist/server/entry.mjs`): sign-in by link works. `/dev/auth` sends one `connect-src 'self' <supabase>`, and there are no CSP violations.
+  - The migrations apply on the Supabase image without Auth (as in CI), on the full CLI stack, and on plain Postgres 17 with `deploy/local/initdb`.
+  - Rust: fmt, clippy `-D warnings`, `cargo test --workspace` with the database (lib 17, auth 9, db 6, events 3, http 8, quiz 4), `sqlx prepare --check`, the offline release build, `cargo deny`. TS: typecheck, test and build of every project; Biome.
+  - Sandbox notes, none of which applies on a normal machine:
+    - `supabase start` ran behind a port forwarder;
+    - Docker could not mount the template, so the stack ran from a copy of the config without it, and the code path took its code from the admin API;
+    - `nx run api:*` fails here, because sqlx reads an unrelated `/workspace/.env`, so Rust ran from a mirror of the repo.
+- Deviations:
+  - Session cookies are readable by JS: `@supabase/ssr` needs that for the browser client, so the spec's `HttpOnly` session cookie does not apply with Supabase.
+  - Auth settings are read at runtime, not inlined at build, so one image serves every environment.
+  - The OTP code in the mail comes from S18 (Russian templates), pulled forward for the check page.
+- New deps: `@supabase/ssr`, `@supabase/supabase-js` (amendment П-1); `vitest` 5.0.2 in `web` (same version as the packages).
+- [HUMAN] open:
+  - Production `.env` (`deploy/` is outside this step): for the web container, `BEDA_SUPABASE_PUBLISHABLE_KEY` and `BEDA_API_URL=http://api:8080`. `BEDA_SUPABASE_URL` is already there; add them to `deploy/.env.example` in S06.
+  - In the Supabase dashboard: asymmetric JWT signing keys; site URL `https://beda.lol`; redirect URL `https://beda.lol/auth/callback`; email sign-ups; the magic-link template (S18).
+  - Try it together: `task dev`, then http://localhost:4321/dev/auth.

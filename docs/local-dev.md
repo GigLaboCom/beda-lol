@@ -105,6 +105,21 @@ supabase start && task db:dev-role
 BEDA_LOCAL_DATABASE_URL=postgresql://beda_api:beda_api_dev@host.docker.internal:54322/postgres task local:api
 ```
 
+## Sign-in locally
+
+`task dev` passes the local Supabase URL and publishable key to both halves: the API
+fetches the signing keys (JWKS) from it, the site keeps the session in cookies through
+`@supabase/ssr`. Sign-ups by email are on in `supabase/config.toml` (local only; the
+production project is configured in the Supabase dashboard).
+
+1. Open http://localhost:4321/dev/auth and ask for a link.
+2. The mail lands in Mailpit (:54324). Open the link, or type the code from the mail.
+3. The page shows what the server reads from the cookies, and `/api/me` from the server
+   and from the browser: the user, the personal account and the role.
+
+The local stack signs tokens with ES256, so no signing key setup is needed. The compose
+stacks below have no Supabase Auth: `/api/me` answers 503 there.
+
 ## How the local database differs from Supabase
 
 The compose `db` is plain Postgres 17 with just what our migrations need from
