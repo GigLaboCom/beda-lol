@@ -35,10 +35,16 @@ services:
   web:
     image: ghcr.io/giglabocom/beda-web:${BEDA_TAG:?set BEDA_TAG}
     restart: unless-stopped
-    env_file: ${BEDA_ENV_FILE:-/opt/beda/.env}
+    # Public values only (Supabase URL and publishable key): the web container
+    # never sees the database or backup secrets. Without the file the site runs
+    # with sign-in off (as in `task prod:up`).
+    env_file:
+      - path: ${BEDA_WEB_ENV_FILE:-/opt/beda/web.env}
+        required: false
     environment:
       HOST: 0.0.0.0
       PORT: "4321"
+      BEDA_API_URL: http://api:8080
     healthcheck:
       test:
         - CMD

@@ -13,7 +13,8 @@ api ──▶ Supabase Postgres (BEDA_DATABASE_URL, role beda_api)
 | --- | --- |
 | `compose.yaml` | services `caddy`, `web`, `api`, `backup` (S06); only caddy publishes ports |
 | `Caddyfile` | site address from `BEDA_SITE_ADDRESS`; `BEDA_TLS_INTERNAL=1` uses Caddy's local CA |
-| `.env.example` | every variable the stack reads; the real file is `/opt/beda/.env` (mode 600) |
+| `.env.example` | variables of the api and backup containers (secrets); the real file is `/opt/beda/.env` (mode 600) |
+| `web.env.example` | variables of the web container (public values only); the real file is `/opt/beda/web.env` |
 
 ## Database
 
@@ -28,7 +29,8 @@ never migrates.
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `BEDA_TAG` | — (required) | image tag: the git SHA in prod, `local` for `task prod:up` |
-| `BEDA_ENV_FILE` | `/opt/beda/.env` | env file for web, api and backup |
+| `BEDA_ENV_FILE` | `/opt/beda/.env` | env file for api and backup |
+| `BEDA_WEB_ENV_FILE` | `/opt/beda/web.env` | env file for web; optional (without it sign-in is off) |
 | `BEDA_SITE_ADDRESS` | `beda.lol` | Caddy site address |
 | `BEDA_TLS_INTERNAL` | `0` | `1` = self-signed local CA (for `localhost`) |
 

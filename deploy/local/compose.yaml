@@ -64,6 +64,7 @@ services:
     environment:
       HOST: 0.0.0.0
       PORT: "4321"
+      BEDA_API_URL: http://api:8080
     healthcheck:
       test:
         - CMD

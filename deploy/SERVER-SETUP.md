@@ -49,13 +49,18 @@ sudo -u deploy git clone --depth 1 https://github.com/GigLaboCom/beda-lol.git /o
 `deploy.sh` checks out `/opt/beda/src` at the deployed commit on every release, so compose and
 Caddy config always match the running images.
 
-## 4. `/opt/beda/.env` (by hand)
+## 4. `/opt/beda/.env` and `/opt/beda/web.env` (by hand)
 
 ```sh
 sudo -u deploy cp /opt/beda/src/deploy/.env.example /opt/beda/.env
-sudo -u deploy chmod 600 /opt/beda/.env
-sudo -u deploy nano /opt/beda/.env      # fill in every value
+sudo -u deploy cp /opt/beda/src/deploy/web.env.example /opt/beda/web.env
+sudo -u deploy chmod 600 /opt/beda/.env /opt/beda/web.env
+sudo -u deploy nano /opt/beda/.env      # api + backup: fill in every value
+sudo -u deploy nano /opt/beda/web.env   # web: Supabase URL and publishable key
 ```
+
+The web container reads only `web.env`, which holds public values; the database and backup
+secrets in `.env` reach the api and backup containers only.
 
 > **Deviation from the spec:** the spec says the workflow writes `.env` on every deploy. With a
 > forced-command deploy key the workflow can only pass a SHA, so `.env` is maintained by hand
@@ -65,9 +70,44 @@ What goes in (see comments in `.env.example`):
 
 - `BEDA_DATABASE_URL` — Supabase **session pooler** (or direct if the VPS has IPv6), role `beda_api`.
   Set the role's password once in the Supabase SQL editor: `alter role beda_api password '…';`
+- `BEDA_SUPABASE_URL` — `https://<project-ref>.supabase.co`, in both files.
+- `BEDA_SUPABASE_PUBLISHABLE_KEY` (`web.env`) — Dashboard → Project Settings → API Keys.
 - `BACKUP_*` and `RCLONE_CONFIG_S3_*` — bucket for backups, `age` public key.
   Create the key pair on **your** machine: `age-keygen -o beda-backup.key` — keep the file offline,
   put only the `age1…` public key on the server.
+
+## 4a. Supabase project (dashboard)
+
+Auth settings live in the dashboard; `supabase/config.toml` is for the local stack only
+(do not `supabase config push` it: it would set the site URL to localhost).
+
+| Where | Setting |
+| --- | --- |
+| Project Settings → JWT Keys | **Asymmetric signing keys** (ES256): create a key and rotate to it. The API accepts only ES256/RS256 tokens verified against the JWKS; with the legacy HS256 secret every signed-in request gets 401. |
+| Authentication → URL Configuration | Site URL `https://beda.lol`; Redirect URLs `https://beda.lol/**` |
+| Authentication → Sign In / Providers → Email | enabled, sign-ups allowed |
+| Authentication → Sign In / Providers → GitHub | enabled; Client ID and Secret of the production OAuth app (below) |
+| Authentication → Emails → SMTP (S18) | custom SMTP from a verified sending domain; the built-in mailer is for tests only |
+| Authentication → Emails → Templates → Magic link | subject «Вход на beda.lol», body from `supabase/templates/magic_link.html` |
+| SQL editor | `alter role beda_api password '…';` (the same password goes into `BEDA_DATABASE_URL`) |
+
+**GitHub OAuth app (production).** GitHub → organisation GigLaboCom → Settings → Developer
+settings → OAuth Apps → New OAuth App:
+
+- Homepage URL: `https://beda.lol`
+- Authorization callback URL: `https://<project-ref>.supabase.co/auth/v1/callback`
+
+Generate a client secret and paste the Client ID and the secret into the GitHub provider in
+the Supabase dashboard. The secret goes nowhere else. For local development create a second
+app (see `docs/local-dev.md`): an OAuth app has one callback URL.
+
+After the first release, check sign-in on `https://beda.lol/dev/auth` (magic link and GitHub),
+then promote yourself (after one GitHub sign-in):
+
+```sh
+cd /opt/beda/src && BEDA_TAG=$(cat /opt/beda/.last_good) docker compose -f deploy/compose.yaml \
+  exec api beda-api admin promote <github-login> --role admin
+```
 
 ## 5. Deploy key with a forced command
 
