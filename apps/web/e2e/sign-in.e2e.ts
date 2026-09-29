@@ -1,6 +1,7 @@
 import { type BrowserContext, expect, type Page, test } from '@playwright/test';
 import { fmt, type Key, type Locale, translate } from '../src/i18n';
 import { TURNSTILE_ORIGIN } from '../src/lib/auth/csp';
+import { OAUTH_PROVIDERS, type OAuthProvider, PROVIDER_NAMES } from '../src/lib/auth/providers';
 
 // Sign-in, the cabinet and the /dev/auth bench against the local stack: the mail comes
 // through Mailpit, the e-mail form passes Turnstile (Cloudflare's test keys locally), the
@@ -154,38 +155,58 @@ test('the code signs in on the bench; the server and the browser see the same us
   expect(errors).toEqual([]);
 });
 
-test('GitHub goes through Supabase, and a denied sign-in comes back as failed', async ({
-  page,
-}) => {
-  const errors = watchErrors(page);
-  let github: URL | undefined;
-  // Navigation redirects are not routed: catch Supabase's /authorize and read where it sends.
-  await page.route('**/auth/v1/authorize?**', async (route) => {
-    const res = await route.fetch({ maxRedirects: 0 });
-    github = new URL(res.headers().location ?? '');
-    await route.fulfill({ contentType: 'text/html', body: '<p>github</p>' });
-  });
-  await page.goto('/voiti');
-  await waitForIslands(page);
-  await page.getByRole('button', { name: t('auth.github') }).click();
-  await page.getByText('github', { exact: true }).waitFor();
-  expect(`${github?.origin}${github?.pathname}`).toBe('https://github.com/login/oauth/authorize');
-  const callback = new URL(github?.searchParams.get('redirect_uri') ?? '');
-  expect(callback.pathname).toBe('/auth/v1/callback');
-  await page.unroute('**/auth/v1/authorize?**');
+/** Where Supabase sends each provider's button (`[auth.external.*]` in supabase/config.toml). */
+const AUTHORIZE: Record<OAuthProvider, string> = {
+  github: 'https://github.com/login/oauth/authorize',
+  google: 'https://accounts.google.com/o/oauth2/v2/auth',
+  x: 'https://x.com/i/oauth2/authorize',
+};
 
-  // What GitHub sends back when the person presses Cancel.
-  callback.search = new URLSearchParams({
-    error: 'access_denied',
-    state: github?.searchParams.get('state') ?? '',
-  }).toString();
-  await page.goto(callback.href);
-  // Supabase adds the error to the fragment as well.
-  await page.waitForURL(/\/voiti\?auth=failed(#|$)/);
-  await expect(page.getByRole('alert')).toHaveText(t('auth.failed'));
-  await expectHeader(page, t('head.signIn'));
-  expect(errors).toEqual([]);
+test('the sign-in page offers every provider the stack has', async ({ page }) => {
+  await page.goto('/voiti');
+  // Unset BEDA_AUTH_PROVIDERS in dev: all of them, in the site's order.
+  await expect(page.locator('.lead')).toContainText('через GitHub, Google или X — или по почте');
+  const buttons = page.locator('.sign-in-oauth button');
+  await expect(buttons).toHaveText(
+    OAUTH_PROVIDERS.map((p) => fmt(t('auth.oauth'), { name: PROVIDER_NAMES[p] })),
+  );
 });
+
+for (const provider of OAUTH_PROVIDERS) {
+  const name = PROVIDER_NAMES[provider];
+  test(`${name} goes through Supabase, and a denied sign-in comes back as failed`, async ({
+    page,
+  }) => {
+    const errors = watchErrors(page);
+    let sent: URL | undefined;
+    // Navigation redirects are not routed: catch Supabase's /authorize and read where it sends.
+    await page.route('**/auth/v1/authorize?**', async (route) => {
+      const res = await route.fetch({ maxRedirects: 0 });
+      sent = new URL(res.headers().location ?? '');
+      await route.fulfill({ contentType: 'text/html', body: `<p>${provider}</p>` });
+    });
+    await page.goto('/voiti');
+    await waitForIslands(page);
+    await page.getByRole('button', { name: fmt(t('auth.oauth'), { name }) }).click();
+    await page.getByText(provider, { exact: true }).waitFor();
+    expect(`${sent?.origin}${sent?.pathname}`).toBe(AUTHORIZE[provider]);
+    const callback = new URL(sent?.searchParams.get('redirect_uri') ?? '');
+    expect(callback.pathname).toBe('/auth/v1/callback');
+    await page.unroute('**/auth/v1/authorize?**');
+
+    // What the provider sends back when the person presses Cancel.
+    callback.search = new URLSearchParams({
+      error: 'access_denied',
+      state: sent?.searchParams.get('state') ?? '',
+    }).toString();
+    await page.goto(callback.href);
+    // Supabase adds the error to the fragment as well.
+    await page.waitForURL(/\/voiti\?auth=failed(#|$)/);
+    await expect(page.getByRole('alert')).toHaveText(t('auth.failed'));
+    await expectHeader(page, t('head.signIn'));
+    expect(errors).toEqual([]);
+  });
+}
 
 test('sign-out on all devices revokes the other sessions', async ({ browser, browserName }) => {
   const email = address('all', browserName);

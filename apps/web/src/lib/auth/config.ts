@@ -1,3 +1,5 @@
+import { OAUTH_PROVIDERS, type OAuthProvider, parseProviders } from './providers';
+
 /**
  * Supabase Auth settings, read at runtime on the server (the production image
  * is built once and configured by `/opt/beda/web.env`). `BEDA_SUPABASE_URL` is the
@@ -14,6 +16,11 @@ export interface AuthConfig {
    * then sends a Turnstile token. `null` hides the widget.
    */
   turnstile: string | null;
+  /**
+   * OAuth buttons, from `BEDA_AUTH_PROVIDERS`. Unset: every provider in dev (the local
+   * stack enables them all in `supabase/config.toml`), none in production.
+   */
+  providers: OAuthProvider[];
 }
 
 /**
@@ -27,7 +34,10 @@ export function authConfig(dev = import.meta.env.DEV): AuthConfig | null {
   const key = process.env.BEDA_SUPABASE_PUBLISHABLE_KEY?.trim();
   const turnstile =
     process.env.BEDA_TURNSTILE_SITE_KEY?.trim() || (dev ? TURNSTILE_TEST_SITE_KEY : null);
-  return url && key ? { url, key, turnstile } : null;
+  const listed = process.env.BEDA_AUTH_PROVIDERS;
+  const providers =
+    listed === undefined ? (dev ? [...OAUTH_PROVIDERS] : []) : parseProviders(listed);
+  return url && key ? { url, key, turnstile, providers } : null;
 }
 
 /** Where the server reaches the Rust API (in prod compose: `http://api:8080`). */

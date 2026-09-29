@@ -1,8 +1,9 @@
 ---
-import { getLangFromUrl, useTranslations } from '../../i18n';
+import { fmt, getLangFromUrl, htmlLang, useTranslations } from '../../i18n';
 import Base from '../../layouts/Base.astro';
 import { authConfig } from '../../lib/auth/config';
 import { allowSignIn } from '../../lib/auth/csp';
+import { PROVIDER_NAMES } from '../../lib/auth/providers';
 import { afterSignIn } from '../../lib/auth/routes';
 /**
  * `/voiti` and `/en/voiti`: the sign-in forms. The route files send a visitor who is
@@ -17,6 +18,11 @@ const cfg = authConfig();
 const failed = Astro.url.searchParams.get('auth') === 'failed';
 const deleted = Astro.url.searchParams.get('account') === 'deleted';
 if (cfg) allowSignIn(Astro.csp, cfg);
+// «GitHub, Google или X»: the buttons the page has.
+const services = new Intl.ListFormat(htmlLang[lang], { type: 'disjunction' }).format(
+  (cfg?.providers ?? []).map((p) => PROVIDER_NAMES[p]),
+);
+const lead = services ? fmt(t('signin.lead'), { services }) : t('signin.leadEmail');
 Astro.response.headers.set('cache-control', 'no-store');
 ---
 
@@ -24,7 +30,7 @@ Astro.response.headers.set('cache-control', 'no-store');
   <div class="wrap auth-page">
     <h1 class="display">{t('signin.title')}</h1>
     {deleted && <p class="warn" role="status">{t('signin.deleted')}</p>}
-    <p class="lead">{t('signin.lead')}</p>
+    <p class="lead">{lead}</p>
     {failed && <p class="warn" role="alert">{t('auth.failed')}</p>}
     {cfg ? <SignIn client:load cfg={cfg} lang={lang} next={afterSignIn(Astro.url, lang)} /> : <p class="warn">{t('auth.off')}</p>}
   </div>

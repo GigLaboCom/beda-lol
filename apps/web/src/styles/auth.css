@@ -40,6 +40,10 @@
   font: inherit;
   padding: 0 12px;
 }
+.sign-in-oauth {
+  display: grid;
+  gap: 8px;
+}
 .sign-in-or {
   margin: 14px 0 6px;
   color: var(--muted);

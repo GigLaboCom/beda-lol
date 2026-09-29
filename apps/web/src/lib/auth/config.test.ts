@@ -31,6 +31,7 @@ describe('authConfig', () => {
 
   it('needs both the URL and the key', () => {
     delete process.env.BEDA_SUPABASE_URL;
+    delete process.env.BEDA_AUTH_PROVIDERS;
     process.env.BEDA_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_x';
     expect(authConfig()).toBeNull();
     process.env.BEDA_SUPABASE_URL = 'http://127.0.0.1:54321/';
@@ -38,7 +39,20 @@ describe('authConfig', () => {
       url: 'http://127.0.0.1:54321',
       key: 'sb_publishable_x',
       turnstile: null,
+      providers: [],
     });
+  });
+
+  it('shows every OAuth provider in dev and none in production unless listed', () => {
+    process.env.BEDA_SUPABASE_URL = 'http://127.0.0.1:54321';
+    process.env.BEDA_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_x';
+    delete process.env.BEDA_AUTH_PROVIDERS;
+    expect(authConfig(true)?.providers).toEqual(['github', 'google', 'x']);
+    expect(authConfig(false)?.providers).toEqual([]);
+    process.env.BEDA_AUTH_PROVIDERS = 'google';
+    expect(authConfig(true)?.providers).toEqual(['google']);
+    process.env.BEDA_AUTH_PROVIDERS = '';
+    expect(authConfig(true)?.providers).toEqual([]);
   });
 
   it('takes the Turnstile site key, with the test key only in dev', () => {

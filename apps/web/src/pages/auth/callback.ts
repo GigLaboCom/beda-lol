@@ -1,7 +1,7 @@
 /**
- * End of a sign-in: the magic link and GitHub come back here with a PKCE
- * `code`; exchanging it sets the session cookies. Then on to `next`. A denied
- * GitHub sign-in comes back with `error` and no code: `next?auth=failed`.
+ * End of a sign-in: the magic link and the OAuth providers come back here with a
+ * PKCE `code`; exchanging it sets the session cookies. Then on to `next`. A denied
+ * provider sign-in comes back with `error` and no code: `next?auth=failed`.
  */
 import type { APIRoute } from 'astro';
 import { safeNext } from '../../lib/auth/config';

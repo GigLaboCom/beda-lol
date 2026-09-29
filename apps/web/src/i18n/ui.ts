@@ -43,9 +43,8 @@ const ru = {
   'head.cabinet': 'Кабинет',
 
   'auth.off': 'Вход выключен: не заданы BEDA_SUPABASE_URL и BEDA_SUPABASE_PUBLISHABLE_KEY.',
-  'auth.failed':
-    'Вход не удался: ссылка устарела или уже использована, или вход через GitHub отменён.',
-  'auth.github': 'Войти через GitHub',
+  'auth.failed': 'Вход не удался: ссылка устарела или уже использована, или вход отменён.',
+  'auth.oauth': 'Войти через {name}',
   'auth.or': 'или по почте',
   'auth.email': 'Почта',
   'auth.send': 'Прислать ссылку и код',
@@ -58,7 +57,9 @@ const ru = {
 
   'signin.title': 'Вход',
   'signin.lead':
-    'Пароля нет: войдите через GitHub или по почте. Мы пришлём письмо со ссылкой и кодом — код пригодится, если письмо открыто на другом устройстве.',
+    'Пароля нет: войдите через {services} — или по почте. Мы пришлём письмо со ссылкой и кодом — код пригодится, если письмо открыто на другом устройстве.',
+  'signin.leadEmail':
+    'Пароля нет: войдите по почте. Мы пришлём письмо со ссылкой и кодом — код пригодится, если письмо открыто на другом устройстве.',
   'signin.deleted': 'Аккаунт удалён. Попутного ветра.',
 
   'cabinet.title': 'Кабинет',
@@ -67,7 +68,6 @@ const ru = {
   'cabinet.email': 'Почта',
   'cabinet.methods': 'Вход',
   'cabinet.method.email': 'по почте',
-  'cabinet.method.github': 'GitHub',
   'cabinet.unavailable': 'Сервер сейчас не отвечает, часть данных не показана.',
   'cabinet.sessions': 'Сеансы',
   'cabinet.signOutAllNote':
@@ -272,8 +272,8 @@ const en: Record<Key, string> = {
 
   'auth.off': 'Sign-in is off: BEDA_SUPABASE_URL and BEDA_SUPABASE_PUBLISHABLE_KEY are not set.',
   'auth.failed':
-    'Sign-in failed: the link has expired or was already used, or GitHub sign-in was cancelled.',
-  'auth.github': 'Sign in with GitHub',
+    'Sign-in failed: the link has expired or was already used, or sign-in was cancelled.',
+  'auth.oauth': 'Sign in with {name}',
   'auth.or': 'or by email',
   'auth.email': 'Email',
   'auth.send': 'Send a link and a code',
@@ -286,7 +286,9 @@ const en: Record<Key, string> = {
 
   'signin.title': 'Sign in',
   'signin.lead':
-    'No password: sign in with GitHub or by email. We send a link and a code; the code helps when the email is open on another device.',
+    'No password: sign in with {services}, or by email. We send a link and a code; the code helps when the email is open on another device.',
+  'signin.leadEmail':
+    'No password: sign in by email. We send a link and a code; the code helps when the email is open on another device.',
   'signin.deleted': 'Account deleted. Fair winds.',
 
   'cabinet.title': 'Account',
@@ -295,7 +297,6 @@ const en: Record<Key, string> = {
   'cabinet.email': 'Email',
   'cabinet.methods': 'Sign-in',
   'cabinet.method.email': 'by email',
-  'cabinet.method.github': 'GitHub',
   'cabinet.unavailable': 'The server is not answering right now; some details are missing.',
   'cabinet.sessions': 'Sessions',
   'cabinet.signOutAllNote':

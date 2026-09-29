@@ -101,10 +101,14 @@ SUPABASE_ACCESS_TOKEN=sbp_… SUPABASE_PROJECT_REF=<project-ref> BEDA_API_DB_PAS
 - With `BEDA_API_DB_PASSWORD=generate`, it sets a new password for role `beda_api`.
 - It warns if tokens are not signed with an asymmetric key.
 
-Add `GITHUB_CLIENT_ID` and `GITHUB_SECRET`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`
+Add `GITHUB_CLIENT_ID` and `GITHUB_SECRET`, `GOOGLE_CLIENT_ID` and `GOOGLE_SECRET`, `X_CLIENT_ID`
+and `X_SECRET`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`
 and `SMTP_ADMIN_EMAIL`, and later `TURNSTILE_SECRET`, to set those too. Secrets are not
-printed. The values for `/opt/beda/.env` and `web.env` go to `./supabase-setup.env` (mode 600,
-gitignored): copy them over, then delete the file. Afterwards only the asymmetric JWT key, if
+printed. A provider left out keeps what the project has, so the apps can come one at a time.
+The values for `/opt/beda/.env` and `web.env` go to `./supabase-setup.env` (mode 600,
+gitignored): copy them over, then delete the file. Among them is `BEDA_AUTH_PROVIDERS`, the
+providers the project has on: the site shows a button for each and none for the rest, so
+re-run the script (and restart web) whenever a provider is added. Afterwards only the asymmetric JWT key, if
 the script warned, and the rate limits are left for the dashboard.
 
 | Where | Setting |
@@ -112,7 +116,7 @@ the script warned, and the rate limits are left for the dashboard.
 | Project Settings → JWT Keys | **Asymmetric signing keys** (ES256): create a key and rotate to it. The API accepts only ES256/RS256 tokens verified against the JWKS; with the legacy HS256 secret every signed-in request gets 401. |
 | Authentication → URL Configuration | Site URL `https://beda.lol`; Redirect URLs `https://beda.lol/**` |
 | Authentication → Sign In / Providers → Email | enabled, sign-ups allowed |
-| Authentication → Sign In / Providers → GitHub | enabled; Client ID and Secret of the production OAuth app (below) |
+| Authentication → Sign In / Providers → GitHub, Google, X / Twitter (OAuth 2.0) | enabled; Client ID and Secret of each production app (below). For X take «X / Twitter (OAuth 2.0)», not the legacy «Twitter (OAuth 1.0a)» |
 | Authentication → Emails → SMTP Settings | custom SMTP (below); the built-in mailer is for tests only and sends a few mails an hour |
 | Authentication → Emails → Templates → Magic link **and** Confirm signup | both: subject and body as in `supabase/config.toml` and `supabase/templates/sign_in.html`. Both are templates that pick English when the user signed up from `/en/voiti` (`lang` in the user metadata), Russian otherwise. A new address gets Confirm signup when «Confirm email» is on; the mail is the same either way |
 | Authentication → Rate Limits | emails per hour: check the value once SMTP is on and raise it if sign-ins hit the limit |
@@ -129,6 +133,31 @@ Generate a client secret and paste the Client ID and the secret into the GitHub 
 the Supabase dashboard. The secret goes nowhere else. For local development create a second
 app (see `docs/local-dev.md`): an OAuth app has one callback URL.
 
+**Google OAuth client (production).** Google Cloud console → a project for beda.lol:
+
+- Google Auth Platform → Branding: app name «Яхта Беда», support e-mail, home page
+  `https://beda.lol`, privacy policy and terms links (the legal pages come in S21), authorised
+  domains `beda.lol` and `supabase.co`. Audience: External, then Publish app (in Testing only
+  listed test users can sign in).
+- Data Access: scopes `openid`, `.../auth/userinfo.email`, `.../auth/userinfo.profile`, nothing
+  else (these need no verification).
+- Clients → Create client → Web application: Authorised JavaScript origins `https://beda.lol`,
+  Authorised redirect URIs `https://<project-ref>.supabase.co/auth/v1/callback`.
+
+The client ID and secret go to the script as `GOOGLE_CLIENT_ID` / `GOOGLE_SECRET`.
+
+**X app (production).** developer.x.com → Projects & Apps → a project → an app → User
+authentication settings → Set up:
+
+- App permissions: Read, and **Request email from users** on (Supabase needs the address;
+  without it sign-in fails).
+- Type of App: Web App (a confidential client).
+- Callback URI `https://<project-ref>.supabase.co/auth/v1/callback`, website `https://beda.lol`,
+  terms of service and privacy policy URLs (S21; X requires both for the e-mail permission).
+
+Keys and tokens → OAuth 2.0 Client ID and Client Secret go to the script as `X_CLIENT_ID` /
+`X_SECRET`. An X account without a confirmed e-mail cannot sign in; such people use another way.
+
 **Sending domain and SMTP.** Sign-in mail goes out from a verified sending domain (tactic 11:
 `.lol` has a weaker reputation with mail filters, so the sender may be another domain of
 ours). Pick a transactional mail provider, verify the domain there (its SPF and DKIM records,
@@ -142,8 +171,8 @@ mode Managed. The site key goes into `web.env` as `BEDA_TURNSTILE_SITE_KEY` (the
 `docker compose -f deploy/compose.yaml up -d web` with the current `BEDA_TAG`), the secret key
 into Attack Protection in the Supabase dashboard. Nowhere else.
 
-After the first release, check sign-in on `https://beda.lol/voiti` (magic link, code and
-GitHub; `/dev/auth` shows what the server and the API see), the cabinet `https://beda.lol/kabinet`
+After the first release, check sign-in on `https://beda.lol/voiti` (magic link, code, GitHub,
+Google and X; `/dev/auth` shows what the server and the API see), the cabinet `https://beda.lol/kabinet`
 (sign-out, sign-out on all devices), then promote yourself (after one GitHub sign-in):
 
 ```sh

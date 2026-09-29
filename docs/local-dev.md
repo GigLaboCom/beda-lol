@@ -139,8 +139,8 @@ running stack (`task dev`):
 
 - a magic link from the header's «Войти» and back to the page, the cabinet, sign-out;
 - a code on `/dev/auth`, with `/api/me` from the server and from the browser;
-- the GitHub round trip up to GitHub's authorize page, with a cancelled sign-in coming back
-  as failed (no GitHub account needed);
+- a button for each OAuth provider (GitHub, Google, X), and for each the round trip up to
+  its authorize page, with a cancelled sign-in coming back as failed (no accounts needed);
 - sign-out on all devices: the other browser's session can no longer be refreshed;
 - account deletion from the cabinet;
 - English: the English mail and the English cabinet.
@@ -154,20 +154,30 @@ pnpm --filter web e2e
 `http://127.0.0.1:54324`) point it elsewhere. It is not part of `task check`: CI has no
 Supabase stack.
 
-### Sign in with GitHub locally
+### OAuth sign-in locally (GitHub, Google, X)
 
-GitHub is enabled in `supabase/config.toml`, with its keys read from `supabase/.env`
-(gitignored). Without the keys the stack still starts; only the GitHub button fails.
+The providers the site knows are `apps/web/src/lib/auth/providers.ts`. All of them are enabled
+in `supabase/config.toml`, with their keys read from `supabase/.env` (gitignored). Without a
+provider's keys the stack still starts; only that button fails. In dev the site shows every
+button; `BEDA_AUTH_PROVIDERS=github` (a comma list) shows fewer, and production sets it from
+`deploy/scripts/supabase-setup.sh`.
 
-1. Create an OAuth app for development: GitHub → Settings → Developer settings → OAuth Apps
-   → New OAuth App. Homepage URL `http://localhost:4321`, authorization callback URL
-   `http://127.0.0.1:54321/auth/v1/callback` (the local Supabase API port).
-2. `cp supabase/.env.example supabase/.env` and fill in the client ID and a generated
-   client secret. The CLI reads `.env` from `supabase/`, not from the repo root.
-3. `supabase stop && supabase start`, then press «Войти через GitHub» on `/dev/auth`.
+Each provider takes a development app with the callback URL
+`http://127.0.0.1:54321/auth/v1/callback` (the local Supabase API port):
 
-Identities with the same email are linked into one user (ADR 0003): a magic link and GitHub
-with the same address give the same user and account.
+- GitHub: Settings → Developer settings → OAuth Apps → New OAuth App, homepage
+  `http://localhost:4321`.
+- Google: Google Cloud console → Google Auth Platform → Clients → Web application, JavaScript
+  origin `http://localhost:4321`; while the app is in Testing, add yourself as a test user.
+- X: developer.x.com → an app → User authentication settings: Web App, Request email from
+  users on (see `deploy/SERVER-SETUP.md` §4a).
+
+Then `cp supabase/.env.example supabase/.env`, fill in the client IDs and secrets you have (the
+CLI reads `.env` from `supabase/`, not from the repo root), `supabase stop && supabase start`,
+and press the button on `/voiti`.
+
+Identities with the same email are linked into one user (ADR 0003): a magic link, GitHub and
+Google with the same address give the same user and account.
 
 ## How the local database differs from Supabase
 

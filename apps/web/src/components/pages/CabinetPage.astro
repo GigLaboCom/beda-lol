@@ -1,7 +1,8 @@
 ---
-import { getLangFromUrl, getLocalizedPath, type Key, useTranslations } from '../../i18n';
+import { getLangFromUrl, getLocalizedPath, useTranslations } from '../../i18n';
 import Base from '../../layouts/Base.astro';
 import type { Cabinet } from '../../lib/auth/cabinet';
+import { isOAuthProvider, PROVIDER_NAMES } from '../../lib/auth/providers';
 /**
  * `/kabinet` and `/en/kabinet`: who is signed in, sign-out here or everywhere, and account
  * deletion. Everything is a plain form POST, so the page needs no JS.
@@ -18,11 +19,9 @@ const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const home = getLocalizedPath('/', lang);
 const deleteFailed = Astro.url.searchParams.get('delete') === 'failed';
-const methodKey: Record<string, Key> = {
-  email: 'cabinet.method.email',
-  github: 'cabinet.method.github',
-};
-const methods = cabinet.providers.map((p) => (methodKey[p] ? t(methodKey[p]) : p)).join(', ');
+const method = (p: string) =>
+  p === 'email' ? t('cabinet.method.email') : isOAuthProvider(p) ? PROVIDER_NAMES[p] : p;
+const methods = cabinet.providers.map(method).join(', ');
 Astro.response.headers.set('cache-control', 'no-store');
 ---
 

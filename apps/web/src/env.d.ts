@@ -6,7 +6,7 @@ declare namespace App {
     auth: {
       userId: string;
       email: string | null;
-      /** Sign-in methods the user has (`email`, `github`), from the token's app metadata. */
+      /** Sign-in methods the user has (`email`, `github`, `google`, `x`), from the token's app metadata. */
       providers: string[];
       accessToken: string;
     } | null;

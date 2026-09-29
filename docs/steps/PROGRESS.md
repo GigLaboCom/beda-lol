@@ -35,7 +35,7 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 
 ## Stage 2 — Accounts and tracker
 - [x] S16 Supabase Auth wiring
-- [ ] S17 GitHub provider (repo part done; the OAuth apps await the human)
+- [ ] S17 GitHub provider, plus Google and X (repo part done; the OAuth apps await the human)
 - [ ] S18 Magic link (repo part done; SMTP, the sending domain and the Turnstile widget await the human)
 - [ ] S19 Login UI and cabinet (repo part done; the production secret key and a joint check await the human)
 
@@ -664,3 +664,39 @@ See `ROADMAP.md`. Expand each into a step file before starting it (S16–S19 ran
   - pre-commit in a throwaway clone: a staged secret gives exit 1 with the value redacted; clean changes give 0; without gitleaks, 0 with the note;
   - actionlint on both workflows;
   - every Taskfile command parses as a string: a `: ` in the new echo had first made YAML read it as a mapping.
+
+### Google and X sign-in (out of step, the human's request «надо добавить войти через гугл и Х и настроить супабейс также») — 2026-09-29
+- Done:
+  - `apps/web/src/lib/auth/providers.ts` is the one list of OAuth providers: `github`, `google` and `x` (Supabase's X / Twitter OAuth 2.0 provider, not the legacy `twitter` one). It holds their brand names, and `parseProviders` reads `BEDA_AUTH_PROVIDERS`.
+  - `authConfig` has `providers`. When `BEDA_AUTH_PROVIDERS` is unset, dev shows every provider and production shows none, the same pattern as the Turnstile key. So production never shows a button for a provider Supabase has off.
+  - `SignIn`: one button per provider («Войти через {name}»). With none, the «или по почте» separator goes too.
+  - `/voiti`: the lead names the providers the page offers («через GitHub, Google или X — или по почте», joined by `Intl.ListFormat`). With none, it names e-mail only.
+  - The `auth.failed` message no longer names GitHub.
+  - The cabinet takes method names from the same list.
+  - `supabase/config.toml`: `[auth.external.google]` and `[auth.external.x]`, keys from `supabase/.env` like GitHub's. `supabase/.env.example` has the four new variables.
+  - `deploy/scripts/supabase-setup.sh`:
+    - reads `GOOGLE_CLIENT_ID`/`GOOGLE_SECRET` and `X_CLIENT_ID`/`X_SECRET` in one loop with GitHub;
+    - keeps a provider it is not given as the project has it;
+    - after the change, reads the project's auth config and writes `BEDA_AUTH_PROVIDERS` into the web.env part of its output.
+  - A unit test holds the script's `OAUTH_PROVIDERS` and the `config.toml` sections to `providers.ts`. The two files are now inputs of `web:test` in Nx.
+  - Docs:
+    - `deploy/SERVER-SETUP.md` §4a covers the script variables and `BEDA_AUTH_PROVIDERS`, plus the steps for the Google OAuth client and the X app.
+    - `docs/local-dev.md`: "OAuth sign-in locally".
+    - `deploy/web.env.example`.
+    - ADR 0003 covers linking: Google joins by verified address. X requires the e-mail permission; an X account without a confirmed address cannot sign in, and `email_optional` stays off.
+- Verified:
+  - Local Supabase after the restart: `/authorize` for each provider redirects to its authorize page (`github.com/login/oauth/authorize`, `accounts.google.com/o/oauth2/v2/auth`, `x.com/i/oauth2/authorize`).
+  - e2e: 18/18 in Chromium and WebKit. That is a new test for the buttons and the lead, and the denied round trip for each of the three providers.
+  - The script against a mock Management API:
+    - GitHub + X, then Google alone: the second run keeps the other two, and the value is `github,google,x`;
+    - the PATCH bodies carry only the given providers;
+    - no secret in the output;
+    - shellcheck is clean.
+  - Screenshots of `/voiti` at 375 and 1280 px, ru and en: no horizontal scroll.
+  - Nx lint/typecheck/test/build, `astro check` 0 errors, the JSON-LD audit (0 errors, the 6 known warnings), gitleaks on the history, the changes and `dist`.
+  - The Rust API is untouched.
+- New deps: none.
+- [HUMAN] open:
+  - the Google OAuth client and the X app (`deploy/SERVER-SETUP.md` §4a), then the script with their keys and a web restart;
+  - the privacy policy and terms URLs that X requires for the e-mail permission, and Google's consent screen asks for (legal pages are S21; until then, X sign-in cannot be switched on in production).
+

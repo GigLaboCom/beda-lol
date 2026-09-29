@@ -2,13 +2,15 @@ import { useState } from 'preact/hooks';
 import { fmt, type Locale, useTranslations } from '../../i18n';
 import { browserClient } from '../../lib/auth/browser';
 import type { AuthConfig } from '../../lib/auth/config';
+import { type OAuthProvider, PROVIDER_NAMES } from '../../lib/auth/providers';
 import Turnstile from './Turnstile';
 
 /**
- * The sign-in forms, used by `/voiti` and the `/dev/auth` bench: GitHub, or a mail with a
- * magic link and a one-time code (the send is behind Turnstile when it is on).
+ * The sign-in forms, used by `/voiti` and the `/dev/auth` bench: a button per OAuth
+ * provider in `cfg.providers`, or a mail with a magic link and a one-time code (the send is
+ * behind Turnstile when it is on).
  *
- * The link and GitHub come back through `/auth/callback` to this same page, which then
+ * The link and the providers come back through `/auth/callback` to this same page, which then
  * sends a signed-in visitor on (or shows `?auth=failed`). The code signs in right here,
  * then goes to `next`.
  */
@@ -39,10 +41,10 @@ export default function SignIn({
     return `${location.origin}/auth/callback?next=${encodeURIComponent(back)}`;
   }
 
-  async function github() {
-    // Leaves for GitHub; comes back to /auth/callback with a PKCE code.
+  async function oauth(provider: OAuthProvider) {
+    // Leaves for the provider; comes back to /auth/callback with a PKCE code.
     const { error } = await supabase().auth.signInWithOAuth({
-      provider: 'github',
+      provider,
       options: { redirectTo: callback() },
     });
     if (error) fail(error.message);
@@ -77,10 +79,23 @@ export default function SignIn({
 
   return (
     <div class="sign-in">
-      <button class="btn btn-brass" type="button" onClick={github}>
-        {t('auth.github')}
-      </button>
-      <p class="sign-in-or">{t('auth.or')}</p>
+      {cfg.providers.length > 0 && (
+        <>
+          <div class="sign-in-oauth">
+            {cfg.providers.map((provider) => (
+              <button
+                key={provider}
+                class="btn btn-brass"
+                type="button"
+                onClick={() => oauth(provider)}
+              >
+                {fmt(t('auth.oauth'), { name: PROVIDER_NAMES[provider] })}
+              </button>
+            ))}
+          </div>
+          <p class="sign-in-or">{t('auth.or')}</p>
+        </>
+      )}
       <form onSubmit={send}>
         <label for="authEmail">{t('auth.email')}</label>
         <input

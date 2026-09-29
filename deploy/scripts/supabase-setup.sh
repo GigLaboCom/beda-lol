@@ -15,7 +15,12 @@
 #   TURNSTILE_SECRET                Turnstile via Auth's CAPTCHA (set it only once the
 #                                   site key is in web.env, or e-mail sign-in fails)
 #   GITHUB_CLIENT_ID, GITHUB_SECRET the GitHub provider
+#   GOOGLE_CLIENT_ID, GOOGLE_SECRET the Google provider
+#   X_CLIENT_ID, X_SECRET           the X provider (OAuth 2.0)
 #   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_ADMIN_EMAIL [, SMTP_SENDER_NAME]
+#
+# A provider left out keeps what the project has. The web.env part lists every provider
+# the project has on (BEDA_AUTH_PROVIDERS), so the site shows exactly those buttons.
 #
 # Secrets are never printed. Values for /opt/beda/.env and web.env go to
 # $BEDA_SETUP_OUT (default ./supabase-setup.env, mode 600); copy them over and
@@ -32,6 +37,10 @@ API=${SUPABASE_API:-https://api.supabase.com}
 OUT=${BEDA_SETUP_OUT:-./supabase-setup.env}
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 PROJECT="$API/v1/projects/$SUPABASE_PROJECT_REF"
+
+# The site's OAuth providers, as apps/web/src/lib/auth/providers.ts has them (a test keeps
+# the two lists equal).
+OAUTH_PROVIDERS=(github google x)
 
 log() {
   printf 'supabase-setup: %s\n' "$*" >&2
@@ -82,11 +91,16 @@ auth_config() {
       '. + {security_captcha_enabled: true, security_captcha_provider: "turnstile", security_captcha_secret: $s}' <<<"$patch")
     log "captcha: Turnstile on"
   fi
-  if [[ -n ${GITHUB_CLIENT_ID:-} && -n ${GITHUB_SECRET:-} ]]; then
-    patch=$(jq --arg id "$GITHUB_CLIENT_ID" --arg s "$GITHUB_SECRET" \
-      '. + {external_github_enabled: true, external_github_client_id: $id, external_github_secret: $s}' <<<"$patch")
-    log "GitHub provider: on"
-  fi
+  local p up id secret
+  for p in "${OAUTH_PROVIDERS[@]}"; do
+    # Not ${p^^}: macOS ships bash 3.2.
+    up=$(tr '[:lower:]' '[:upper:]' <<<"$p")
+    id=${up}_CLIENT_ID secret=${up}_SECRET
+    [[ -n ${!id:-} && -n ${!secret:-} ]] || continue
+    patch=$(jq --arg p "$p" --arg id "${!id}" --arg s "${!secret}" \
+      '. + {"external_\($p)_enabled": true, "external_\($p)_client_id": $id, "external_\($p)_secret": $s}' <<<"$patch")
+    log "$p provider: on"
+  done
   if [[ -n ${SMTP_HOST:-} ]]; then
     : "${SMTP_PORT:?SMTP_PORT is required with SMTP_HOST}" "${SMTP_USER:?}" "${SMTP_PASS:?}" "${SMTP_ADMIN_EMAIL:?}"
     patch=$(jq --arg h "$SMTP_HOST" --arg p "$SMTP_PORT" --arg u "$SMTP_USER" --arg pw "$SMTP_PASS" \
@@ -128,6 +142,14 @@ db_password() {
   printf '%s' "$pass"
 }
 
+# The site's providers the project has on, comma-separated, for BEDA_AUTH_PROVIDERS.
+enabled_providers() {
+  local list
+  list=$(printf '%s\n' "${OAUTH_PROVIDERS[@]}" | jq -R . | jq -s .)
+  api GET /config/auth |
+    jq -r --argjson list "$list" '. as $c | [$list[] | select($c["external_\(.)_enabled"] == true)] | join(",")'
+}
+
 check_signing_keys() {
   local keys
   if ! keys=$(api GET /config/auth/signing-keys); then
@@ -143,7 +165,7 @@ check_signing_keys() {
 }
 
 main() {
-  local secret publishable pass=''
+  local secret publishable providers pass=''
   command -v jq >/dev/null || { log "jq is required"; exit 1; }
   # Checked before anything changes; it also keeps the SQL literal and the URL safe.
   if [[ -n ${BEDA_API_DB_PASSWORD:-} && $BEDA_API_DB_PASSWORD != generate &&
@@ -154,6 +176,8 @@ main() {
   auth_config
   secret=$(secret_key)
   publishable=$(publishable_key)
+  providers=$(enabled_providers)
+  log "sign-in buttons: ${providers:-e-mail only}"
   if [[ -n ${BEDA_API_DB_PASSWORD:-} ]]; then pass=$(db_password); fi
   check_signing_keys
 
@@ -171,6 +195,7 @@ main() {
       echo "# /opt/beda/web.env"
       echo "BEDA_SUPABASE_URL=https://$SUPABASE_PROJECT_REF.supabase.co"
       echo "BEDA_SUPABASE_PUBLISHABLE_KEY=$publishable"
+      echo "BEDA_AUTH_PROVIDERS=$providers"
     } >"$OUT"
   )
   log "values written to $OUT (mode 600)"

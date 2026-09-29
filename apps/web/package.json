@@ -60,6 +60,14 @@
           "^build",
           "og"
         ]
+      },
+      "test": {
+        "inputs": [
+          "default",
+          "^production",
+          "{workspaceRoot}/deploy/scripts/supabase-setup.sh",
+          "{workspaceRoot}/supabase/config.toml"
+        ]
       }
     }
   }
