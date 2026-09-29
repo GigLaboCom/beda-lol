@@ -35,9 +35,10 @@ Tick a step only when its "Done when" list is fully met and `task check` passes.
 
 ## Stage 2 — Accounts and tracker
 - [x] S16 Supabase Auth wiring
+- [ ] S17 GitHub provider (repo part done; the OAuth apps await the human)
 
 ## Stages 2–6
-See `ROADMAP.md`. Expand each into a step file before starting it (S16's API part ran without one, by the human's decision).
+See `ROADMAP.md`. Expand each into a step file before starting it (S16 and S17 ran from their ROADMAP lines, by the human's decision).
 
 ---
 
@@ -464,3 +465,47 @@ See `ROADMAP.md`. Expand each into a step file before starting it (S16's API par
   - Production `.env` (`deploy/` is outside this step): for the web container, `BEDA_SUPABASE_PUBLISHABLE_KEY` and `BEDA_API_URL=http://api:8080`. `BEDA_SUPABASE_URL` is already there; add them to `deploy/.env.example` in S06.
   - In the Supabase dashboard: asymmetric JWT signing keys; site URL `https://beda.lol`; redirect URL `https://beda.lol/auth/callback`; email sign-ups; the magic-link template (S18).
   - Try it together: `task dev`, then http://localhost:4321/dev/auth.
+
+### S06 (addendum) — deploy files for sign-in — 2026-09-29
+- Ask: prepare everything the deploy needs after S16, and list what the human has to do (S06 is still open, so its `deploy/` files are in scope).
+- Done:
+  - **The web container has its own env file.** `/opt/beda/web.env` (from `deploy/web.env.example`) holds `BEDA_SUPABASE_URL`, `BEDA_SUPABASE_PUBLISHABLE_KEY` and `BEDA_INDEXNOW_KEY`, which are public values. The database and backup secrets in `/opt/beda/.env` no longer reach the web container. Compose sets `BEDA_API_URL=http://api:8080`. The file is optional (`required: false`); without it, sign-in is off.
+  - `deploy/.env.example` is now for the api and backup containers only. It lists the optional `BEDA_JWT_ISSUER`, `BEDA_ORIGIN_CHECK` and `BEDA_ALLOWED_ORIGINS`.
+  - `BEDA_INDEXNOW_KEY` (S14) had not been listed anywhere; it is in `web.env.example` now.
+  - `deploy/SERVER-SETUP.md`:
+    - §4 covers both files;
+    - new §4a, "Supabase project", lists the dashboard settings: asymmetric JWT keys, URL configuration, email and GitHub providers, SMTP, the magic-link template, and the `beda_api` password;
+    - it covers the production GitHub OAuth app, the check on `/dev/auth` after the first release, and `admin promote` on the server.
+  - `deploy/README.md` documents both files and `BEDA_WEB_ENV_FILE`. The local compose web service gets `BEDA_API_URL`.
+- Verified: `docker compose config` for both files. With a test `web.env`, the web service gets only that file's values plus `BEDA_API_URL`; without the file, it starts with sign-in off.
+- Open, not done: **`task prod:up` has been broken since S16.** In prod mode the API needs `BEDA_SUPABASE_URL`, and `tmp/prod-local.env` does not set it. My `Taskfile.yml` edit was refused by the permission check, so it is left to the human. The fix is two more lines in the `prod:up` block that writes `tmp/prod-local.env`:
+  - `echo "BEDA_SUPABASE_URL=$(echo '{{.LOCAL_SUPABASE_URL}}' | sed 's#//127.0.0.1:#//host.docker.internal:#')"`
+  - `echo "BEDA_JWT_ISSUER={{.LOCAL_SUPABASE_URL}}/auth/v1"`
+
+  Sign-in on the site stays off in `prod:up`: the browser and the container would need the same Supabase URL.
+- [HUMAN] open: `/opt/beda/web.env` on the server, and §4a of `deploy/SERVER-SETUP.md`. The rest of S06 is as listed in its entry.
+
+### S17 — GitHub provider — 2026-09-29 (repo part done; not ticked until the OAuth apps exist and a real GitHub sign-in passes)
+- Done:
+  - `supabase/config.toml`: `[auth.external.github]` is enabled. Its keys come from `supabase/.env` (gitignored; the variable names are in `supabase/.env.example`). The stack starts without them too, as in CI, and only the GitHub button fails.
+  - `/dev/auth`: a «Войти через GitHub» button, `signInWithOAuth` with PKCE, back through `/auth/callback`. A denied or cancelled GitHub sign-in lands on `?auth=failed` with the message.
+  - Docs:
+    - account linking as Supabase does it (ADR 0003): same email, same user, same account; a different email gives a separate user; manual linking stays off;
+    - `docs/local-dev.md`, "Sign in with GitHub locally": the dev OAuth app with callback `http://127.0.0.1:54321/auth/v1/callback`;
+    - the production app in `deploy/SERVER-SETUP.md` §4a.
+- Verified on the local stack (CLI 2.117) with a fake client id:
+  - Supabase's `/authorize` redirects to `github.com/login/oauth/authorize` with the client id, `redirect_uri` `…/auth/v1/callback`, scope `user:email` and a PKCE challenge, and the code-verifier cookie is set.
+  - GitHub's `access_denied` answer, replayed into Supabase's callback, ends on `/dev/auth?auth=failed`: the message is shown, the user is signed out, and there are no page errors. Chromium and WebKit.
+  - The link and code sign-in e2e still passes in both browsers.
+  - `supabase start` works with the keys set, with `supabase/.env` missing, and with it copied empty from the example.
+  - TS typecheck, test and build; Biome.
+  - A real GitHub round trip needs the OAuth app.
+- Deviations:
+  - No step file; the step ran from its ROADMAP line.
+  - The GitHub step was checked with a one-off script in the session scratchpad: the edit to the plan pack's `auth-e2e.mjs` was refused by the permission check.
+- New deps: none.
+- [HUMAN] open:
+  - A dev OAuth app with callback `http://127.0.0.1:54321/auth/v1/callback`; its keys go into `supabase/.env`.
+  - A prod OAuth app with callback `https://<project-ref>.supabase.co/auth/v1/callback`; its keys go into the Supabase dashboard (GitHub provider).
+  - Then sign in with GitHub on `/dev/auth` together, and run `beda-api admin promote <login>`.
+

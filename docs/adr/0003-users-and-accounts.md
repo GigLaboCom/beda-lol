@@ -22,6 +22,7 @@ Stage 2 adds sign-in (Supabase Auth, amendment П-1) and per-user data: the trac
 - **Tenancy rule:** a table that holds user data carries `account_id` (references `app.accounts`). Handlers read and write it only with `user.account.id` from `CurrentUser`, never with an id taken from the request body.
 
 - **On the site:** `@supabase/ssr` keeps the session in cookies. The middleware verifies it with `getClaims()` and sets `locals.auth` on on-demand pages. Server code calls the API with `apiFromServer(locals, …)`, islands with `apiFetch(cfg, …)`: both send the access token as a bearer header, and the browser uses supabase-js only to sign in.
+- **Sign-in methods and linking (S17):** GitHub and the magic link, as Supabase implements them. Supabase links identities automatically by email ([Identity Linking](https://supabase.com/docs/guides/auth/auth-identity-linking)). When a GitHub sign-in brings the same email as an existing user, the GitHub identity joins that `auth.users` row. It keeps the same `app.users` row and personal account, because the provisioning trigger fires only on insert. Unconfirmed identities of that user are dropped, which prevents pre-account takeover. A GitHub account with a different email becomes a separate user. Manual linking (`linkIdentity`) stays off (`enable_manual_linking = false`) until the cabinet (S19) needs it. `beda-api admin promote` finds users by their GitHub identity, linked or not.
 
 ## Consequences
 

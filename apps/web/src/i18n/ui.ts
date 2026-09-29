@@ -43,11 +43,13 @@ const ru = {
   'authdev.lead':
     'Стенд для проверки входа: сессия Supabase в cookie, токен в Rust API, пользователь и аккаунт из /api/me.',
   'authdev.off': 'Вход выключен: не заданы BEDA_SUPABASE_URL и BEDA_SUPABASE_PUBLISHABLE_KEY.',
-  'authdev.failed': 'Вход не удался: ссылка устарела или уже использована.',
+  'authdev.failed':
+    'Вход не удался: ссылка устарела или уже использована, или вход через GitHub отменён.',
   'authdev.server': 'Сервер видит',
   'authdev.signedIn': 'вошли: {who}',
   'authdev.signedOut': 'не вошли',
   'authdev.serverMe': 'GET /api/me с сервера: {status}',
+  'authdev.github': 'Войти через GitHub',
   'authdev.email': 'Почта',
   'authdev.send': 'Прислать ссылку и код',
   'authdev.sent': 'Письмо отправлено. Откройте ссылку или введите код из письма.',
@@ -240,11 +242,13 @@ const en: Record<Key, string> = {
   'authdev.lead':
     'A bench for sign-in: the Supabase session in cookies, the token to the Rust API, the user and account from /api/me.',
   'authdev.off': 'Sign-in is off: BEDA_SUPABASE_URL and BEDA_SUPABASE_PUBLISHABLE_KEY are not set.',
-  'authdev.failed': 'Sign-in failed: the link has expired or was already used.',
+  'authdev.failed':
+    'Sign-in failed: the link has expired or was already used, or GitHub sign-in was cancelled.',
   'authdev.server': 'The server sees',
   'authdev.signedIn': 'signed in: {who}',
   'authdev.signedOut': 'not signed in',
   'authdev.serverMe': 'GET /api/me from the server: {status}',
+  'authdev.github': 'Sign in with GitHub',
   'authdev.email': 'Email',
   'authdev.send': 'Send a link and a code',
   'authdev.sent': 'Email sent. Open the link or type the code from it.',

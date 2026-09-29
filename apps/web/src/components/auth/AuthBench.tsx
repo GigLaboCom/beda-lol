@@ -3,7 +3,7 @@ import { fmt, type Locale, useTranslations } from '../../i18n';
 import { apiFetch, browserClient } from '../../lib/auth/browser';
 import type { AuthConfig } from '../../lib/auth/config';
 
-/** Dev sign-in bench (`/dev/auth`): magic link or OTP code, `/api/me` from the browser, sign-out. */
+/** Dev sign-in bench (`/dev/auth`): GitHub, magic link or OTP code, `/api/me` from the browser, sign-out. */
 export default function AuthBench({
   cfg,
   lang = 'ru',
@@ -20,14 +20,23 @@ export default function AuthBench({
   const [me, setMe] = useState('');
   const supabase = () => browserClient(cfg);
   const fail = (message: string) => setStatus(fmt(t('authdev.error'), { message }));
+  const callback = () =>
+    `${location.origin}/auth/callback?next=${encodeURIComponent(location.pathname)}`;
+
+  async function github() {
+    // Leaves for GitHub; comes back to /auth/callback with a PKCE code.
+    const { error } = await supabase().auth.signInWithOAuth({
+      provider: 'github',
+      options: { redirectTo: callback() },
+    });
+    if (error) fail(error.message);
+  }
 
   async function send(e: Event) {
     e.preventDefault();
     const { error } = await supabase().auth.signInWithOtp({
       email,
-      options: {
-        emailRedirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(location.pathname)}`,
-      },
+      options: { emailRedirectTo: callback() },
     });
     if (error) fail(error.message);
     else setStatus(t('authdev.sent'));
@@ -58,6 +67,9 @@ export default function AuthBench({
     <div class="auth-bench">
       {!signedIn && (
         <>
+          <button class="btn btn-brass" type="button" onClick={github}>
+            {t('authdev.github')}
+          </button>
           <form onSubmit={send}>
             <label for="authEmail">{t('authdev.email')}</label>
             <input

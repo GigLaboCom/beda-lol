@@ -120,6 +120,21 @@ production project is configured in the Supabase dashboard).
 The local stack signs tokens with ES256, so no signing key setup is needed. The compose
 stacks below have no Supabase Auth: `/api/me` answers 503 there.
 
+### Sign in with GitHub locally
+
+GitHub is enabled in `supabase/config.toml`, with its keys read from `supabase/.env`
+(gitignored). Without the keys the stack still starts; only the GitHub button fails.
+
+1. Create an OAuth app for development: GitHub → Settings → Developer settings → OAuth Apps
+   → New OAuth App. Homepage URL `http://localhost:4321`, authorization callback URL
+   `http://127.0.0.1:54321/auth/v1/callback` (the local Supabase API port).
+2. `cp supabase/.env.example supabase/.env` and fill in the client ID and a generated
+   client secret. The CLI reads `.env` from `supabase/`, not from the repo root.
+3. `supabase stop && supabase start`, then press «Войти через GitHub» on `/dev/auth`.
+
+Identities with the same email are linked into one user (ADR 0003): a magic link and GitHub
+with the same address give the same user and account.
+
 ## How the local database differs from Supabase
 
 The compose `db` is plain Postgres 17 with just what our migrations need from
